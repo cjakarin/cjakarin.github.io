@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Structure Visualizer — เรียนรู้ด้วย C++ Animation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="menu-main">
+    <div class="container">
+      <div class="menu-hero">
+        <div class="menu-badge">
+          <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+          Interactive Data Structure Visualizer
+        </div>
+        <h1 class="menu-title">
+          เรียนรู้ Data Structures
+          <br>
+          <span class="menu-title-grad">พร้อม C++ Code แบบ step-by-step</span>
+        </h1>
+        <p class="menu-sub">
+          เลือกโครงสร้างข้อมูลและวิธี implement — ทุก operation จะแสดงทั้ง
+          <strong>animation</strong> และ <strong>C++ code</strong> ที่ไฮไลต์บรรทัดตามจังหวะ
+        </p>
+      </div>
+
+      <div class="menu-grid" id="menu-grid"></div>
+
+      <div class="menu-footer-note">
+        <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span>HTML + JavaScript · C++ Syntax Highlight · เนื้อหาเพื่อการศึกษา</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    const cards = [
+      {
+        href: 'linkedlist-array.html',
+        cls: 'll-array',
+        icon: window.DS.ICONS.listChecks,
+        title: 'Linked List',
+        sub: 'Array Implementation',
+        desc: 'ลิสต์ที่เก็บใน array ตายตัว — insert/delete ต้องเลื่อน element อื่น ๆ',
+        tags: ['insertHead', 'insertTail', 'insertAt', 'deleteAt', 'search', 'traverse'],
+      },
+      {
+        href: 'linkedlist-pointer.html',
+        cls: 'll-pointer',
+        icon: window.DS.ICONS.listChecks,
+        title: 'Linked List',
+        sub: 'Pointer Implementation',
+        desc: 'ลิสต์ที่เชื่อมด้วย pointer แต่ละ node เก็บ data + next — insert/delete ไม่ต้องเลื่อน',
+        tags: ['insertHead', 'insertTail', 'insertAt', 'deleteAt', 'search', 'traverse'],
+      },
+      {
+        href: 'stack-array.html',
+        cls: 'stack-array',
+        icon: window.DS.ICONS.layers,
+        title: 'Stack',
+        sub: 'Array Implementation',
+        desc: 'สแต็ก LIFO ที่เก็บใน array ใช้ top index บอกตำแหน่งบนสุด',
+        tags: ['push', 'pop', 'peek'],
+      },
+      {
+        href: 'stack-pointer.html',
+        cls: 'stack-pointer',
+        icon: window.DS.ICONS.layers,
+        title: 'Stack',
+        sub: 'Pointer Implementation',
+        desc: 'สแต็ก LIFO ที่ใช้ linked list — top pointer ชี้ Node บนสุด',
+        tags: ['push', 'pop', 'peek'],
+      },
+      {
+        href: 'queue-array.html',
+        cls: 'queue-array',
+        icon: window.DS.ICONS.arrowRight,
+        title: 'Queue',
+        sub: 'Array Implementation',
+        desc: 'คิว FIFO ที่เก็บใน array ใช้ front และ rear index',
+        tags: ['enqueue', 'dequeue', 'front'],
+      },
+      {
+        href: 'queue-pointer.html',
+        cls: 'queue-pointer',
+        icon: window.DS.ICONS.arrowRight,
+        title: 'Queue',
+        sub: 'Pointer Implementation',
+        desc: 'คิว FIFO ที่ใช้ linked list — มี front และ rear pointer แยกกัน',
+        tags: ['enqueue', 'dequeue', 'front'],
+      },
+    ];
+
+    const grid = document.getElementById('menu-grid');
+    for (const c of cards) {
+      const card = window.DS.el('a', { class: `menu-card ${c.cls}`, href: c.href });
+      const head = window.DS.el('div', { class: 'menu-card-head' });
+      head.appendChild(window.DS.el('div', { class: 'menu-card-icon', html: c.icon }));
+      const arrow = window.DS.el('div', { class: 'menu-card-arrow', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' });
+      head.appendChild(arrow);
+      card.appendChild(head);
+
+      card.appendChild(window.DS.el('div', { class: 'menu-card-title' }, c.title));
+      card.appendChild(window.DS.el('div', { class: 'menu-card-sub' }, c.sub));
+      card.appendChild(window.DS.el('p', { class: 'menu-card-desc' }, c.desc));
+
+      const tags = window.DS.el('div', { class: 'menu-card-tags' });
+      for (const t of c.tags) tags.appendChild(window.DS.el('span', { class: 'menu-card-tag' }, t));
+      card.appendChild(tags);
+
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

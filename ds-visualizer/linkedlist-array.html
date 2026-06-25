@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linked List — Array Implementation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/linkedlist-array.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    // --- State ---
+    let arr = window.LL_ARRAY.makeInitial([10, 25, 7, 42]);
+    let size = arr.length;
+    let insertMode = 'head';  // head | tail | position
+    let valueInput = '17';
+    let posInput = '1';
+    let speed = 700;
+
+    const playback = new Playback({
+      speed,
+      renderer: (step) => renderAll(),
+      onComplete: () => { /* nothing extra */ },
+    });
+
+    // --- Layout ---
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Linked List (Array)',
+      subtitle: 'ลิสต์ที่เก็บใน array — insert/delete ต้องเลื่อน element',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT',
+            barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะแทรก', value: valueInput, onChange: (v) => valueInput = v },
+              {
+                type: 'select', id: 'mode', value: insertMode, onChange: (v) => {
+                  insertMode = v;
+                  const posInputEl = document.getElementById('pos-input-wrap');
+                  if (posInputEl) posInputEl.style.display = v === 'position' ? '' : 'none';
+                },
+                options: [
+                  { value: 'head', label: 'ที่หัว (Head)' },
+                  { value: 'tail', label: 'ที่ท้าย (Tail)' },
+                  { value: 'position', label: 'ที่ตำแหน่ง (Position)' },
+                ],
+              },
+            ],
+            buttons: [
+              {
+                label: 'แทรก', icon: ICONS.plus, kind: 'btn-primary',
+                onClick: () => runInsert(),
+              },
+            ],
+          },
+          {
+            title: 'DELETE',
+            barColor: 'rose',
+            inputs: [
+              { type: 'number', id: 'del-pos', placeholder: 'ตำแหน่งที่จะลบ (0-indexed)', value: posInput, onChange: (v) => posInput = v },
+            ],
+            buttons: [
+              { label: 'ลบ', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runDelete() },
+            ],
+          },
+          {
+            title: 'SEARCH / UTILITY',
+            barColor: 'amber',
+            buttons: [
+              { label: 'Search', icon: ICONS.eye, kind: 'btn-outline-amber', onClick: () => runSearch() },
+              { label: 'Traverse', icon: ICONS.refresh, kind: 'btn-outline-amber', onClick: () => runTraverse() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังดำเนินการ' },
+        { color: '#10b981', label: 'พบ', desc: 'ค้นหาเจอ' },
+        { color: '#ec4899', label: 'i', desc: 'pointer ที่ index' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
+        { color: '#ef4444', label: 'removing', desc: 'กำลังลบ' },
+      ],
+    });
+
+    // Add position input field that conditionally shows
+    const insertSection = handles.opsPanel.children[0];
+    const posWrap = el('div', { id: 'pos-input-wrap', style: 'display:none' });
+    posWrap.appendChild(el('input', {
+      type: 'number', class: 'input', id: 'pos', placeholder: 'ตำแหน่ง (0-indexed)',
+      value: posInput,
+    }));
+    posWrap.querySelector('input').addEventListener('input', (e) => posInput = e.target.value);
+    // Insert after value input
+    const valueInputEl = document.getElementById('value');
+    valueInputEl.parentNode.insertBefore(posWrap, valueInputEl.nextSibling);
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    // --- Operations ---
+    function getSteps() { return playback.steps; }
+
+    function runInsert() {
+      const value = parseInt(valueInput, 10);
+      const v = isNaN(value) ? 0 : value;
+      const pos = parseInt(posInput, 10);
+      let steps;
+      if (insertMode === 'head') {
+        steps = window.LL_ARRAY.insertHead(arr, size, v);
+      } else if (insertMode === 'tail') {
+        steps = window.LL_ARRAY.insertTail(arr, size, v);
+      } else {
+        steps = window.LL_ARRAY.insertAt(arr, size, v, isNaN(pos) ? 0 : pos);
+      }
+      commitFinalState(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runDelete() {
+      const pos = parseInt(posInput, 10);
+      const steps = window.LL_ARRAY.deleteAt(arr, size, isNaN(pos) ? 0 : pos);
+      commitFinalState(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runSearch() {
+      const value = parseInt(valueInput, 10);
+      const v = isNaN(value) ? 0 : value;
+      const steps = window.LL_ARRAY.search(arr, size, v);
+      // Search doesn't change state
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runTraverse() {
+      const steps = window.LL_ARRAY.traverse(arr, size);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinalState(steps) {
+      const last = steps[steps.length - 1];
+      if (last) {
+        arr = last.nodes.map((n) => ({ ...n }));
+        size = last.pointers.size;
+      }
+    }
+
+    function clearAll() {
+      arr = [];
+      size = 0;
+      playback.load([]);
+      renderAll();
+    }
+
+    function resetSample() {
+      arr = window.LL_ARRAY.makeInitial([10, 25, 7, 42]);
+      size = arr.length;
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.LL_ARRAY.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        // Code panel
+        const cppSource = window.CPP_SOURCES.LL_ARRAY[step.operation] || window.CPP_SOURCES.LL_ARRAY.insertHead;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        // Idle state
+        window.LL_ARRAY.render(handles.vizArea, handles.vizMeta, {
+          nodes: arr, roles: {}, pointers: { size, current: null }, codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        const cppSource = window.CPP_SOURCES.LL_ARRAY.insertHead;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    // Initial render
+    renderAll();
+    } catch(e) {
+      console.error('INLINE ERROR:', e.message, e.stack);
+      document.title = 'ERROR: ' + e.message;
+    }
+  </script>
+</body>
+</html>

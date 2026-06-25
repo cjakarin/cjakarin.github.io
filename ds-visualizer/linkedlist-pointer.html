@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linked List — Pointer Implementation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/linkedlist-pointer.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let nodes = window.LL_POINTER.makeInitial([10, 25, 7, 42]);
+    let insertMode = 'head';
+    let valueInput = '17';
+    let posInput = '1';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Linked List (Pointer)',
+      subtitle: 'ลิสต์ที่เชื่อมด้วย pointer — แต่ละ node เก็บ data + next',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะแทรก', value: valueInput, onChange: (v) => valueInput = v },
+              {
+                type: 'select', id: 'mode', value: insertMode, onChange: (v) => {
+                  insertMode = v;
+                  const posWrap = document.getElementById('pos-input-wrap');
+                  if (posWrap) posWrap.style.display = v === 'position' ? '' : 'none';
+                },
+                options: [
+                  { value: 'head', label: 'ที่หัว (Head)' },
+                  { value: 'tail', label: 'ที่ท้าย (Tail)' },
+                  { value: 'position', label: 'ที่ตำแหน่ง (Position)' },
+                ],
+              },
+            ],
+            buttons: [
+              { label: 'แทรก', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+          {
+            title: 'DELETE', barColor: 'rose',
+            inputs: [
+              { type: 'number', id: 'del-pos', placeholder: 'ตำแหน่งที่จะลบ (0-indexed)', value: posInput, onChange: (v) => posInput = v },
+            ],
+            buttons: [
+              { label: 'ลบ', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runDelete() },
+            ],
+          },
+          {
+            title: 'SEARCH / UTILITY', barColor: 'amber',
+            buttons: [
+              { label: 'Search', icon: ICONS.eye, kind: 'btn-outline-amber', onClick: () => runSearch() },
+              { label: 'Traverse', icon: ICONS.refresh, kind: 'btn-outline-amber', onClick: () => runTraverse() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังดำเนินการ' },
+        { color: '#a855f7', label: 'prev', desc: 'Node ก่อนหน้า' },
+        { color: '#10b981', label: 'พบ!', desc: 'ค้นหาเจอ' },
+        { color: '#ec4899', label: 'target', desc: 'เป้าหมาย' },
+        { color: '#14b8a6', label: 'new', desc: 'Node ใหม่' },
+        { color: '#ef4444', label: 'ลบ', desc: 'กำลังถูกลบ' },
+      ],
+    });
+
+    // Position input (conditional)
+    const valueInputEl = document.getElementById('value');
+    const posWrap = el('div', { id: 'pos-input-wrap', style: 'display:none' });
+    posWrap.appendChild(el('input', {
+      type: 'number', class: 'input', id: 'pos', placeholder: 'ตำแหน่ง (0-indexed)', value: posInput,
+    }));
+    posWrap.querySelector('input').addEventListener('input', (e) => posInput = e.target.value);
+    valueInputEl.parentNode.insertBefore(posWrap, valueInputEl.nextSibling);
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      const p = parseInt(posInput, 10);
+      let steps;
+      if (insertMode === 'head') steps = window.LL_POINTER.insertHead(nodes, v);
+      else if (insertMode === 'tail') steps = window.LL_POINTER.insertTail(nodes, v);
+      else steps = window.LL_POINTER.insertAt(nodes, v, isNaN(p) ? 0 : p);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runDelete() {
+      const p = parseInt(posInput, 10);
+      const steps = window.LL_POINTER.deleteAt(nodes, isNaN(p) ? 0 : p);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runSearch() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.LL_POINTER.search(nodes, v);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function runTraverse() {
+      const steps = window.LL_POINTER.traverse(nodes);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) nodes = last.nodes.map((n) => ({ ...n }));
+    }
+
+    function clearAll() {
+      nodes = [];
+      playback.load([]);
+      renderAll();
+    }
+
+    function resetSample() {
+      nodes = window.LL_POINTER.makeInitial([10, 25, 7, 42]);
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.LL_POINTER.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.LL_POINTER[step.operation] || window.CPP_SOURCES.LL_POINTER.insertHead;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.LL_POINTER.render(handles.vizArea, handles.vizMeta, {
+          nodes, roles: {}, pointers: { head: nodes[0]?.id || null, current: null, prev: null, newNode: null },
+          codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.LL_POINTER.insertHead, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

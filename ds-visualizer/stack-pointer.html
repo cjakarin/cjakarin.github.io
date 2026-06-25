@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack — Pointer Implementation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/stack.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    // For pointer stack, arr[0] = top of stack, arr[last] = bottom
+    let arr = window.STACK_POINTER.makeInitial([5, 12, 8]); // display: 8 (bottom) -> 12 -> 5 (top)
+    // makeInitial reversed, so arr = [{8}, {12}, {5}] -> top is {5}
+    // Let's verify: makeInitial([5, 12, 8]) reverses → [{8}, {12}, {5}], so arr[0]={8}? No wait.
+    // Array [5,12,8] reversed is [8,12,5]. So arr[0]={8}, arr[2]={5}. arr[0] should be top.
+    // We want top of stack = 5, so we need arr[0] = {5}. So we should NOT reverse, or use [8,12,5].
+    // Actually let's check: input [5,12,8] means push 5, push 12, push 8 → top = 8.
+    // So we want display: 5 (bottom), 12, 8 (top). arr[0] = top = 8.
+    // makeInitial([5,12,8]) reverses → [{8},{12},{5}]. arr[0]={8}=top. ✓
+    // OK so input order is bottom-to-top in user's mind, we store top-first.
+
+    let valueInput = '23';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Stack (Pointer)',
+      subtitle: 'LIFO · ใช้ linked list · top pointer ชี้ Node บนสุด',
+      iconHtml: ICONS.layers,
+      iconClass: 'stack',
+      opsConfig: {
+        sections: [
+          {
+            title: 'PUSH / POP', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ push', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Push', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runPush() },
+              { label: 'Pop', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runPop() },
+              { label: 'Peek', icon: ICONS.eye, kind: 'btn-outline-purple', onClick: () => runPeek() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'top', desc: 'Node บนสุด' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง push' },
+        { color: '#ec4899', label: 'peek', desc: 'กำลังอ่านค่า' },
+        { color: '#f43f5e', label: 'temp', desc: 'เก็บก่อนลบ' },
+        { color: '#ef4444', label: 'ลบ', desc: 'กำลัง pop' },
+      ],
+    });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn').forEach((b) => b.classList.add('btn-tall'));
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('amber');
+    };
+
+    function runPush() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.STACK_POINTER.push(arr, v);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runPop() {
+      const steps = window.STACK_POINTER.pop(arr);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runPeek() {
+      const steps = window.STACK_POINTER.peek(arr);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) arr = last.nodes.map((n) => ({ ...n }));
+    }
+
+    function clearAll() {
+      arr = [];
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      arr = window.STACK_POINTER.makeInitial([5, 12, 8]);
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.STACK_POINTER.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.STACK_POINTER[step.operation] || window.CPP_SOURCES.STACK_POINTER.push;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.STACK_POINTER.render(handles.vizArea, handles.vizMeta, {
+          nodes: arr, roles: {},
+          pointers: { top: arr.length - 1, topId: arr[0]?.id || null, tempId: null },
+          codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.STACK_POINTER.push, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

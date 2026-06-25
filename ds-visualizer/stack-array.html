@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack — Array Implementation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/stack.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let arr = window.STACK_ARRAY.makeInitial([5, 12, 8]);
+    let top = arr.length - 1;
+    let valueInput = '23';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Stack (Array)',
+      subtitle: 'LIFO · เก็บใน array · ใช้ top index ชี้บนสุด',
+      iconHtml: ICONS.layers,
+      iconClass: 'stack',
+      opsConfig: {
+        sections: [
+          {
+            title: 'PUSH / POP', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ push', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Push', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runPush() },
+              { label: 'Pop', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runPop() },
+              { label: 'Peek', icon: ICONS.eye, kind: 'btn-outline-purple', onClick: () => runPeek() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'top', desc: 'สมาชิกบนสุด' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง push' },
+        { color: '#ec4899', label: 'peek', desc: 'กำลังอ่านค่า' },
+        { color: '#ef4444', label: 'removing', desc: 'กำลัง pop' },
+        { color: '#f43f5e', label: 'overflow', desc: 'สแต็กเต็ม' },
+      ],
+    });
+
+    // Use tall buttons (3 in a row need to fit in 280px)
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn').forEach((b) => {
+      b.classList.add('btn-tall');
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      // Use amber progress bar for stack
+      handles.progressFill.classList.add('amber');
+    };
+
+    function runPush() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.STACK_ARRAY.push(arr, top, v);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runPop() {
+      const steps = window.STACK_ARRAY.pop(arr, top);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runPeek() {
+      const steps = window.STACK_ARRAY.peek(arr, top);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) {
+        arr = last.nodes.map((n) => ({ ...n }));
+        top = last.pointers.top;
+      }
+    }
+
+    function clearAll() {
+      arr = []; top = -1;
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      arr = window.STACK_ARRAY.makeInitial([5, 12, 8]);
+      top = arr.length - 1;
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.STACK_ARRAY.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.STACK_ARRAY[step.operation] || window.CPP_SOURCES.STACK_ARRAY.push;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.STACK_ARRAY.render(handles.vizArea, handles.vizMeta, {
+          nodes: arr, roles: {}, pointers: { top, temp: null }, codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.STACK_ARRAY.push, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

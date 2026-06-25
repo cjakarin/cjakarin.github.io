@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Queue — Array Implementation</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/queue.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let arr = window.QUEUE_ARRAY.makeInitial([11, 27, 9, 35]);
+    let valueInput = '42';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Queue (Array)',
+      subtitle: 'FIFO · เก็บใน array · ใช้ front และ rear index',
+      iconHtml: ICONS.arrowRight,
+      iconClass: 'queue',
+      opsConfig: {
+        sections: [
+          {
+            title: 'ENQUEUE / DEQUEUE', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ enqueue', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Enqueue', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runEnqueue() },
+              { label: 'Dequeue', icon: ICONS.logout, kind: 'btn-danger', onClick: () => runDequeue() },
+              { label: 'Front', icon: ICONS.eye, kind: 'btn-outline-pink', onClick: () => runFront() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'front', desc: 'สมาชิกหน้าสุด' },
+        { color: '#a855f7', label: 'rear', desc: 'สมาชิกท้ายสุด' },
+        { color: '#10b981', label: 'front=rear', desc: 'ตำแหน่งเดียวกัน' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง enqueue' },
+        { color: '#ef4444', label: 'ลบ', desc: 'กำลัง dequeue' },
+      ],
+    });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn').forEach((b) => b.classList.add('btn-tall'));
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
+    };
+
+    function runEnqueue() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.QUEUE_ARRAY.enqueue(arr, v);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runDequeue() {
+      const steps = window.QUEUE_ARRAY.dequeue(arr);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runFront() {
+      const steps = window.QUEUE_ARRAY.front(arr);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) arr = last.nodes.map((n) => ({ ...n }));
+    }
+
+    function clearAll() {
+      arr = [];
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      arr = window.QUEUE_ARRAY.makeInitial([11, 27, 9, 35]);
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.QUEUE_ARRAY.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.QUEUE_ARRAY[step.operation] || window.CPP_SOURCES.QUEUE_ARRAY.enqueue;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.QUEUE_ARRAY.render(handles.vizArea, handles.vizMeta, {
+          nodes: arr, roles: {},
+          pointers: { front: 0, rear: arr.length - 1, temp: null, newIdx: null },
+          codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.QUEUE_ARRAY.enqueue, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>
