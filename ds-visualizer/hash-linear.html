@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hash Table — Linear Probing</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/hash.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    const MOD = window.HASH_LINEAR;
+    const CPP_KEY = 'HASH_LINEAR';
+
+    let table = MOD.makeInitial();
+    let keyInput = '8';
+    let valueInput = 'X';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Hash Table — Linear Probing',
+      subtitle: 'Open addressing · probe = (h + i) % SIZE · เลื่อนทีละช่องจนกว่าจะว่าง',
+      iconHtml: ICONS.arrowRight,
+      iconClass: 'queue',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'key', placeholder: 'key (ตัวเลข)', value: keyInput, onChange: (v) => keyInput = v },
+              { type: 'number', id: 'val', placeholder: 'value (ตัวเลข)', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+          {
+            title: 'SEARCH / DELETE', barColor: 'amber',
+            inputs: [
+              { type: 'number', id: 'key2', placeholder: 'key ที่จะ search/delete', value: keyInput, onChange: (v) => keyInput = v },
+            ],
+            buttons: [
+              { label: 'Search', icon: ICONS.eye, kind: 'btn-outline-amber', onClick: () => runSearch() },
+              { label: 'Delete', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runDelete() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'h', desc: 'ตำแหน่ง hash เริ่มต้น' },
+        { color: '#ec4899', label: 'probe', desc: 'กำลัง probe' },
+        { color: '#10b981', label: 'พบ', desc: 'ค้นเจอ' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
+        { color: '#f43f5e', label: 'DEL', desc: 'tombstone (ถูกลบ)' },
+      ],
+    });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
+    };
+
+    function runInsert() {
+      const k = parseInt(keyInput, 10) || 0;
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = MOD.insert(table, k, v);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runSearch() {
+      const k = parseInt(keyInput, 10) || 0;
+      const steps = MOD.search(table, k);
+      playback.load(steps);
+      playback.play();
+    }
+    function runDelete() {
+      const k = parseInt(keyInput, 10) || 0;
+      const steps = MOD.delete(table, k);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) table = last.buckets.map((s) => s ? { ...s } : null);
+    }
+
+    function clearAll() {
+      table = Array.from({ length: 11 }, () => null);
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      table = MOD.makeInitial();
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        MOD.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES[CPP_KEY][step.operation] || window.CPP_SOURCES[CPP_KEY].insert;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        MOD.render(handles.vizArea, handles.vizMeta, {
+          buckets: table, roles: {}, pointers: {}, codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES[CPP_KEY].insert, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

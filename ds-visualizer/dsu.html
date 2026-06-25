@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disjoint Set Union (Union-Find)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/dsu.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let state = window.DSU.makeInitial();
+    let xInput = '0';
+    let yInput = '1';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Disjoint Set Union (Union-Find)',
+      subtitle: 'Path compression (find) + Union by rank · เก็บแยกกลุ่ม + ตรวจ cycle',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'FIND', barColor: 'amber',
+            inputs: [
+              { type: 'number', id: 'x', placeholder: 'element x', value: xInput, onChange: (v) => xInput = v },
+            ],
+            buttons: [
+              { label: 'Find', icon: ICONS.eye, kind: 'btn-outline-amber', onClick: () => runFind() },
+            ],
+          },
+          {
+            title: 'UNION', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'x2', placeholder: 'element x', value: xInput, onChange: (v) => xInput = v },
+              { type: 'number', id: 'y2', placeholder: 'element y', value: yInput, onChange: (v) => yInput = v },
+            ],
+            buttons: [
+              { label: 'Union', icon: ICONS.refresh, kind: 'btn-primary', onClick: () => runUnion() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังเดิน' },
+        { color: '#10b981', label: 'root', desc: 'root ของ set' },
+        { color: '#ec4899', label: 'path', desc: 'path ที่เดินผ่าน' },
+        { color: '#a855f7', label: 'prev', desc: 'parent ที่เปรียบเทียบ' },
+      ],
+    });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runFind() {
+      const x = parseInt(xInput, 10) || 0;
+      const steps = window.DSU.find(state.parent, state.rank, x);
+      // Update state if path compression happened
+      const last = steps[steps.length - 1];
+      if (last) state = { parent: last.parent.slice(), rank: last.rank.slice() };
+      playback.load(steps);
+      playback.play();
+    }
+    function runUnion() {
+      const x = parseInt(xInput, 10) || 0;
+      const y = parseInt(yInput, 10) || 0;
+      const steps = window.DSU.union(state.parent, state.rank, x, y);
+      const last = steps[steps.length - 1];
+      if (last) state = { parent: last.parent.slice(), rank: last.rank.slice() };
+      playback.load(steps);
+      playback.play();
+    }
+
+    function clearAll() {
+      state = window.DSU.makeInitial();
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      // Create a sample with some unions already done
+      state = window.DSU.makeInitial();
+      // Pre-union: 0-1, 2-3, 4-5
+      const quick = (x, y) => {
+        let rx = x, ry = y;
+        while (state.parent[rx] !== rx) rx = state.parent[rx];
+        while (state.parent[ry] !== ry) ry = state.parent[ry];
+        if (rx !== ry) {
+          if (state.rank[rx] < state.rank[ry]) state.parent[rx] = ry;
+          else if (state.rank[rx] > state.rank[ry]) state.parent[ry] = rx;
+          else { state.parent[ry] = rx; state.rank[rx]++; }
+        }
+      };
+      quick(0, 1);
+      quick(2, 3);
+      quick(4, 5);
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.DSU.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.DSU[step.operation === 'find' ? 'find' : 'union_'] || window.CPP_SOURCES.DSU.find;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.DSU.render(handles.vizArea, handles.vizMeta, {
+          parent: state.parent, rank: state.rank, roles: {}, pointers: {}, codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.DSU.find, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

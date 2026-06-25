@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bellman-Ford (Negative Weights)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/graph.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    const GRAPH = window.GRAPH.bellman;  // Graph with negative weights
+    let sourceInput = '0';  // 0 = 'S'
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Bellman-Ford (รองรับ negative weights)',
+      subtitle: 'วน relax ทุก edge V-1 รอบ · ตรวจ negative cycle ในรอบที่ V · O(V·E)',
+      iconHtml: ICONS.arrowRight,
+      iconClass: 'queue',
+      opsConfig: {
+        sections: [
+          {
+            title: 'CHOOSE SOURCE', barColor: 'emerald',
+            inputs: [
+              {
+                type: 'select', id: 'source', value: sourceInput, onChange: (v) => {
+                  sourceInput = v;
+                  if (playback.steps.length === 0) renderAll();
+                },
+                options: [
+                  { value: '0', label: 'S (index 0)' },
+                  { value: '1', label: 'A (index 1)' },
+                  { value: '2', label: 'B (index 2)' },
+                  { value: '3', label: 'C (index 3)' },
+                  { value: '4', label: 'D (index 4)' },
+                ],
+              },
+            ],
+            buttons: [
+              { label: 'Run Bellman-Ford', icon: ICONS.play, kind: 'btn-primary', onClick: () => runBellman() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลัง relax' },
+        { color: '#ec4899', label: 'edge', desc: 'edge ที่กำลังพิจารณา' },
+        { color: '#10b981', label: 'relaxed', desc: 'มีการอัปเดต' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
+    };
+
+    function runBellman() {
+      const source = parseInt(sourceInput, 10) || 0;
+      const steps = window.GRAPH.bellmanFord(GRAPH, source);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function clearAll() {
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, step, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, step.codeLines || []);
+      } else {
+        const initialStep = window.GRAPH.bellmanFordInitial(GRAPH, parseInt(sourceInput, 10) || 0);
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

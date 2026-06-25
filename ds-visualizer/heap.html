@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Heap / Priority Queue</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/heap.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let arr = window.HEAP.makeInitial();
+    let valueInput = '15';
+    let speed = 700;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Binary Heap / Priority Queue',
+      subtitle: 'Min-Heap · heapify-up (insert) + heapify-down (extractMin)',
+      iconHtml: ICONS.layers,
+      iconClass: 'stack',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT / EXTRACT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ insert', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+              { label: 'ExtractMin', icon: ICONS.trash, kind: 'btn-danger', onClick: () => runExtract() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังเปรียบเทียบ' },
+        { color: '#a855f7', label: 'parent', desc: 'node พ่อแม่' },
+        { color: '#10b981', label: 'done', desc: 'เสร็จสิ้น' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
+        { color: '#ec4899', label: 'swap', desc: 'กำลังสลับ' },
+        { color: '#ef4444', label: 'del', desc: 'กำลัง extract' },
+      ],
+    });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('amber');
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.HEAP.insert(arr, v);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+    function runExtract() {
+      const steps = window.HEAP.extractMin(arr);
+      commitFinal(steps);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function commitFinal(steps) {
+      const last = steps[steps.length - 1];
+      if (last) arr = last.nodes.map((n) => ({ ...n }));
+    }
+
+    function clearAll() {
+      arr = [];
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      arr = window.HEAP.makeInitial();
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.HEAP.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = window.CPP_SOURCES.HEAP[step.operation] || window.CPP_SOURCES.HEAP.insert;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        window.HEAP.render(handles.vizArea, handles.vizMeta, {
+          nodes: arr, roles: {}, pointers: { current: null, parent: null, swap: null }, codeLines: [], description: '',
+        });
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.HEAP.insert, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

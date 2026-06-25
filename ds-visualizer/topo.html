@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topological Sort (Kahn's Algorithm)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/graph.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    const GRAPH = window.GRAPH.dag;  // DAG for topo
+    let speed = 800;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: "Topological Sort (Kahn's Algorithm)",
+      subtitle: 'เรียง nodes ใน DAG ตามลำดับ dependency · ใช้ in-degree + queue · O(V+E)',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'RUN', barColor: 'emerald',
+            buttons: [
+              { label: 'Run Topo Sort', icon: ICONS.play, kind: 'btn-primary', onClick: () => runTopo() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังประมวลผล' },
+        { color: '#10b981', label: 'in result', desc: 'เพิ่มใน order แล้ว' },
+        { color: '#a855f7', label: 'in queue', desc: 'in-deg=0 รอประมวลผล' },
+        { color: '#ec4899', label: 'edge', desc: 'edge ที่กำลังตัด' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runTopo() {
+      const steps = window.GRAPH.topo(GRAPH);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function clearAll() {
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, step, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, step.codeLines || []);
+      } else {
+        const initialStep = window.GRAPH.topoInitial(GRAPH);
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

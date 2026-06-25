@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A* Search (Heuristic-guided)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/graph.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    const GRAPH = window.GRAPH.astarGraph;  // Graph with heuristic
+    let sourceInput = '0';   // S
+    let goalInput = '5';     // G
+    let speed = 800;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'A* Search (Heuristic-guided)',
+      subtitle: 'f(n) = g(n) + h(n) · ใช้ priority queue เลือก f น้อยสุด · เร็วกว่า Dijkstra',
+      iconHtml: ICONS.arrowRight,
+      iconClass: 'queue',
+      opsConfig: {
+        sections: [
+          {
+            title: 'SOURCE', barColor: 'emerald',
+            inputs: [
+              {
+                type: 'select', id: 'source', value: sourceInput, onChange: (v) => {
+                  sourceInput = v;
+                  if (playback.steps.length === 0) renderAll();
+                },
+                options: [
+                  { value: '0', label: 'S (index 0)' },
+                  { value: '1', label: 'A (index 1)' },
+                  { value: '2', label: 'B (index 2)' },
+                  { value: '3', label: 'C (index 3)' },
+                  { value: '4', label: 'D (index 4)' },
+                ],
+              },
+            ],
+          },
+          {
+            title: 'GOAL', barColor: 'amber',
+            inputs: [
+              {
+                type: 'select', id: 'goal', value: goalInput, onChange: (v) => {
+                  goalInput = v;
+                  if (playback.steps.length === 0) renderAll();
+                },
+                options: [
+                  { value: '5', label: 'G (index 5) — default' },
+                  { value: '4', label: 'D (index 4)' },
+                  { value: '3', label: 'C (index 3)' },
+                  { value: '2', label: 'B (index 2)' },
+                  { value: '1', label: 'A (index 1)' },
+                ],
+              },
+            ],
+            buttons: [
+              { label: 'Run A*', icon: ICONS.play, kind: 'btn-primary', onClick: () => runAstar() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังประมวลผล' },
+        { color: '#10b981', label: 'closed', desc: 'เยี่ยมแล้ว' },
+        { color: '#a855f7', label: 'open', desc: 'รอประมวลผล' },
+        { color: '#ec4899', label: 'edge', desc: 'กำลังพิจารณา' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
+    };
+
+    function runAstar() {
+      const source = parseInt(sourceInput, 10) || 0;
+      const goal = parseInt(goalInput, 10) || 5;
+      // Note: heuristic is for goal=5 (G). For other goals, we still use it as approximation.
+      const steps = window.GRAPH.astar(GRAPH, source, goal);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function clearAll() {
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, step, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.ASTAR.astar, step.codeLines || []);
+      } else {
+        const initialStep = window.GRAPH.astarInitial(GRAPH, parseInt(sourceInput, 10) || 0, parseInt(goalInput, 10) || 5);
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, GRAPH);
+        window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.ASTAR.astar, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

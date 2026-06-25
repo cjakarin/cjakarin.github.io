@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Traversal — BFS + DFS</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/graph.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let algo = 'bfs';
+    let sourceInput = '0';
+    let speed = 800;
+
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Graph Traversal — BFS + DFS',
+      subtitle: 'BFS (queue, level-by-level) · DFS (stack, depth-first) · เยี่ยมทุก node ที่ reachable',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'ALGORITHM', barColor: 'emerald',
+            inputs: [
+              {
+                type: 'select', id: 'algo', value: algo, onChange: (v) => {
+                  algo = v;
+                  if (playback.steps.length === 0) renderAll();
+                },
+                options: [
+                  { value: 'bfs', label: 'BFS (Breadth-First)' },
+                  { value: 'dfs', label: 'DFS (Depth-First)' },
+                ],
+              },
+            ],
+            buttons: [
+              { label: 'Run', icon: ICONS.play, kind: 'btn-primary', onClick: () => runTraversal() },
+            ],
+          },
+          {
+            title: 'SOURCE', barColor: 'amber',
+            inputs: [
+              {
+                type: 'select', id: 'source', value: sourceInput, onChange: (v) => {
+                  sourceInput = v;
+                  if (playback.steps.length === 0) renderAll();
+                },
+                options: [
+                  { value: '0', label: 'A (index 0)' },
+                  { value: '1', label: 'B (index 1)' },
+                  { value: '2', label: 'C (index 2)' },
+                  { value: '3', label: 'D (index 3)' },
+                  { value: '4', label: 'E (index 4)' },
+                  { value: '5', label: 'F (index 5)' },
+                ],
+              },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังประมวลผล' },
+        { color: '#10b981', label: 'visited', desc: 'เยี่ยมแล้ว' },
+        { color: '#a855f7', label: 'in queue/stack', desc: 'รอประมวลผล' },
+        { color: '#ec4899', label: 'tree edge', desc: 'edge ใน BFS/DFS tree' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runTraversal() {
+      const source = parseInt(sourceInput, 10) || 0;
+      const steps = algo === 'bfs'
+        ? window.GRAPH.bfs(window.GRAPH.sample, source)
+        : window.GRAPH.dfs(window.GRAPH.sample, source);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function clearAll() {
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      playback.load([]);
+      renderAll();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, step, window.GRAPH.sample);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const cppSource = algo === 'bfs' ? window.CPP_SOURCES.TRAVERSAL.bfs : window.CPP_SOURCES.TRAVERSAL.dfs;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+      } else {
+        // Show graph with initial state
+        const initialStep = algo === 'bfs'
+          ? window.GRAPH.bfsInitial(window.GRAPH.sample, parseInt(sourceInput, 10) || 0)
+          : window.GRAPH.dfsInitial(window.GRAPH.sample, parseInt(sourceInput, 10) || 0);
+        window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, window.GRAPH.sample);
+        window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
+        const cppSource = algo === 'bfs' ? window.CPP_SOURCES.TRAVERSAL.bfs : window.CPP_SOURCES.TRAVERSAL.dfs;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

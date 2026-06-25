@@ -704,6 +704,902 @@ public:
   },
 };
 
+// ---------- Hash Table — Separate Chaining ----------
+
+const CPP_HASH_CHAINING = {
+  insert: {
+    title: 'insert',
+    fileName: 'hash_chaining_insert.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+struct Node {
+    int key;
+    int value;
+    Node* next;
+    Node(int k, int v) : key(k), value(v), next(nullptr) {}
+};
+
+class HashTableChaining {
+private:
+    Node* table[SIZE];
+    int hash(int key) { return key % SIZE; }       // 0
+public:
+    HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
+
+    void insert(int key, int value) {
+        int idx = hash(key);                  // 1 คำนวณ hash
+        Node* cur = table[idx];               // 2 เริ่มที่ head ของ chain
+        while (cur != nullptr) {              // 3 วนตรวจ chain
+            if (cur->key == key) {            // 4 พบ key ซ้ำ?
+                cur->value = value;           // 5 อัปเดต value
+                return;                       // 6
+            }
+            cur = cur->next;                  // 7 ไป node ถัดไป
+        }
+        Node* node = new Node(key, value);    // 8 สร้าง node ใหม่
+        node->next = table[idx];              // 9 โยงเข้า head เดิม
+        table[idx] = node;                    // 10 ย้าย head
+    }
+};`,
+  },
+  search: {
+    title: 'search',
+    fileName: 'hash_chaining_search.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+struct Node { int key; int value; Node* next; Node(int k, int v) : key(k), value(v), next(nullptr) {} };
+
+class HashTableChaining {
+private:
+    Node* table[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
+
+    bool search(int key, int& outValue) {
+        int idx = hash(key);                  // 1 คำนวณ hash
+        Node* cur = table[idx];               // 2 เริ่มที่ head ของ chain
+        while (cur != nullptr) {              // 3 วนตรวจ
+            if (cur->key == key) {            // 4 พบ?
+                outValue = cur->value;        // 5 เก็บ value
+                return true;                  // 6 คืน true
+            }
+            cur = cur->next;                  // 7 ไปถัดไป
+        }
+        return false;                         // 8 ไม่พบ
+    }
+};`,
+  },
+  delete: {
+    title: 'delete',
+    fileName: 'hash_chaining_delete.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+struct Node { int key; int value; Node* next; Node(int k, int v) : key(k), value(v), next(nullptr) {} };
+
+class HashTableChaining {
+private:
+    Node* table[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
+
+    void remove(int key) {
+        int idx = hash(key);                  // 1 คำนวณ hash
+        Node* cur = table[idx];               // 2 เริ่มที่ head
+        Node* prev = nullptr;                 // 3 prev = nullptr
+        while (cur != nullptr) {              // 4 วนตรวจ
+            if (cur->key == key) {            // 5 พบ?
+                if (prev) prev->next = cur->next; // 6 โยงข้าม cur
+                else table[idx] = cur->next;  // 7 ลบที่ head
+                delete cur;                   // 8 คืนหน่วยความจำ
+                return;                       // 9
+            }
+            prev = cur;                       // 10 เลื่อน prev
+            cur = cur->next;                  // 11 เลื่อน cur
+        }
+    }
+};`,
+  },
+};
+
+// ---------- Hash Table — Linear Probing ----------
+
+const CPP_HASH_LINEAR = {
+  insert: {
+    title: 'insert',
+    fileName: 'hash_linear_insert.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+const int EMPTY = -1;
+
+class HashTableLinear {
+private:
+    int keys[SIZE];
+    int values[SIZE];
+    bool used[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    void insert(int key, int value) {
+        int h = hash(key);                    // 1 คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // 2 ลอง probe
+            int idx = (h + i) % SIZE;         // 3 linear: (h+i) % SIZE
+            if (!used[idx]) {                 // 4 ช่องว่าง?
+                keys[idx] = key;              // 5 เก็บ key
+                values[idx] = value;          // 6 เก็บ value
+                used[idx] = true;             // 7 ทำเครื่องหมาย
+                return;                       // 8 สำเร็จ
+            }
+            if (keys[idx] == key) {           // 9 key ซ้ำ?
+                values[idx] = value;          // 10 อัปเดต
+                return;                       // 11
+            }
+        }
+        cout << "Table Full\\n";              // 12 เต็ม
+    }
+};`,
+  },
+  search: {
+    title: 'search',
+    fileName: 'hash_linear_search.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableLinear {
+private:
+    int keys[SIZE]; int values[SIZE]; bool used[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    bool search(int key, int& outValue) {
+        int h = hash(key);                    // 1 คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // 2 probe
+            int idx = (h + i) % SIZE;         // 3 (h+i) % SIZE
+            if (!used[idx]) return false;     // 4 ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {           // 5 พบ key?
+                outValue = values[idx];       // 6 เก็บ value
+                return true;                  // 7 คืน true
+            }
+        }
+        return false;                         // 8 probe ครบ → ไม่พบ
+    }
+};`,
+  },
+  delete: {
+    title: 'delete',
+    fileName: 'hash_linear_delete.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableLinear {
+private:
+    int keys[SIZE]; int values[SIZE];
+    bool used[SIZE]; bool deleted[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableLinear() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
+
+    void remove(int key) {
+        int h = hash(key);                    // 1 คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // 2 probe
+            int idx = (h + i) % SIZE;         // 3 (h+i) % SIZE
+            if (!used[idx]) return;           // 4 ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) {  // 5 พบ key?
+                deleted[idx] = true;          // 6 mark เป็น tombstone
+                return;                       // 7 (ไม่ลบจริง เพื่อรักษา probe chain)
+            }
+        }
+    }
+};`,
+  },
+};
+
+// ---------- Hash Table — Quadratic Probing ----------
+
+const CPP_HASH_QUADRATIC = {
+  insert: {
+    title: 'insert',
+    fileName: 'hash_quadratic_insert.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableQuadratic {
+private:
+    int keys[SIZE]; int values[SIZE]; bool used[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    void insert(int key, int value) {
+        int h = hash(key);                          // 1 คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {            // 2 probe
+            int idx = (h + i * i) % SIZE;           // 3 quadratic: (h+i²) % SIZE
+            if (!used[idx]) {                       // 4 ช่องว่าง?
+                keys[idx] = key;                    // 5
+                values[idx] = value;                // 6
+                used[idx] = true;                   // 7
+                return;                             // 8
+            }
+            if (keys[idx] == key) {                 // 9 key ซ้ำ?
+                values[idx] = value;                // 10
+                return;                             // 11
+            }
+        }
+        cout << "Table Full\\n";                    // 12
+    }
+};`,
+  },
+  search: {
+    title: 'search',
+    fileName: 'hash_quadratic_search.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableQuadratic {
+private:
+    int keys[SIZE]; int values[SIZE]; bool used[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    bool search(int key, int& outValue) {
+        int h = hash(key);                          // 1
+        for (int i = 0; i < SIZE; i++) {            // 2
+            int idx = (h + i * i) % SIZE;           // 3 (h+i²) % SIZE
+            if (!used[idx]) return false;           // 4 ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {                 // 5 พบ?
+                outValue = values[idx];             // 6
+                return true;                        // 7
+            }
+        }
+        return false;                               // 8
+    }
+};`,
+  },
+  delete: {
+    title: 'delete',
+    fileName: 'hash_quadratic_delete.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableQuadratic {
+private:
+    int keys[SIZE]; int values[SIZE];
+    bool used[SIZE]; bool deleted[SIZE];
+    int hash(int key) { return key % SIZE; }
+public:
+    HashTableQuadratic() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
+
+    void remove(int key) {
+        int h = hash(key);                          // 1
+        for (int i = 0; i < SIZE; i++) {            // 2
+            int idx = (h + i * i) % SIZE;           // 3 (h+i²) % SIZE
+            if (!used[idx]) return;                 // 4 ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) { // 5 พบ?
+                deleted[idx] = true;                // 6 mark tombstone
+                return;                             // 7
+            }
+        }
+    }
+};`,
+  },
+};
+
+// ---------- Hash Table — Double Hashing ----------
+
+const CPP_HASH_DOUBLE = {
+  insert: {
+    title: 'insert',
+    fileName: 'hash_double_insert.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableDouble {
+private:
+    int keys[SIZE]; int values[SIZE]; bool used[SIZE];
+    int hash1(int key) { return key % SIZE; }       // h1
+    int hash2(int key) { return 7 - (key % 7); }    // h2 (never 0)
+public:
+    HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    void insert(int key, int value) {
+        int h = hash1(key);                         // 1 h1
+        int step = hash2(key);                      // 2 h2 (step size)
+        for (int i = 0; i < SIZE; i++) {            // 3 probe
+            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
+            if (!used[idx]) {                       // 5 ช่องว่าง?
+                keys[idx] = key;                    // 6
+                values[idx] = value;                // 7
+                used[idx] = true;                   // 8
+                return;                             // 9
+            }
+            if (keys[idx] == key) {                 // 10 ซ้ำ?
+                values[idx] = value;                // 11
+                return;                             // 12
+            }
+        }
+        cout << "Table Full\\n";                    // 13
+    }
+};`,
+  },
+  search: {
+    title: 'search',
+    fileName: 'hash_double_search.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableDouble {
+private:
+    int keys[SIZE]; int values[SIZE]; bool used[SIZE];
+    int hash1(int key) { return key % SIZE; }
+    int hash2(int key) { return 7 - (key % 7); }
+public:
+    HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
+
+    bool search(int key, int& outValue) {
+        int h = hash1(key);                         // 1
+        int step = hash2(key);                      // 2
+        for (int i = 0; i < SIZE; i++) {            // 3
+            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
+            if (!used[idx]) return false;           // 5 ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {                 // 6 พบ?
+                outValue = values[idx];             // 7
+                return true;                        // 8
+            }
+        }
+        return false;                               // 9
+    }
+};`,
+  },
+  delete: {
+    title: 'delete',
+    fileName: 'hash_double_delete.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int SIZE = 11;
+
+class HashTableDouble {
+private:
+    int keys[SIZE]; int values[SIZE];
+    bool used[SIZE]; bool deleted[SIZE];
+    int hash1(int key) { return key % SIZE; }
+    int hash2(int key) { return 7 - (key % 7); }
+public:
+    HashTableDouble() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
+
+    void remove(int key) {
+        int h = hash1(key);                         // 1
+        int step = hash2(key);                      // 2
+        for (int i = 0; i < SIZE; i++) {            // 3
+            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
+            if (!used[idx]) return;                 // 5 ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) { // 6 พบ?
+                deleted[idx] = true;                // 7 mark tombstone
+                return;                             // 8
+            }
+        }
+    }
+};`,
+  },
+};
+
+// ---------- Binary Heap / Priority Queue (Min-Heap) ----------
+
+const CPP_HEAP = {
+  insert: {
+    title: 'insert (heapify-up)',
+    fileName: 'heap_insert.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int MAX = 100;
+
+class MinHeap {
+private:
+    int arr[MAX];
+    int size;
+    int parent(int i) { return (i - 1) / 2; }
+public:
+    MinHeap() : size(0) {}
+
+    void insert(int value) {
+        if (size >= MAX) return;             // 1 เช็ค full
+        arr[size] = value;                   // 2 ใส่ท้าย array
+        int i = size++;                      // 3 size++
+        while (i > 0 && arr[i] < arr[parent(i)]) {  // 4 heapify-up
+            swap(arr[i], arr[parent(i)]);    // 5 สลับกับ parent
+            i = parent(i);                   // 6 ขยับ i ขึ้น
+        }
+    }
+};`,
+  },
+  extractMin: {
+    title: 'extractMin (heapify-down)',
+    fileName: 'heap_extract.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int MAX = 100;
+
+class MinHeap {
+private:
+    int arr[MAX];
+    int size;
+    int left(int i) { return 2 * i + 1; }
+    int right(int i) { return 2 * i + 2; }
+public:
+    MinHeap() : size(0) {}
+
+    int extractMin() {
+        if (size == 0) return -1;            // 1 underflow
+        int min = arr[0];                    // 2 เก็บ root (min)
+        arr[0] = arr[--size];                // 3 ย้าย last → root
+        int i = 0;
+        while (true) {                       // 4 heapify-down
+            int l = left(i), r = right(i);   // 5
+            int smallest = i;                // 6
+            if (l < size && arr[l] < arr[smallest]) smallest = l;  // 7
+            if (r < size && arr[r] < arr[smallest]) smallest = r;  // 8
+            if (smallest == i) break;        // 9 หยุดถ้าเรียงแล้ว
+            swap(arr[i], arr[smallest]);     // 10 สลับลง
+            i = smallest;                    // 11
+        }
+        return min;                          // 12 คืน min
+    }
+};`,
+  },
+};
+
+// ---------- Disjoint Set Union (Union-Find) ----------
+
+const CPP_DSU = {
+  find: {
+    title: 'find (path compression)',
+    fileName: 'dsu_find.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int N = 100;
+int parent[N];
+
+// find แบบ path compression — O(α(N)) ~ O(1)
+int find(int x) {
+    if (parent[x] != x) {                   // 1 ถ้าไม่ใช่ root
+        parent[x] = find(parent[x]);        // 2 path compression
+    }
+    return parent[x];                       // 3 คืน root
+}
+
+// แบบ iterative:
+// int find(int x) {
+//     while (parent[x] != x) {              // 1 ไล่ขึ้น parent
+//         parent[x] = parent[parent[x]];   // 2 path halving
+//         x = parent[x];                   // 3
+//     }
+//     return x;                            // 4 คืน root
+// }`,
+  },
+  union_: {
+    title: 'union (by rank)',
+    fileName: 'dsu_union.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+const int N = 100;
+int parent[N], rnk[N];
+
+int find(int x) {
+    if (parent[x] != x) parent[x] = find(parent[x]);
+    return parent[x];
+}
+
+// union by rank — ต้ไม้ที่สั้นกว่าไปอยู่ใต้ต้นไม้ที่สูงกว่า
+bool unite(int x, int y) {
+    int rx = find(x);                       // 1 root ของ x
+    int ry = find(y);                       // 2 root ของ y
+    if (rx == ry) return false;             // 3 อยู่ใน set เดียวกัน
+    if (rnk[rx] < rnk[ry]) {                // 4 rank เล็ก → ไปใต้ใหญ่
+        parent[rx] = ry;                    // 5
+    } else if (rnk[rx] > rnk[ry]) {         // 6
+        parent[ry] = rx;                    // 7
+    } else {                                // 8 เท่ากัน
+        parent[ry] = rx;                    // 9 เลือกฝั่งนึง
+        rnk[rx]++;                          // 10 bump rank
+    }
+    return true;                            // 11 รวมสำเร็จ
+}`,
+  },
+};
+
+// ---------- Dijkstra's Shortest Path ----------
+
+const CPP_DIJKSTRA = {
+  dijkstra: {
+    title: 'dijkstra',
+    fileName: 'dijkstra.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+vector<pair<int,int>> adj[N];   // adj[u] = list of {v, weight}
+int dist[N];
+bool visited[N];
+
+void dijkstra(int source) {
+    for (int i = 0; i < N; i++) {            // 1 init
+        dist[i] = INT_MAX;                   // 2
+        visited[i] = false;                  // 3
+    }
+    dist[source] = 0;                        // 4
+
+    for (int cnt = 0; cnt < N; cnt++) {      // 5 ทำ N รอบ
+        // หา unvisited ที่ dist น้อยสุด
+        int u = -1, minD = INT_MAX;          // 6
+        for (int i = 0; i < N; i++) {        // 7
+            if (!visited[i] && dist[i] < minD) {  // 8
+                minD = dist[i]; u = i;       // 9
+            }
+        }
+        if (u == -1) break;                  // 10 ไม่มีที่ไปต่อ
+        visited[u] = true;                   // 11 mark visited
+
+        // relax ทุก edge จาก u
+        for (auto& [v, w] : adj[u]) {        // 12 วน neighbors
+            if (visited[v]) continue;        // 13 ข้าม visited
+            if (dist[u] + w < dist[v]) {     // 14 พบทางสั้นกว่า?
+                dist[v] = dist[u] + w;       // 15 อัปเดต dist
+            }
+        }
+    }
+}`,
+  },
+};
+
+// ---------- MST (Prim + Kruskal) ----------
+
+const CPP_MST = {
+  prim: {
+    title: 'prim',
+    fileName: 'mst_prim.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+vector<pair<int,int>> adj[N];
+int key[N], parent[N];
+bool inMST[N];
+
+void prim(int source) {
+    for (int i = 0; i < N; i++) {            // 1 init
+        key[i] = INT_MAX;                    // 2
+        inMST[i] = false;                    // 3
+        parent[i] = -1;                      // 4
+    }
+    key[source] = 0;                         // 5
+
+    for (int cnt = 0; cnt < N; cnt++) {      // 6 ทำ N รอบ
+        int u = -1, minK = INT_MAX;          // 7 หา min key ที่ยังไม่อยู่ใน MST
+        for (int i = 0; i < N; i++) {        // 8
+            if (!inMST[i] && key[i] < minK) { // 9
+                minK = key[i]; u = i;        // 10
+            }
+        }
+        if (u == -1) break;                  // 11
+        inMST[u] = true;                     // 12 เพิ่ม u ใน MST
+
+        for (auto& [v, w] : adj[u]) {        // 13 วน neighbors
+            if (!inMST[v] && w < key[v]) {   // 14 edge เบากว่า?
+                key[v] = w;                  // 15 อัปเดต key
+                parent[v] = u;               // 16 บันทึก parent
+            }
+        }
+    }
+}`,
+  },
+  kruskal: {
+    title: 'kruskal',
+    fileName: 'mst_kruskal.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+const int N = 100;
+int parent[N], rnk[N];
+
+int find(int x) {
+    if (parent[x] != x) parent[x] = find(parent[x]);
+    return parent[x];
+}
+
+bool unite(int x, int y) {
+    int rx = find(x), ry = find(y);
+    if (rx == ry) return false;
+    if (rnk[rx] < rnk[ry]) parent[rx] = ry;
+    else if (rnk[rx] > rnk[ry]) parent[ry] = rx;
+    else { parent[ry] = rx; rnk[rx]++; }
+    return true;
+}
+
+// edges = list of {weight, u, v}
+int kruskal(int n, vector<tuple<int,int,int>>& edges) {
+    sort(edges.begin(), edges.end());        // 1 เรียงตาม weight
+    for (int i = 0; i < n; i++) { parent[i] = i; rnk[i] = 0; } // 2 init DSU
+
+    int total = 0, count = 0;
+    for (auto& [w, u, v] : edges) {          // 3 วนแต่ละ edge
+        if (find(u) != find(v)) {            // 4 ไม่เกิด cycle?
+            unite(u, v);                     // 5 รวม set
+            total += w;                      // 6 บวก weight
+            count++;                         // 7
+            if (count == n - 1) break;       // 8 MST ครบ n-1 edges
+        }
+    }
+    return total;                            // 9 คืน total weight
+}`,
+  },
+};
+
+// ---------- Graph Traversal (BFS + DFS) ----------
+
+const CPP_TRAVERSAL = {
+  bfs: {
+    title: 'bfs',
+    fileName: 'bfs.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+const int N = 100;
+vector<int> adj[N];
+bool visited[N];
+
+// BFS ใช้ queue (FIFO) — เยี่ยมเป็นชั้น ๆ (level by level)
+void bfs(int source) {
+    queue<int> q;                          // 1 สร้าง queue
+    q.push(source);                        // 2 enqueue source
+    visited[source] = true;                // 3 mark visited
+
+    while (!q.empty()) {                   // 4 ลูปจนกว่า queue ว่าง
+        int u = q.front();                 // 5 ดูตัวหน้า queue
+        q.pop();                           // 6 dequeue
+        cout << u << " ";                  // 7 ประมวลผล u
+
+        for (int v : adj[u]) {             // 8 วนเพื่อนบ้านทุกตัว
+            if (!visited[v]) {             // 9 ถ้ายังไม่ visited
+                visited[v] = true;         // 10 mark visited
+                q.push(v);                 // 11 enqueue
+            }
+        }
+    }
+}`,
+  },
+  dfs: {
+    title: 'dfs',
+    fileName: 'dfs.cpp',
+    code: `#include <iostream>
+#include <vector>
+using namespace std;
+
+const int N = 100;
+vector<int> adj[N];
+bool visited[N];
+
+// DFS แบบ iterative ใช้ stack (LIFO) — ดำลึงเป็น branch
+void dfs(int source) {
+    vector<int> st;                        // 1 สร้าง stack
+    st.push_back(source);                  // 2 push source
+
+    while (!st.empty()) {                  // 3 ลูปจนกว่า stack ว่าง
+        int u = st.back();                 // 4 ดูตัวบนสุด
+        st.pop_back();                     // 5 pop
+
+        if (visited[u]) continue;          // 6 ถ้า visited แล้ว ข้าม
+        visited[u] = true;                 // 7 mark visited
+        cout << u << " ";                  // 8 ประมวลผล u
+
+        // push เพื่อนบ้าน (ย้อนลำดับเพื่อให้เยี่ยมเล็กก่อน)
+        for (int i = adj[u].size() - 1; i >= 0; i--) {  // 9
+            int v = adj[u][i];             // 10
+            if (!visited[v]) {             // 11
+                st.push_back(v);           // 12 push
+            }
+        }
+    }
+}
+
+// แบบ recursive (กระชับกว่า แต่ใช้ call stack):
+// void dfs(int u) {
+//     visited[u] = true;                   // 1 mark visited
+//     cout << u << " ";                    // 2 ประมวลผล
+//     for (int v : adj[u]) {               // 3 วนเพื่อนบ้าน
+//         if (!visited[v]) dfs(v);         // 4 recurse
+//     }
+// }`,
+  },
+};
+
+// ---------- Topological Sort (Kahn's Algorithm) ----------
+
+const CPP_TOPO = {
+  topo: {
+    title: 'topologicalSort',
+    fileName: 'topological_sort.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+const int N = 100;
+vector<int> adj[N];
+int inDegree[N];
+
+// Topological Sort แบบ Kahn — ใช้ queue + ลด in-degree
+vector<int> topologicalSort(int n) {
+    queue<int> q;
+    for (int i = 0; i < n; i++) {            // 1 หา in-degree ของทุก node
+        if (inDegree[i] == 0) q.push(i);     // 2 ใส่ in-deg=0 ลง queue
+    }
+
+    vector<int> order;
+    while (!q.empty()) {                      // 3 ลูปจนกว่า queue ว่าง
+        int u = q.front(); q.pop();           // 4 dequeue
+        order.push_back(u);                   // 5 เพิ่มเข้า result
+
+        for (int v : adj[u]) {                // 6 วนเพื่อนบ้าน
+            if (--inDegree[v] == 0) {         // 7 ลด in-degree, ถ้าเป็น 0
+                q.push(v);                    // 8 enqueue
+            }
+        }
+    }
+
+    // ถ้า order.size() < n → มี cycle (ไม่ใช่ DAG)
+    return order;                             // 9 คืน topological order
+}`,
+  },
+};
+
+// ---------- Bellman-Ford (handles negative weights) ----------
+
+const CPP_BELLMAN_FORD = {
+  bellmanFord: {
+    title: 'bellmanFord',
+    fileName: 'bellman_ford.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+const int E = 200;
+int u[E], v[E], w[E];   // edge list
+long long dist[N];
+
+// Bellman-Ford — รองรับ negative weights + ตรวจ negative cycle
+bool bellmanFord(int n, int m, int source) {
+    for (int i = 0; i < n; i++) dist[i] = LLONG_MAX;  // 1 init dist
+    dist[source] = 0;                                  // 2
+
+    // V-1 iterations (relax ทุก edge)
+    for (int iter = 0; iter < n - 1; iter++) {         // 3 วน V-1 ครั้ง
+        for (int j = 0; j < m; j++) {                  // 4 วนทุก edge
+            if (dist[u[j]] != LLONG_MAX &&             // 5 ถ้า source มีค่า
+                dist[u[j]] + w[j] < dist[v[j]]) {      // 6 พบทางสั้นกว่า?
+                dist[v[j]] = dist[u[j]] + w[j];        // 7 relax
+            }
+        }
+    }
+
+    // รอบที่ V — ตรวจ negative cycle
+    for (int j = 0; j < m; j++) {                      // 8 วนทุก edge อีกครั้ง
+        if (dist[u[j]] != LLONG_MAX &&                 // 9 ถ้ายัง relax ได้อีก
+            dist[u[j]] + w[j] < dist[v[j]]) {
+            return false;                              // 10 พบ negative cycle!
+        }
+    }
+    return true;                                       // 11 ไม่มี cycle, dist ถูกต้อง
+}`,
+  },
+};
+
+// ---------- A* Search (heuristic-guided) ----------
+
+const CPP_ASTAR = {
+  astar: {
+    title: 'aStar',
+    fileName: 'astar.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+vector<pair<int,int>> adj[N];  // adj[u] = {v, w}
+int h[N];                       // heuristic: estimate cost to goal
+long long g[N];                 // g(n): cost from source to n
+long long f[N];                 // f(n) = g(n) + h(n)
+
+// A* ใช้ priority queue เรียงตาม f(n) น้อยสุด
+// หา shortest path จาก source → goal (ใช้ heuristic เร่งการค้น)
+vector<int> aStar(int source, int goal, int n) {
+    for (int i = 0; i < n; i++) {               // 1 init g, f
+        g[i] = LLONG_MAX;                        // 2
+        f[i] = LLONG_MAX;                        // 3
+    }
+    g[source] = 0;                               // 4
+    f[source] = h[source];                       // 5 f = g + h
+
+    // priority queue: (f, node) เรียง f น้อยสุดก่อน
+    priority_queue<pair<long long,int>,          // 6
+                   vector<pair<long long,int>>,
+                   greater<>> pq;
+    pq.push({f[source], source});                // 7 push source
+    vector<int> parent(n, -1);
+    vector<bool> closed(n, false);
+
+    while (!pq.empty()) {                        // 8
+        auto [fu, u] = pq.top(); pq.pop();       // 9 pop f น้อยสุด
+        if (u == goal) break;                    // 10 ถึง goal → หยุด
+        if (closed[u]) continue;                 // 11 ข้ามถ้า closed แล้ว
+        closed[u] = true;                        // 12 mark closed
+
+        for (auto& [v, w] : adj[u]) {            // 13 วนเพื่อนบ้าน
+            if (closed[v]) continue;             // 14
+            long long tentativeG = g[u] + w;     // 15 คำนวณ g ใหม่
+            if (tentativeG < g[v]) {             // 16 ดีกว่า?
+                parent[v] = u;                   // 17 บันทึก parent
+                g[v] = tentativeG;               // 18 อัปเดต g
+                f[v] = g[v] + h[v];              // 19 อัปเดต f
+                pq.push({f[v], v});              // 20 push ลง pq
+            }
+        }
+    }
+
+    // reconstruct path
+    vector<int> path;
+    for (int cur = goal; cur != -1; cur = parent[cur])  // 21 ไล่ parent
+        path.push_back(cur);
+    reverse(path.begin(), path.end());          // 22 กลับด้าน
+    return path;                                // 23 คืน path
+}`,
+  },
+};
+
 // Export
 window.CPP_SOURCES = {
   LL_ARRAY: CPP_LL_ARRAY,
@@ -712,4 +1608,16 @@ window.CPP_SOURCES = {
   STACK_POINTER: CPP_STACK_POINTER,
   QUEUE_ARRAY: CPP_QUEUE_ARRAY,
   QUEUE_POINTER: CPP_QUEUE_POINTER,
+  HASH_CHAINING: CPP_HASH_CHAINING,
+  HASH_LINEAR: CPP_HASH_LINEAR,
+  HASH_QUADRATIC: CPP_HASH_QUADRATIC,
+  HASH_DOUBLE: CPP_HASH_DOUBLE,
+  HEAP: CPP_HEAP,
+  DSU: CPP_DSU,
+  DIJKSTRA: CPP_DIJKSTRA,
+  MST: CPP_MST,
+  TRAVERSAL: CPP_TRAVERSAL,
+  TOPO: CPP_TOPO,
+  BELLMAN_FORD: CPP_BELLMAN_FORD,
+  ASTAR: CPP_ASTAR,
 };
