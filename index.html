@@ -1,2 +1,172 @@
-<a href='data-structures.html'>หนังสือ Data Structures</a><br>
-<a href='ds-visualizer/'>List Stack Queue Animation</a>
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Data Structures</title>
+  <style>
+    :root{
+      --bg1:#0ea5e9;   /* sky */
+      --bg2:#6366f1;   /* indigo */
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --shadow: 0 18px 45px rgba(2,6,23,.18);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 15% 10%, rgba(255,255,255,.25), transparent 55%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .wrap{
+      width:min(920px, 100%);
+    }
+    header{
+      color:white;
+      text-align:left;
+      margin-bottom:18px;
+    }
+    header h1{
+      margin:0 0 6px 0;
+      font-size: clamp(26px, 3.2vw, 40px);
+      letter-spacing:.2px;
+    }
+    header p{
+      margin:0;
+      color: rgba(255,255,255,.85);
+      font-size: 16px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:16px;
+    }
+    @media (max-width: 720px){
+      .grid{grid-template-columns: 1fr;}
+    }
+    .card{
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .top{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:10px;
+    }
+    .icon{
+      width:44px;height:44px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      color:white;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 10px 20px rgba(2,6,23,.15);
+      font-size: 20px;
+    }
+    .icon.purple{ background: linear-gradient(135deg, #a78bfa, #6366f1); }
+    .card h2{
+      margin:0;
+      font-size:18px;
+    }
+    .card p{
+      margin:6px 0 0 0;
+      color: var(--muted);
+      line-height:1.55;
+      font-size: 14.5px;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
+      flex-wrap:wrap;
+    }
+    a.btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      text-decoration:none;
+      font-weight: 600;
+      color: white;
+      background: rgba(15, 23, 42, .92);
+      border: 1px solid rgba(255,255,255,.15);
+      transition: transform .08s ease, filter .2s ease, background .2s ease;
+    }
+    a.btn:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+    a.btn.secondary{
+      background: white;
+      color: var(--text);
+      border: 1px solid rgba(15,23,42,.12);
+    }
+    footer{
+      margin-top:14px;
+      color: rgba(255,255,255,.85);
+      font-size: 13px;
+    }
+    code{
+      background: rgba(15,23,42,.08);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <header>
+      <h1>ศูนย์รวมสื่อการเรียน Data Structures</h1>
+      <p>เลือกเข้าอ่านหนังสือหรือทดลอง Animation ได้จากเมนูด้านล่าง</p>
+    </header>
+
+    <section class="grid">
+      <!-- Card 1 -->
+      <article class="card">
+        <div class="top">
+          <div class="icon">📘</div>
+          <div>
+            <h2>หนังสือ Data Structures</h2>
+            <p>เปิดหน้าเอกสาร <code>data-structures.html</code> เพื่ออ่านเนื้อหาแบบเต็ม</p>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="data-structures.html">เปิดหนังสือ</a>
+          <a class="btn secondary" href="data-structures.html" target="_blank" rel="noopener">เปิดแท็บใหม่</a>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card">
+        <div class="top">
+          <div class="icon purple">🎞️</div>
+          <div>
+            <h2>List / Stack / Queue Animation</h2>
+            <p>เครื่องมือช่วยมองภาพการทำงานของโครงสร้างข้อมูลแบบเคลื่อนไหว</p>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="ds-visualizer/">เข้า Visualizer</a>
+          <a class="btn secondary" href="ds-visualizer/" target="_blank" rel="noopener">เปิดแท็บใหม่</a>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+    </footer>
+  </main>
+</body>
+</html>
