@@ -1303,27 +1303,27 @@ int key[N], parent[N];
 bool inMST[N];
 
 void prim(int source) {
-    for (int i = 0; i < N; i++) {            // 1 init
-        key[i] = INT_MAX;                    // 2
-        inMST[i] = false;                    // 3
-        parent[i] = -1;                      // 4
+    for (int i = 0; i < N; i++) {            // init
+        key[i] = INT_MAX;
+        inMST[i] = false;
+        parent[i] = -1;
     }
-    key[source] = 0;                         // 5
+    key[source] = 0;
 
-    for (int cnt = 0; cnt < N; cnt++) {      // 6 ทำ N รอบ
-        int u = -1, minK = INT_MAX;          // 7 หา min key ที่ยังไม่อยู่ใน MST
-        for (int i = 0; i < N; i++) {        // 8
-            if (!inMST[i] && key[i] < minK) { // 9
-                minK = key[i]; u = i;        // 10
+    for (int cnt = 0; cnt < N; cnt++) {      // ทำ N รอบ
+        int u = -1, minK = INT_MAX;          // หา min key ที่ยังไม่อยู่ใน MST
+        for (int i = 0; i < N; i++) {
+            if (!inMST[i] && key[i] < minK) {
+                minK = key[i]; u = i;
             }
         }
-        if (u == -1) break;                  // 11
-        inMST[u] = true;                     // 12 เพิ่ม u ใน MST
+        if (u == -1) break;
+        inMST[u] = true;                     // เพิ่ม u ใน MST
 
-        for (auto& [v, w] : adj[u]) {        // 13 วน neighbors
-            if (!inMST[v] && w < key[v]) {   // 14 edge เบากว่า?
-                key[v] = w;                  // 15 อัปเดต key
-                parent[v] = u;               // 16 บันทึก parent
+        for (auto& [v, w] : adj[u]) {        // วน neighbors
+            if (!inMST[v] && w < key[v]) {   // edge เบากว่า?
+                key[v] = w;                  // อัปเดต key
+                parent[v] = u;               // บันทึก parent
             }
         }
     }
@@ -1356,19 +1356,19 @@ bool unite(int x, int y) {
 
 // edges = list of {weight, u, v}
 int kruskal(int n, vector<tuple<int,int,int>>& edges) {
-    sort(edges.begin(), edges.end());        // 1 เรียงตาม weight
-    for (int i = 0; i < n; i++) { parent[i] = i; rnk[i] = 0; } // 2 init DSU
+    sort(edges.begin(), edges.end());        // เรียงตาม weight
+    for (int i = 0; i < n; i++) { parent[i] = i; rnk[i] = 0; } // init DSU
 
     int total = 0, count = 0;
-    for (auto& [w, u, v] : edges) {          // 3 วนแต่ละ edge
-        if (find(u) != find(v)) {            // 4 ไม่เกิด cycle?
-            unite(u, v);                     // 5 รวม set
-            total += w;                      // 6 บวก weight
-            count++;                         // 7
-            if (count == n - 1) break;       // 8 MST ครบ n-1 edges
+    for (auto& [w, u, v] : edges) {          // วนแต่ละ edge
+        if (find(u) != find(v)) {            // ไม่เกิด cycle?
+            unite(u, v);                     // รวม set
+            total += w;                      // บวก weight
+            count++;
+            if (count == n - 1) break;       // MST ครบ n-1 edges
         }
     }
-    return total;                            // 9 คืน total weight
+    return total;                            // คืน total weight
 }`,
   },
 };
