@@ -871,11 +871,13 @@ function dfsSteps(graph, source) {
   adj.forEach((lst) => lst.sort((a, b) => a.to - b.to));
 
   const visited = new Set();
-  // "visitedParent" — parent of a node once it's actually visited (popped & marked)
-  // This is what we visualize as the DFS tree edge (only added when node is visited).
+  // visitedParent: parent in DFS tree (only set when node is actually visited/popped)
   const visitedParent = Array.from({ length: N }, () => -1);
-  // "pushParent" — track which node pushed this onto the stack (for info only, not visualized as tree edge)
-  const pushParent = Array.from({ length: N }, () => -1);
+  // pendingParent: tracks the most recent node that "discovered" this node by pushing it
+  // Updated whenever a node pushes an unvisited neighbor. When the neighbor is finally
+  // popped (visited), pendingParent is copied to visitedParent — this makes the parent
+  // be the LATEST discoverer (mimics recursive DFS where the most recent ancestor wins).
+  const pendingParent = Array.from({ length: N }, () => -1);
   const order = [];
   const stack = [];
 
@@ -910,37 +912,39 @@ function dfsSteps(graph, source) {
 
     visited.add(u);
     order.push(u);
-    // Set the tree edge: u's parent in the DFS tree is whoever pushed u onto the stack
-    // (For source, pushParent[source] = -1, so no tree edge.)
-    if (pushParent[u] !== -1) {
-      visitedParent[u] = pushParent[u];
+    // Commit the pending parent (the latest discoverer) as the actual tree-edge parent
+    if (pendingParent[u] !== -1) {
+      visitedParent[u] = pendingParent[u];
     }
 
     steps.push(graphBase('visit',
-      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล${pushParent[u] !== -1 ? ` (tree edge: ${graph.nodes[pushParent[u]]}→${graph.nodes[u]})` : ''}`,
+      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล${visitedParent[u] !== -1 ? ` (tree edge: ${graph.nodes[visitedParent[u]]}→${graph.nodes[u]})` : ''}`,
       [14, 15, 16, 18, 19, 20],
-      { ...baseState(), current: u, highlightEdge: pushParent[u] !== -1 ? [pushParent[u], u] : null },
+      { ...baseState(), current: u, highlightEdge: visitedParent[u] !== -1 ? [visitedParent[u], u] : null },
       `+ visit ${graph.nodes[u]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
       'visit'));
 
     // Push neighbors in reverse order so smallest is processed first
     const neighbors = adj[u].filter(({ to }) => !visited.has(to)).reverse();
     for (const { to } of neighbors) {
-      if (!visited.has(to) && !stack.includes(to)) {
-        pushParent[to] = u;
-        stack.push(to);
-        steps.push(graphBase('push',
-          `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
-          [23, 24, 25, 26],
-          { ...baseState(), current: u, highlightEdge: [u, to] },
-          `+ push ${graph.nodes[to]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
-          'push'));
-      } else if (stack.includes(to)) {
-        steps.push(graphBase('skip',
-          `${graph.nodes[to]} อยู่ใน stack แล้ว → ไม่ push ซ้ำ`,
-          [23, 24, 25],
-          { ...baseState(), current: u, highlightEdge: [u, to] },
-          undefined, 'ข้าม'));
+      if (!visited.has(to)) {
+        // Update pending parent — latest discoverer wins (mimics recursive DFS)
+        pendingParent[to] = u;
+        if (!stack.includes(to)) {
+          stack.push(to);
+          steps.push(graphBase('push',
+            `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
+            [23, 24, 25, 26],
+            { ...baseState(), current: u, highlightEdge: [u, to] },
+            `+ push ${graph.nodes[to]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
+            'push'));
+        } else {
+          steps.push(graphBase('skip',
+            `${graph.nodes[to]} อยู่ใน stack แล้ว → อัปเดต pending parent เป็น ${graph.nodes[u]} (latest discoverer)`,
+            [23, 24, 25],
+            { ...baseState(), current: u, highlightEdge: [u, to] },
+            undefined, 'ข้าม'));
+        }
       }
     }
   }
