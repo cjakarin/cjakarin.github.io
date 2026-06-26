@@ -871,7 +871,11 @@ function dfsSteps(graph, source) {
   adj.forEach((lst) => lst.sort((a, b) => a.to - b.to));
 
   const visited = new Set();
-  const parent = Array.from({ length: N }, () => -1);
+  // "visitedParent" — parent of a node once it's actually visited (popped & marked)
+  // This is what we visualize as the DFS tree edge (only added when node is visited).
+  const visitedParent = Array.from({ length: N }, () => -1);
+  // "pushParent" — track which node pushed this onto the stack (for info only, not visualized as tree edge)
+  const pushParent = Array.from({ length: N }, () => -1);
   const order = [];
   const stack = [];
 
@@ -880,9 +884,9 @@ function dfsSteps(graph, source) {
     inQueue: stack.slice(),
     current: null,
     dist: [],
-    parent: parent.slice(),
+    parent: visitedParent.slice(),
     highlightEdge: null,
-    inMST: collectTreeEdges(parent, N, source),
+    inMST: collectTreeEdges(visitedParent, N, source),
     bfsOrder: order.slice(),
   });
 
@@ -906,11 +910,16 @@ function dfsSteps(graph, source) {
 
     visited.add(u);
     order.push(u);
+    // Set the tree edge: u's parent in the DFS tree is whoever pushed u onto the stack
+    // (For source, pushParent[source] = -1, so no tree edge.)
+    if (pushParent[u] !== -1) {
+      visitedParent[u] = pushParent[u];
+    }
 
     steps.push(graphBase('visit',
-      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล`,
+      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล${pushParent[u] !== -1 ? ` (tree edge: ${graph.nodes[pushParent[u]]}→${graph.nodes[u]})` : ''}`,
       [14, 15, 16, 18, 19, 20],
-      { ...baseState(), current: u },
+      { ...baseState(), current: u, highlightEdge: pushParent[u] !== -1 ? [pushParent[u], u] : null },
       `+ visit ${graph.nodes[u]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
       'visit'));
 
@@ -918,7 +927,7 @@ function dfsSteps(graph, source) {
     const neighbors = adj[u].filter(({ to }) => !visited.has(to)).reverse();
     for (const { to } of neighbors) {
       if (!visited.has(to) && !stack.includes(to)) {
-        if (parent[to] === -1) parent[to] = u;
+        pushParent[to] = u;
         stack.push(to);
         steps.push(graphBase('push',
           `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
