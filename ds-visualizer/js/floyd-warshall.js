@@ -134,7 +134,7 @@ function fwInitialState() {
     'กราฟตั้งต้น');
 }
 
-// Render: distance matrix as a table
+// Render: graph (top) + distance matrix (bottom)
 function fwRender(vizArea, vizMeta, step) {
   window.DS.clearChildren(vizArea);
   const dist = step.dist;
@@ -151,6 +151,119 @@ function fwRender(vizArea, vizMeta, step) {
   }
 
   const wrap = window.DS.el('div', { style: 'display:flex;flex-direction:column;gap:16px;padding:16px;align-items:center' });
+
+  // ===== Graph SVG (top) =====
+  const svgWidth = 360, svgHeight = 280;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', String(svgWidth));
+  svg.setAttribute('height', String(svgHeight));
+  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+
+  // Node positions — square layout for 4 nodes
+  const positions = [
+    { x: 80, y: 60 },    // A (top-left)
+    { x: 280, y: 60 },   // B (top-right)
+    { x: 280, y: 220 },  // C (bottom-right)
+    { x: 80, y: 220 },   // D (bottom-left)
+  ];
+
+  // Draw edges with weights
+  FW_GRAPH.edges.forEach(([u, v, w]) => {
+    const isHl = (K === u || K === v) || (hl && ((hl[0] === u && hl[1] === v) || (hl[0] === v && hl[1] === u)));
+    const dx = positions[v].x - positions[u].x;
+    const dy = positions[v].y - positions[u].y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const nodeR = 18;
+    const x1 = positions[u].x + (dx / len) * nodeR;
+    const y1 = positions[u].y + (dy / len) * nodeR;
+    const x2 = positions[v].x - (dx / len) * nodeR;
+    const y2 = positions[v].y - (dy / len) * nodeR;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', String(x1));
+    line.setAttribute('y1', String(y1));
+    line.setAttribute('x2', String(x2));
+    line.setAttribute('y2', String(y2));
+    line.setAttribute('stroke', isHl ? 'var(--amber)' : 'var(--text-dim)');
+    line.setAttribute('stroke-width', isHl ? '3' : '1.5');
+    svg.appendChild(line);
+
+    // Arrow tip
+    const arrowSize = 7;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const ax1 = x2 - arrowSize * Math.cos(angle - Math.PI / 6);
+    const ay1 = y2 - arrowSize * Math.sin(angle - Math.PI / 6);
+    const ax2 = x2 - arrowSize * Math.cos(angle + Math.PI / 6);
+    const ay2 = y2 - arrowSize * Math.sin(angle + Math.PI / 6);
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    arrow.setAttribute('points', `${x2},${y2} ${ax1},${ay1} ${ax2},${ay2}`);
+    arrow.setAttribute('fill', isHl ? 'var(--amber)' : 'var(--text-dim)');
+    svg.appendChild(arrow);
+
+    // Weight label
+    const midX = (positions[u].x + positions[v].x) / 2;
+    const midY = (positions[u].y + positions[v].y) / 2;
+    // Offset perpendicular to avoid overlap
+    const perpX = -dy / len * 12;
+    const perpY = dx / len * 12;
+    const wBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    wBg.setAttribute('cx', String(midX + perpX));
+    wBg.setAttribute('cy', String(midY + perpY));
+    wBg.setAttribute('r', '11');
+    wBg.setAttribute('fill', isHl ? 'var(--amber)' : 'var(--bg-elev)');
+    wBg.setAttribute('stroke', 'var(--border)');
+    svg.appendChild(wBg);
+
+    const wText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    wText.setAttribute('x', String(midX + perpX));
+    wText.setAttribute('y', String(midY + perpY + 4));
+    wText.setAttribute('text-anchor', 'middle');
+    wText.setAttribute('font-size', '11');
+    wText.setAttribute('font-family', 'monospace');
+    wText.setAttribute('font-weight', 'bold');
+    wText.setAttribute('fill', isHl ? 'white' : 'var(--text-muted)');
+    wText.textContent = String(w);
+    svg.appendChild(wText);
+  });
+
+  // Draw nodes
+  FW_GRAPH.nodes.forEach((label, idx) => {
+    const pos = positions[idx];
+    const isK = K === idx;
+    const isI = I === idx;
+    const isJ = J === idx;
+
+    let fill = 'var(--bg-card)', stroke = 'var(--text-dim)', textColor = 'var(--text)';
+    if (isK) { fill = 'var(--purple)'; stroke = 'var(--purple)'; textColor = 'white'; }
+    else if (isI || isJ) { fill = 'var(--amber)'; stroke = 'var(--amber)'; textColor = 'white'; }
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', String(pos.x));
+    circle.setAttribute('cy', String(pos.y));
+    circle.setAttribute('r', '18');
+    circle.setAttribute('fill', fill);
+    circle.setAttribute('stroke', stroke);
+    circle.setAttribute('stroke-width', '2');
+    svg.appendChild(circle);
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', String(pos.x));
+    text.setAttribute('y', String(pos.y + 5));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '14');
+    text.setAttribute('font-weight', 'bold');
+    text.setAttribute('fill', textColor);
+    text.textContent = label;
+    svg.appendChild(text);
+  });
+
+  wrap.appendChild(svg);
+
+  // ===== Distance matrix (bottom) =====
+  const tableLabel = window.DS.el('div', {
+    style: 'font-size:11px;color:var(--text-muted);font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;text-align:center',
+  }, 'Distance matrix dist[i][j]:');
+  wrap.appendChild(tableLabel);
 
   // Matrix table
   const table = window.DS.el('table', { style: 'border-collapse:collapse;font-family:monospace;font-size:14px' });

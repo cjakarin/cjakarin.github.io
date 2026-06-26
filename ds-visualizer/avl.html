@@ -16,7 +16,8 @@
     const { el, ICONS } = window.DS;
     const Playback = window.DS.Playback;
 
-    let root = window.AVL.makeInitial([10, 20, 30, 40, 50, 25]);
+    let allValues = [10, 20, 30, 40, 50, 25];
+    let root = window.AVL.makeInitial(allValues);
     let valueInput = '15';
     let speed = 700;
     const playback = new Playback({ speed, renderer: () => renderAll() });
@@ -47,8 +48,13 @@
           onStepBack: () => playback.stepBack(),
           isPlaying: false,
         },
-        onClear: () => { root = null; playback.load([]); renderAll(); },
-        onReset: () => { root = window.AVL.makeInitial([10, 20, 30, 40, 50, 25]); playback.load([]); renderAll(); },
+        onClear: () => { root = null; allValues = []; playback.load([]); renderAll(); },
+        onReset: () => {
+          allValues = [10, 20, 30, 40, 50, 25];
+          root = window.AVL.makeInitial(allValues);
+          playback.load([]);
+          renderAll();
+        },
       },
       legendItems: [
         { color: '#f59e0b', label: 'current', desc: 'กำลังเปรียบเทียบ' },
@@ -65,23 +71,16 @@
 
     function runInsert() {
       const v = parseInt(valueInput, 10) || 0;
-      const steps = window.AVL.insert(root, v);
-      // Commit final state
-      const last = steps[steps.length - 1];
-      if (last) {
-        // Re-build tree from last step (we need to re-serialize the actual tree object)
-        // Since AVL.insert returns steps with serialized snapshots, we re-build tree by silent insert
-        root = window.AVL.makeInitial(getAllValuesFromTree(root).concat([v]));
+      if (allValues.includes(v)) {
+        // duplicate — skip
+        return;
       }
+      const steps = window.AVL.insert(root, v);
+      // Commit final state: insert v into the stored tree using silent insert
+      allValues.push(v);
+      root = window.AVL.makeInitial(allValues);
       playback.load(steps);
       playback.play();
-    }
-
-    function getAllValuesFromTree(r) {
-      // Use DFS to extract values from serialized tree
-      // But we don't have direct access — track values separately
-      // For simplicity, just re-insert the new value
-      return []; // will be combined with [v] above
     }
 
     function renderAll() {
