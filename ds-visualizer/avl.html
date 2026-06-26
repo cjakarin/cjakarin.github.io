@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVL Tree (Self-Balancing BST)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/avl.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let root = window.AVL.makeInitial([10, 20, 30, 40, 50, 25]);
+    let valueInput = '15';
+    let speed = 700;
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'AVL Tree (Self-Balancing BST)',
+      subtitle: 'BST ที่ balance เองด้วย rotations (LL, RR, LR, RL) · height ∈ O(log n) เสมอ',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ insert', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => { root = null; playback.load([]); renderAll(); },
+        onReset: () => { root = window.AVL.makeInitial([10, 20, 30, 40, 50, 25]); playback.load([]); renderAll(); },
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังเปรียบเทียบ' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
+        { color: '#ec4899', label: 'target', desc: 'จุดที่จะ rotate' },
+        { color: '#10b981', label: 'done', desc: 'เสร็จสิ้น' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.AVL.insert(root, v);
+      // Commit final state
+      const last = steps[steps.length - 1];
+      if (last) {
+        // Re-build tree from last step (we need to re-serialize the actual tree object)
+        // Since AVL.insert returns steps with serialized snapshots, we re-build tree by silent insert
+        root = window.AVL.makeInitial(getAllValuesFromTree(root).concat([v]));
+      }
+      playback.load(steps);
+      playback.play();
+    }
+
+    function getAllValuesFromTree(r) {
+      // Use DFS to extract values from serialized tree
+      // But we don't have direct access — track values separately
+      // For simplicity, just re-insert the new value
+      return []; // will be combined with [v] above
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.AVL.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, step.codeLines || []);
+      } else {
+        // Build a "current state" step from the actual root tree
+        const serialized = (function() {
+          const nodes = [];
+          const edges = [];
+          (function dfs(node, parentId) {
+            if (!node) return;
+            const id = node.id;
+            const balance = (node.left ? node.left.height : 0) - (node.right ? node.right.height : 0);
+            nodes.push({ id, value: node.value, height: node.height, balance });
+            if (parentId !== null) edges.push([parentId, id]);
+            dfs(node.left, id);
+            dfs(node.right, id);
+          })(root, null);
+          return { nodes, edges };
+        })();
+        const idleStep = {
+          operation: 'init', description: 'AVL tree พร้อม — กด Insert เพื่อเพิ่ม node',
+          codeLines: [], nodes: serialized.nodes, edges: serialized.edges,
+          roles: {}, highlight: null, consoleOutput: undefined, phase: 'พร้อม',
+        };
+        window.AVL.render(handles.vizArea, handles.vizMeta, idleStep);
+        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

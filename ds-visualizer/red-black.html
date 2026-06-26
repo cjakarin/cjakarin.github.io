@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Red-Black Tree</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/red-black.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let root = window.RB_TREE.makeInitial([10, 20, 30, 15, 25, 5, 1]);
+    let allValues = [10, 20, 30, 15, 25, 5, 1];
+    let valueInput = '35';
+    let speed = 700;
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Red-Black Tree',
+      subtitle: 'BST ที่ balance เองด้วยกฎ 5 ข้อ (RED/BLACK + black-height) · รองรับ Case 1-3 + mirror',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ insert', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => { root = null; allValues = []; playback.load([]); renderAll(); },
+        onReset: () => {
+          allValues = [10, 20, 30, 15, 25, 5, 1];
+          root = window.RB_TREE.makeInitial(allValues);
+          playback.load([]);
+          renderAll();
+        },
+      },
+      legendItems: [
+        { color: '#ef4444', label: 'RED node', desc: 'สีแดง — children ต้องเป็น BLACK' },
+        { color: '#1a1f29', label: 'BLACK node', desc: 'สีดำ' },
+        { color: '#f59e0b', label: 'current', desc: 'กำลัง fixup' },
+        { color: '#ec4899', label: 'target', desc: 'parent/uncle ที่จะ recolor/rotate' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      if (allValues.includes(v)) return; // skip duplicates
+      const steps = window.RB_TREE.insert(root, v);
+      allValues.push(v);
+      // Re-build silent tree for next state
+      root = window.RB_TREE.makeInitial(allValues);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.RB_TREE.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.RB_TREE.insert, step.codeLines || []);
+      } else {
+        // Idle state — serialize current root
+        const serialized = (function() {
+          const nodes = [];
+          const edges = [];
+          (function dfs(node, parentId) {
+            if (!node) return;
+            const id = node.id;
+            nodes.push({ id, value: node.value, color: node.color });
+            if (parentId !== null) edges.push([parentId, id]);
+            dfs(node.left, id);
+            dfs(node.right, id);
+          })(root, null);
+          return { nodes, edges };
+        })();
+        const idleStep = {
+          operation: 'init', description: 'Red-Black tree พร้อม — กด Insert เพื่อเพิ่ม node',
+          codeLines: [], nodes: serialized.nodes, edges: serialized.edges,
+          roles: {}, highlight: null, consoleOutput: undefined, phase: 'พร้อม',
+        };
+        window.RB_TREE.render(handles.vizArea, handles.vizMeta, idleStep);
+        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.RB_TREE.insert, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

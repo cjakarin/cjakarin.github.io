@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floyd-Warshall (All-Pairs Shortest Path)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/floyd-warshall.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+    let speed = 600;
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Floyd-Warshall (All-Pairs Shortest Path)',
+      subtitle: 'หา shortest path ระหว่างทุกคู่ node พร้อมกัน · DP: dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j]) · O(V³)',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'RUN', barColor: 'emerald',
+            buttons: [
+              { label: 'Run Floyd-Warshall', icon: ICONS.play, kind: 'btn-primary', onClick: () => run() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => { playback.load([]); renderAll(); },
+        onReset: () => { playback.load([]); renderAll(); },
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'cell ที่กำลังพิจารณา', desc: 'dist[i][j] current' },
+        { color: 'rgba(245,158,11,0.15)', label: 'row/col k', desc: 'intermediate' },
+        { color: '#1a1f29', label: 'diagonal', desc: 'dist[i][i] = 0' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function run() {
+      const steps = window.FLOYD_WARSHALL.run();
+      playback.load(steps);
+      playback.play();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.FLOYD_WARSHALL.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.FLOYD_WARSHALL.floydWarshall, step.codeLines || []);
+      } else {
+        const initial = window.FLOYD_WARSHALL.initialState();
+        window.FLOYD_WARSHALL.render(handles.vizArea, handles.vizMeta, initial);
+        window.DS.renderDescAndConsole(handles.descBody, initial, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.FLOYD_WARSHALL.floydWarshall, []);
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

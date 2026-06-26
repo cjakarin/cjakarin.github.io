@@ -1600,6 +1600,289 @@ vector<int> aStar(int source, int goal, int n) {
   },
 };
 
+// ---------- Floyd-Warshall (All-Pairs Shortest Path) ----------
+
+const CPP_FLOYD_WARSHALL = {
+  floydWarshall: {
+    title: 'floydWarshall',
+    fileName: 'floyd_warshall.cpp',
+    code: `#include <iostream>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+long long dist[N][N];
+
+// Floyd-Warshall — หา shortest path ระหว่างทุกคู่ node
+// O(V³) time, O(V²) space
+void floydWarshall(int n) {
+    // dist[i][j] เริ่มต้น: 0 ถ้า i==j, weight ถ้ามี edge, INF ถ้าไม่มี
+
+    for (int k = 0; k < n; k++) {              // intermediate node
+        for (int i = 0; i < n; i++) {          // source
+            for (int j = 0; j < n; j++) {      // destination
+                if (dist[i][k] != LLONG_MAX &&  // ป้องน INF + INF
+                    dist[k][j] != LLONG_MAX &&
+                    dist[i][k] + dist[k][j] < dist[i][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];   // relax
+                }
+            }
+        }
+    }
+
+    // ตรวจ negative cycle
+    for (int i = 0; i < n; i++) {
+        if (dist[i][i] < 0) {
+            cout << "Negative cycle detected!\\n";
+            return;
+        }
+    }
+}`,
+  },
+};
+
+// ---------- Tarjan's Strongly Connected Components ----------
+
+const CPP_TARJAN_SCC = {
+  tarjan: {
+    title: 'tarjanSCC',
+    fileName: 'tarjan_scc.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <stack>
+using namespace std;
+
+const int N = 100;
+vector<int> adj[N];
+int idx[N], low[N], timer = 0;
+bool onStack[N];
+stack<int> st;
+vector<vector<int>> sccs;
+
+void strongconnect(int v) {
+    idx[v] = low[v] = timer++;      // กำหนด index และ low-link
+    st.push(v);
+    onStack[v] = true;
+
+    for (int w : adj[v]) {          // วนเพื่อนบ้านทุกตัว
+        if (idx[w] == -1) {         // ถ้ายังไม่เยี่ยม
+            strongconnect(w);       // recurse
+            low[v] = min(low[v], low[w]);   // อัปเดต low หลังกลับ
+        } else if (onStack[w]) {    // ถ้าอยู่ใน stack = back edge
+            low[v] = min(low[v], idx[w]);
+        }
+    }
+
+    // ถ้า v เป็น root ของ SCC (low == index)
+    if (low[v] == idx[v]) {
+        vector<int> scc;
+        int w;
+        do {
+            w = st.top(); st.pop();
+            onStack[w] = false;
+            scc.push_back(w);
+        } while (w != v);
+        sccs.push_back(scc);
+    }
+}
+
+void tarjan(int n) {
+    for (int i = 0; i < n; i++) idx[i] = -1;
+    for (int v = 0; v < n; v++) {
+        if (idx[v] == -1) strongconnect(v);
+    }
+}`,
+  },
+};
+
+// ---------- AVL Tree (Self-Balancing BST) ----------
+
+const CPP_AVL = {
+  insert: {
+    title: 'avlInsert',
+    fileName: 'avl_tree.cpp',
+    code: `#include <iostream>
+#include <algorithm>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* left;
+    Node* right;
+    int height;
+    Node(int v) : value(v), left(nullptr), right(nullptr), height(1) {}
+};
+
+int height(Node* n) { return n ? n->height : 0; }
+int balance(Node* n) { return n ? height(n->left) - height(n->right) : 0; }
+void updateHeight(Node* n) {
+    if (n) n->height = 1 + max(height(n->left), height(n->right));
+}
+
+Node* rotateRight(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+    x->right = y;
+    y->left = T2;
+    updateHeight(y);
+    updateHeight(x);
+    return x;
+}
+
+Node* rotateLeft(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+    y->left = x;
+    x->right = T2;
+    updateHeight(x);
+    updateHeight(y);
+    return y;
+}
+
+Node* insert(Node* node, int value) {
+    if (!node) return new Node(value);
+
+    if (value < node->value)
+        node->left = insert(node->left, value);
+    else if (value > node->value)
+        node->right = insert(node->right, value);
+    else
+        return node;  // ไม่รับค่าซ้ำ
+
+    updateHeight(node);
+    int bf = balance(node);
+
+    // LL Case
+    if (bf > 1 && value < node->left->value)
+        return rotateRight(node);
+    // RR Case
+    if (bf < -1 && value > node->right->value)
+        return rotateLeft(node);
+    // LR Case
+    if (bf > 1 && value > node->left->value) {
+        node->left = rotateLeft(node->left);
+        return rotateRight(node);
+    }
+    // RL Case
+    if (bf < -1 && value < node->right->value) {
+        node->right = rotateRight(node->right);
+        return rotateLeft(node);
+    }
+
+    return node;
+}`,
+  },
+};
+
+// ---------- Red-Black Tree ----------
+
+const CPP_RB_TREE = {
+  insert: {
+    title: 'rbInsert',
+    fileName: 'red_black_tree.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+enum Color { RED, BLACK };
+
+struct Node {
+    int value;
+    Color color;
+    Node* left;
+    Node* right;
+    Node* parent;
+    Node(int v) : value(v), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+};
+
+Node* root = nullptr;
+
+void rotateLeft(Node*& root, Node* x) {
+    Node* y = x->right;
+    x->right = y->left;
+    if (y->left) y->left->parent = x;
+    y->parent = x->parent;
+    if (!x->parent) root = y;
+    else if (x == x->parent->left) x->parent->left = y;
+    else x->parent->right = y;
+    y->left = x;
+    x->parent = y;
+}
+
+void rotateRight(Node*& root, Node* x) {
+    Node* y = x->left;
+    x->left = y->right;
+    if (y->right) y->right->parent = x;
+    y->parent = x->parent;
+    if (!x->parent) root = y;
+    else if (x == x->parent->right) x->parent->right = y;
+    else x->parent->left = y;
+    y->right = x;
+    x->parent = y;
+}
+
+void fixInsert(Node*& root, Node* z) {
+    while (z->parent && z->parent->color == RED) {
+        Node* gp = z->parent->parent;
+        if (z->parent == gp->left) {
+            Node* uncle = gp->right;
+            if (uncle && uncle->color == RED) {
+                // Case 1: uncle RED → recolor
+                z->parent->color = BLACK;
+                uncle->color = BLACK;
+                gp->color = RED;
+                z = gp;
+            } else {
+                if (z == z->parent->right) {
+                    // Case 2: LR → rotate parent left
+                    z = z->parent;
+                    rotateLeft(root, z);
+                }
+                // Case 3: LL → rotate grandparent right
+                z->parent->color = BLACK;
+                gp->color = RED;
+                rotateRight(root, gp);
+            }
+        } else {
+            // Mirror cases (RL, RR)
+            Node* uncle = gp->left;
+            if (uncle && uncle->color == RED) {
+                z->parent->color = BLACK;
+                uncle->color = BLACK;
+                gp->color = RED;
+                z = gp;
+            } else {
+                if (z == z->parent->left) {
+                    z = z->parent;
+                    rotateRight(root, z);
+                }
+                z->parent->color = BLACK;
+                gp->color = RED;
+                rotateLeft(root, gp);
+            }
+        }
+    }
+    root->color = BLACK;  // root เป็น BLACK เสมอ
+}
+
+void insert(int value) {
+    Node* z = new Node(value);
+    Node* y = nullptr;
+    Node* x = root;
+    while (x) {
+        y = x;
+        if (z->value < x->value) x = x->left;
+        else x = x->right;
+    }
+    z->parent = y;
+    if (!y) root = z;
+    else if (z->value < y->value) y->left = z;
+    else y->right = z;
+
+    fixInsert(root, z);  // แก้ violation
+}`,
+  },
+};
+
 // Export
 window.CPP_SOURCES = {
   LL_ARRAY: CPP_LL_ARRAY,
@@ -1620,4 +1903,8 @@ window.CPP_SOURCES = {
   TOPO: CPP_TOPO,
   BELLMAN_FORD: CPP_BELLMAN_FORD,
   ASTAR: CPP_ASTAR,
+  FLOYD_WARSHALL: CPP_FLOYD_WARSHALL,
+  TARJAN_SCC: CPP_TARJAN_SCC,
+  AVL: CPP_AVL,
+  RB_TREE: CPP_RB_TREE,
 };

@@ -199,6 +199,42 @@
         desc: 'f(n) = g(n) + h(n) · ใช้ priority queue เลือก f น้อยสุด · เร็วกว่า Dijkstra ถ้า heuristic ดี',
         tags: ['astar', 'heuristic', 'priority-queue', 'greedy'],
       },
+      {
+        href: 'floyd-warshall.html',
+        cls: 'stack-array',
+        icon: window.DS.ICONS.listChecks,
+        title: 'Floyd-Warshall',
+        sub: 'All-Pairs Shortest Path',
+        desc: 'หา shortest path ระหว่างทุกคู่ node พร้อมกัน · DP: dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j]) · O(V³)',
+        tags: ['floyd-warshall', 'dp', 'all-pairs', 'matrix'],
+      },
+      {
+        href: 'tarjan-scc.html',
+        cls: 'queue-pointer',
+        icon: window.DS.ICONS.listChecks,
+        title: "Tarjan's SCC",
+        sub: 'Strongly Connected Components',
+        desc: 'หา SCC ใน directed graph ด้วย DFS + low-link values + stack · O(V+E)',
+        tags: ['scc', 'tarjan', 'low-link', 'directed-graph'],
+      },
+      {
+        href: 'avl.html',
+        cls: 'll-pointer',
+        icon: window.DS.ICONS.listChecks,
+        title: 'AVL Tree',
+        sub: 'Self-Balancing BST',
+        desc: 'BST ที่ balance เองด้วย rotations (LL, RR, LR, RL) · height ∈ O(log n) เสมอ · balance factor ∈ {-1, 0, 1}',
+        tags: ['avl', 'bst', 'rotation', 'balance-factor'],
+      },
+      {
+        href: 'red-black.html',
+        cls: 'stack-pointer',
+        icon: window.DS.ICONS.listChecks,
+        title: 'Red-Black Tree',
+        sub: 'Self-Balancing BST',
+        desc: 'BST ที่ balance เองด้วยกฎ 5 ข้อ (RED/BLACK + black-height) · รองรับ Case 1-3 + mirror cases',
+        tags: ['red-black', 'bst', 'rotation', 'recolor'],
+      },
     ];
 
     const grid = document.getElementById('menu-grid');
