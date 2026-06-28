@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Floyd-Warshall (All-Pairs Shortest Path)</title>
+  <title>Johnson's Algorithm (All-Pairs Shortest Path)</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <script src="js/common.js"></script>
   <script src="js/cpp-sources.js"></script>
   <script src="js/view-builder.js"></script>
-  <script src="js/floyd-warshall.js"></script>
+  <script src="js/johnson.js"></script>
   <script>
     try {
     const { el, ICONS } = window.DS;
@@ -19,16 +19,16 @@
     const playback = new Playback({ speed, renderer: () => renderAll() });
 
     const handles = window.DS_VIEW.buildViewPage({
-      title: 'Floyd-Warshall',
-      subtitle: 'All-pairs shortest path ด้วย DP · dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j]) · O(V³) · รองรับ negative edges',
-      iconHtml: ICONS.listChecks,
-      iconClass: 'stack',
+      title: "Johnson's Algorithm",
+      subtitle: 'All-pairs shortest path สำหรับ sparse graph ที่มี negative edges · Bellman-Ford + Reweight + Dijkstra · O(V·E·log V)',
+      iconHtml: ICONS.arrowRight,
+      iconClass: 'queue',
       opsConfig: {
         sections: [
           {
             title: 'RUN', barColor: 'emerald',
             buttons: [
-              { label: 'Run Floyd-Warshall', icon: ICONS.play, kind: 'btn-primary', onClick: () => run() },
+              { label: 'Run Johnson', icon: ICONS.play, kind: 'btn-primary', onClick: () => run() },
             ],
           },
         ],
@@ -45,14 +45,12 @@
         onReset: () => { playback.load([]); renderAll(); },
       },
       legendItems: [
-        { color: '#a855f7', label: 'k (intermediate)', desc: 'node ที่ใช้เป็นทางผ่านในรอบปัจจุบัน' },
-        { color: '#f59e0b', label: 'i / j', desc: 'คู่ (i, j) ที่กำลัง relax' },
-        { color: '#10b981', label: 'updated', desc: 'cell ที่ถูกอัปเดตเป็นค่าที่สั้นกว่า' },
-        { color: '#1a1f29', label: 'node / cell', desc: 'node/cell ปกติ' },
+        { color: '#a855f7', label: 'S / source', desc: 'virtual source หรือ Dijkstra source' },
+        { color: '#f59e0b', label: 'current', desc: 'node ที่กำลังประมวลผล' },
+        { color: '#10b981', label: 'visited', desc: 'เยี่ยมแล้วใน Dijkstra' },
+        { color: '#1a1f29', label: 'node', desc: 'node ปกติ' },
       ],
     });
-
-    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
 
     playback.onStateChange = (state) => {
       window.DS.updatePlaybackUI(handles.opsPanel, state);
@@ -61,7 +59,7 @@
     };
 
     function run() {
-      const steps = window.FLOYD_WARSHALL.run();
+      const steps = window.JOHNSON.run();
       playback.load(steps);
       playback.play();
     }
@@ -69,16 +67,16 @@
     function renderAll() {
       const step = playback.current();
       if (step) {
-        window.FLOYD_WARSHALL.render(handles.vizArea, handles.vizMeta, step);
+        window.JOHNSON.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.FLOYD_WARSHALL.floydWarshall, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, step.codeLines || []);
       } else {
-        // Show initial state
-        const initialSteps = window.FLOYD_WARSHALL.run();
+        // Show initial graph
+        const initialSteps = window.JOHNSON.run();
         const initial = initialSteps[0];
-        window.FLOYD_WARSHALL.render(handles.vizArea, handles.vizMeta, initial);
+        window.JOHNSON.render(handles.vizArea, handles.vizMeta, initial);
         window.DS.renderDescAndConsole(handles.descBody, initial, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.FLOYD_WARSHALL.floydWarshall, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, []);
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

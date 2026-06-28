@@ -16,15 +16,16 @@
     const { el, ICONS } = window.DS;
     const Playback = window.DS.Playback;
 
-    let allValues = [10, 20, 30, 40, 50, 25];
+    let allValues = [30, 20, 40, 10, 25, 5];   // sample sequence (will trigger rotations)
     let root = window.AVL.makeInitial(allValues);
     let valueInput = '15';
     let speed = 700;
+
     const playback = new Playback({ speed, renderer: () => renderAll() });
 
     const handles = window.DS_VIEW.buildViewPage({
-      title: 'AVL Tree (Self-Balancing BST)',
-      subtitle: 'BST ที่ balance เองด้วย rotations (LL, RR, LR, RL) · height ∈ O(log n) เสมอ',
+      title: 'AVL Tree',
+      subtitle: 'Self-balancing BST · 4 rotation cases (LL, RR, LR, RL) · height ∈ O(log n) · balance factor ∈ {-1, 0, 1}',
       iconHtml: ICONS.listChecks,
       iconClass: 'll',
       opsConfig: {
@@ -48,39 +49,47 @@
           onStepBack: () => playback.stepBack(),
           isPlaying: false,
         },
-        onClear: () => { root = null; allValues = []; playback.load([]); renderAll(); },
-        onReset: () => {
-          allValues = [10, 20, 30, 40, 50, 25];
-          root = window.AVL.makeInitial(allValues);
-          playback.load([]);
-          renderAll();
-        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
       },
       legendItems: [
-        { color: '#f59e0b', label: 'current', desc: 'กำลังเปรียบเทียบ' },
-        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
-        { color: '#ec4899', label: 'target', desc: 'จุดที่จะ rotate' },
-        { color: '#10b981', label: 'done', desc: 'เสร็จสิ้น' },
+        { color: '#f59e0b', label: 'current', desc: 'node ที่กำลัง visit' },
+        { color: '#14b8a6', label: 'new', desc: 'node ใหม่ที่เพิ่ง insert' },
+        { color: '#ec4899', label: 'target', desc: 'node ที่จะถูก rotate' },
+        { color: '#10b981', label: 'found', desc: 'node ที่ balance แล้ว' },
+        { color: '#a855f7', label: 'prev', desc: 'parent / ancestor ที่เกี่ยวข้อง' },
       ],
     });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
 
     playback.onStateChange = (state) => {
       window.DS.updatePlaybackUI(handles.opsPanel, state);
       window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
     };
 
     function runInsert() {
-      const v = parseInt(valueInput, 10) || 0;
-      if (allValues.includes(v)) {
-        // duplicate — skip
-        return;
-      }
-      const steps = window.AVL.insert(root, v);
-      // Commit final state: insert v into the stored tree using silent insert
+      const v = parseInt(valueInput, 10);
+      if (Number.isNaN(v)) return;
+      const result = window.AVL.insert(root, v);
       allValues.push(v);
-      root = window.AVL.makeInitial(allValues);
-      playback.load(steps);
+      root = result.root;
+      playback.load(result.steps);
       playback.play();
+    }
+
+    function clearAll() {
+      allValues = [];
+      root = null;
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      allValues = [30, 20, 40, 10, 25, 5];
+      root = window.AVL.makeInitial(allValues);
+      playback.load([]);
+      renderAll();
     }
 
     function renderAll() {
@@ -90,28 +99,20 @@
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, step.codeLines || []);
       } else {
-        // Build a "current state" step from the actual root tree
-        const serialized = (function() {
-          const nodes = [];
-          const edges = [];
-          (function dfs(node, parentId) {
-            if (!node) return;
-            const id = node.id;
-            const balance = (node.left ? node.left.height : 0) - (node.right ? node.right.height : 0);
-            nodes.push({ id, value: node.value, height: node.height, balance });
-            if (parentId !== null) edges.push([parentId, id]);
-            dfs(node.left, id);
-            dfs(node.right, id);
-          })(root, null);
-          return { nodes, edges };
-        })();
+        // Idle: serialize current root tree into a step object
+        const serialized = window.AVL.serialize(root);
         const idleStep = {
-          operation: 'init', description: 'AVL tree พร้อม — กด Insert เพื่อเพิ่ม node',
-          codeLines: [], nodes: serialized.nodes, edges: serialized.edges,
-          roles: {}, highlight: null, consoleOutput: undefined, phase: 'พร้อม',
+          operation: 'idle',
+          description: '',
+          codeLines: [],
+          nodes: serialized.nodes,
+          edges: serialized.edges,
+          roles: {},
+          consoleOutput: '',
+          phase: 'current tree',
         };
         window.AVL.render(handles.vizArea, handles.vizMeta, idleStep);
-        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, []);
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);

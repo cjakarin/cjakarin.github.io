@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tarjan's SCC</title>
+  <title>Tarjan's Strongly Connected Components (SCC)</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -19,10 +19,10 @@
     const playback = new Playback({ speed, renderer: () => renderAll() });
 
     const handles = window.DS_VIEW.buildViewPage({
-      title: "Tarjan's Strongly Connected Components",
-      subtitle: 'หา SCC ใน directed graph ด้วย DFS + low-link + stack · O(V+E)',
+      title: "Tarjan's SCC",
+      subtitle: 'Strongly Connected Components ด้วย DFS + low-link + stack · O(V+E) · single pass',
       iconHtml: ICONS.listChecks,
-      iconClass: 'll',
+      iconClass: 'queue',
       opsConfig: {
         sections: [
           {
@@ -45,15 +45,20 @@
         onReset: () => { playback.load([]); renderAll(); },
       },
       legendItems: [
-        { color: '#f59e0b', label: 'current', desc: 'กำลังประมวลผล' },
-        { color: '#a855f7', label: 'on stack', desc: 'อยู่ใน SCC stack' },
-        { color: '#10b981', label: 'SCC found', desc: 'จัดกลุ่มแล้ว (สีเดียวกัน = SCC เดียวกัน)' },
+        { color: '#a855f7', label: 'current', desc: 'node ที่กำลัง strongconnect' },
+        { color: '#f59e0b', label: 'neighbor', desc: ' neighbor ที่กำลังตรวจ' },
+        { color: '#ec4899', label: 'popping', desc: 'node ที่กำลัง pop ออกจาก stack' },
+        { color: '#10b981', label: 'SCC color', desc: 'สีของ SCC ที่พบ' },
+        { color: '#1a1f29', label: 'unvisited', desc: 'idx=-1 ยังไม่ถูกเยี่ยม' },
       ],
     });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
 
     playback.onStateChange = (state) => {
       window.DS.updatePlaybackUI(handles.opsPanel, state);
       window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
     };
 
     function run() {
@@ -69,7 +74,8 @@
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, step.codeLines || []);
       } else {
-        const initial = window.TARJAN_SCC.initialState();
+        const initialSteps = window.TARJAN_SCC.run();
+        const initial = initialSteps[0];
         window.TARJAN_SCC.render(handles.vizArea, handles.vizMeta, initial);
         window.DS.renderDescAndConsole(handles.descBody, initial, 0, 0);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, []);

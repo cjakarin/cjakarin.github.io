@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Red-Black Tree</title>
+  <title>Red-Black Tree (Self-Balancing BST)</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -16,17 +16,18 @@
     const { el, ICONS } = window.DS;
     const Playback = window.DS.Playback;
 
-    let root = window.RB_TREE.makeInitial([10, 20, 30, 15, 25, 5, 1]);
-    let allValues = [10, 20, 30, 15, 25, 5, 1];
+    let allValues = [10, 20, 30, 15, 25, 5];   // sample sequence (will trigger Cases 1-3)
+    let root = window.RB_TREE.makeInitial(allValues);
     let valueInput = '35';
     let speed = 700;
+
     const playback = new Playback({ speed, renderer: () => renderAll() });
 
     const handles = window.DS_VIEW.buildViewPage({
       title: 'Red-Black Tree',
-      subtitle: 'BST ที่ balance เองด้วยกฎ 5 ข้อ (RED/BLACK + black-height) · รองรับ Case 1-3 + mirror',
+      subtitle: 'Self-balancing BST · 5 properties (RED/BLACK + black-height) · fixInsert Case 1-3 + mirror · height ∈ O(log n)',
       iconHtml: ICONS.listChecks,
-      iconClass: 'll',
+      iconClass: 'stack',
       opsConfig: {
         sections: [
           {
@@ -48,36 +49,48 @@
           onStepBack: () => playback.stepBack(),
           isPlaying: false,
         },
-        onClear: () => { root = null; allValues = []; playback.load([]); renderAll(); },
-        onReset: () => {
-          allValues = [10, 20, 30, 15, 25, 5, 1];
-          root = window.RB_TREE.makeInitial(allValues);
-          playback.load([]);
-          renderAll();
-        },
+        onClear: () => clearAll(),
+        onReset: () => resetSample(),
       },
       legendItems: [
-        { color: '#ef4444', label: 'RED node', desc: 'สีแดง — children ต้องเป็น BLACK' },
-        { color: '#1a1f29', label: 'BLACK node', desc: 'สีดำ' },
-        { color: '#f59e0b', label: 'current', desc: 'กำลัง fixup' },
-        { color: '#ec4899', label: 'target', desc: 'parent/uncle ที่จะ recolor/rotate' },
+        { color: '#ef4444', label: 'RED', desc: 'RED node (อาจมี violation ถ้า parent เป็น RED)' },
+        { color: '#1a1f29', label: 'BLACK', desc: 'BLACK node' },
+        { color: '#f59e0b', label: 'current (z)', desc: 'node ที่กำลัง fixInsert' },
+        { color: '#ec4899', label: 'target (parent)', desc: 'parent ที่เป็น RED' },
+        { color: '#a855f7', label: 'prev (grandparent)', desc: 'grandparent (gp)' },
+        { color: '#10b981', label: 'found', desc: 'หลัง balance เรียบร้อย' },
       ],
     });
+
+    handles.opsPanel.querySelectorAll('.btn-grid-3 .btn, .btn-grid-2 .btn').forEach((b) => b.classList.add('btn-tall'));
 
     playback.onStateChange = (state) => {
       window.DS.updatePlaybackUI(handles.opsPanel, state);
       window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+      handles.progressFill.classList.add('purple');
     };
 
     function runInsert() {
-      const v = parseInt(valueInput, 10) || 0;
-      if (allValues.includes(v)) return; // skip duplicates
-      const steps = window.RB_TREE.insert(root, v);
+      const v = parseInt(valueInput, 10);
+      if (Number.isNaN(v)) return;
+      const result = window.RB_TREE.insert(root, v);
       allValues.push(v);
-      // Re-build silent tree for next state
-      root = window.RB_TREE.makeInitial(allValues);
-      playback.load(steps);
+      root = result.root;
+      playback.load(result.steps);
       playback.play();
+    }
+
+    function clearAll() {
+      allValues = [];
+      root = null;
+      playback.load([]);
+      renderAll();
+    }
+    function resetSample() {
+      allValues = [10, 20, 30, 15, 25, 5];
+      root = window.RB_TREE.makeInitial(allValues);
+      playback.load([]);
+      renderAll();
     }
 
     function renderAll() {
@@ -87,27 +100,19 @@
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.RB_TREE.insert, step.codeLines || []);
       } else {
-        // Idle state — serialize current root
-        const serialized = (function() {
-          const nodes = [];
-          const edges = [];
-          (function dfs(node, parentId) {
-            if (!node) return;
-            const id = node.id;
-            nodes.push({ id, value: node.value, color: node.color });
-            if (parentId !== null) edges.push([parentId, id]);
-            dfs(node.left, id);
-            dfs(node.right, id);
-          })(root, null);
-          return { nodes, edges };
-        })();
+        const serialized = window.RB_TREE.serialize(root);
         const idleStep = {
-          operation: 'init', description: 'Red-Black tree พร้อม — กด Insert เพื่อเพิ่ม node',
-          codeLines: [], nodes: serialized.nodes, edges: serialized.edges,
-          roles: {}, highlight: null, consoleOutput: undefined, phase: 'พร้อม',
+          operation: 'idle',
+          description: '',
+          codeLines: [],
+          nodes: serialized.nodes,
+          edges: serialized.edges,
+          roles: {},
+          consoleOutput: '',
+          phase: 'current tree',
         };
         window.RB_TREE.render(handles.vizArea, handles.vizMeta, idleStep);
-        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
         window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.RB_TREE.insert, []);
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);

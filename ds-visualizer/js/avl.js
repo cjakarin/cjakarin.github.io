@@ -1,7 +1,10 @@
 // ============ AVL Tree (Self-Balancing BST) ============
 //
-// Insert + rotations (LL, RR, LR, RL) เพื่อรักษา balance factor ∈ {-1, 0, 1}
-// ความสูง tree อยู่ใน O(log n) เสมอ
+// BST ที่ balance เองด้วย rotations (LL, RR, LR, RL)
+// - height(node) = longest path จาก node ลงไป leaf
+// - balance(node) = height(left) - height(right) ∈ {-1, 0, 1}
+// - ถ้า |balance| > 1 → rotate
+// Time: insert/search/delete = O(log n)
 
 let avlIdCounter = 0;
 function avlId() {
@@ -9,343 +12,374 @@ function avlId() {
   return `avl${avlIdCounter}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 5)}`;
 }
 
-// AVL node: { id, value, left, right, height }
-// We use object references (not array) for cleaner tree structure
-
-function avlHeight(node) {
-  return node ? node.height : 0;
-}
-function avlBalance(node) {
-  return node ? avlHeight(node.left) - avlHeight(node.right) : 0;
-}
+function avlHeight(node) { return node ? node.height : 0; }
+function avlBalance(node) { return node ? avlHeight(node.left) - avlHeight(node.right) : 0; }
 function avlUpdateHeight(node) {
   if (node) node.height = 1 + Math.max(avlHeight(node.left), avlHeight(node.right));
 }
 
-// Serialize tree to flat node list + edge list for rendering
-function avlSerialize(root) {
-  const nodes = [];
-  const edges = [];
-  function dfs(node, parentId) {
-    if (!node) return;
-    const id = node.id;
-    nodes.push({ id, value: node.value, height: node.height, balance: avlBalance(node) });
-    if (parentId !== null) edges.push([parentId, id]);
-    dfs(node.left, id);
-    dfs(node.right, id);
-  }
-  dfs(root, null);
-  return { nodes, edges };
-}
-
-function avlBase(operation, description, codeLines, root, roles = {}, highlight = null, consoleOutput, phase) {
-  const serialized = avlSerialize(root);
-  return {
-    operation, description, codeLines,
-    nodes: serialized.nodes,
-    edges: serialized.edges,
-    roles, highlight,
-    consoleOutput, phase,
-  };
-}
-
 function avlRotateRight(y) {
   const x = y.left;
-  const T2 = x.right;
+  y.left = x.right;
   x.right = y;
-  y.left = T2;
   avlUpdateHeight(y);
   avlUpdateHeight(x);
   return x;
 }
-
 function avlRotateLeft(x) {
   const y = x.right;
-  const T2 = y.left;
+  x.right = y.left;
   y.left = x;
-  x.right = T2;
   avlUpdateHeight(x);
   avlUpdateHeight(y);
   return y;
 }
 
-function avlInsertSteps(root, value) {
+// ===== Serialize tree → flat nodes/edges for renderer =====
+function avlSerialize(root) {
+  const nodes = [];
+  const edges = [];
+  function walk(node, parent) {
+    if (!node) return;
+    nodes.push({ id: node.id, value: node.value, height: node.height });
+    if (parent) edges.push({ from: parent.id, to: node.id, side: parent.left === node ? 'left' : 'right' });
+    walk(node.left, node);
+    walk(node.right, node);
+  }
+  walk(root, null);
+  return { nodes, edges };
+}
+
+function avlStep(operation, description, codeLines, root, roles = {}, consoleOutput, phase, highlight = {}) {
+  const { nodes, edges } = avlSerialize(root);
+  return {
+    operation, description, codeLines,
+    nodes, edges,
+    roles: { ...roles },
+    consoleOutput, phase,
+    highlight: { ...highlight },
+  };
+}
+
+// ===== Insert with step recording =====
+function avlInsert(root, value) {
   const steps = [];
-  const path = []; // track nodes along the insertion path
+  const newId = avlId();
 
-  steps.push(avlBase('init',
-    `เริ่ม insert(${value}) ลง AVL tree`,
-    [1], root, {}, null, undefined, 'เริ่มต้น'));
+  steps.push(avlStep('insert',
+    `เริ่ม insert(${value})${root ? '' : ' — tree ว่าง จะสร้าง root ใหม่'}`,
+    [21], root, {}, undefined, 'เริ่มต้น'));
 
-  // Step 1: standard BST insert (recursive) — track path
-  function insert(node, value) {
+  function insert(node, v) {
+    // Step: visit node (or create new)
     if (!node) {
-      const newNode = { id: avlId(), value, left: null, right: null, height: 1 };
-      steps.push(avlBase('insert-leaf',
-        `ถึงตำแหน่งว่าง → สร้าง Node ใหม่ (value=${value}, height=1)`,
-        [2, 3, 4], root, { [newNode.id]: 'new' }, { nodeId: newNode.id, type: 'new' },
-        `+ new node ${value}`,
-        'insert at leaf'));
+      const newNode = { id: newId, value: v, left: null, right: null, height: 1 };
+      steps.push(avlStep('insert',
+        `node == nullptr → สร้าง Node ใหม่{value=${v}, height=1}  คืนเป็น root ของ subtree นี้`,
+        [22], root || newNode, { [newId]: 'new' },
+        `+ insert ${v} (new leaf)`, 'สร้าง node ใหม่'));
       return newNode;
     }
 
-    path.push(node.id);
-    steps.push(avlBase('compare',
-      `เปรียบเทียบ ${value} กับ ${node.value} (height=${node.height}, balance=${avlBalance(node)})`,
-      [5, 6], root, { [node.id]: 'current' }, { nodeId: node.id, type: 'current' },
-      undefined, 'compare'));
+    steps.push(avlStep('insert',
+      `visit node ${node.value} (height=${node.height}) — เปรียบเทียบ ${v} กับ ${node.value}`,
+      [21, 23], root, { [node.id]: 'current' }, undefined, `visit ${node.value}`));
 
-    if (value < node.value) {
-      steps.push(avlBase('go-left',
-        `${value} < ${node.value} → ลงซ้าย`,
-        [7, 8], root, { [node.id]: 'current' }, { nodeId: node.id, type: 'current' },
-        undefined, 'go left'));
-      node.left = insert(node.left, value);
-    } else if (value > node.value) {
-      steps.push(avlBase('go-right',
-        `${value} > ${node.value} → ลงขวา`,
-        [9, 10], root, { [node.id]: 'current' }, { nodeId: node.id, type: 'current' },
-        undefined, 'go right'));
-      node.right = insert(node.right, value);
+    if (v < node.value) {
+      steps.push(avlStep('insert',
+        `${v} < ${node.value} → recurse ลง left subtree`,
+        [23], root, { [node.id]: 'current' }, undefined, `ไป left`));
+      node.left = insert(node.left, v);
+    } else if (v > node.value) {
+      steps.push(avlStep('insert',
+        `${v} > ${node.value} → recurse ลง right subtree`,
+        [24], root, { [node.id]: 'current' }, undefined, `ไป right`));
+      node.right = insert(node.right, v);
     } else {
-      steps.push(avlBase('duplicate',
-        `${value} == ${node.value} → ไม่ insert (AVL ไม่รับค่าซ้ำ)`,
-        [], root, { [node.id]: 'found' }, { nodeId: node.id, type: 'current' },
-        `duplicate — skipped`,
-        'duplicate'));
+      steps.push(avlStep('insert',
+        `${v} == ${node.value} → ไม่ insert (BST ไม่เก็บ duplicate)`,
+        [25], root, { [node.id]: 'found' },
+        `insert(${v}) → มีอยู่แล้ว (skip)`, 'duplicate'));
       return node;
     }
 
     // Update height
     avlUpdateHeight(node);
     const bf = avlBalance(node);
-    steps.push(avlBase('update-height',
-      `กลับขึ้นมาที่ ${node.value}: update height=${node.height}, balance factor=${bf}`,
-      [11, 12], root, { [node.id]: 'current' }, { nodeId: node.id, type: 'current' },
-      `h=${node.height}, bf=${bf}`,
-      'update height'));
+    steps.push(avlStep('insert',
+      `กลับขึ้นที่ ${node.value}: update height = 1 + max(h(left)=${avlHeight(node.left)}, h(right)=${avlHeight(node.right)}) = ${node.height}  · balance = ${bf}`,
+      [26, 27], root, { [node.id]: 'current' }, undefined, `update height ${node.value}`));
 
-    // 4 cases of imbalance
-    // LL Case
-    if (bf > 1 && value < node.left.value) {
-      steps.push(avlBase('ll-case',
-        `LL Case: balance=${bf} > 1 และ ${value} < ${node.left.value} (insert ทางซ้ายของ left child) → rotate right`,
-        [13, 14, 15], root, { [node.id]: 'current', [node.left.id]: 'target' }, { nodeId: node.id, type: 'rotate', rotation: 'LL' },
-        undefined, 'LL → rotate right'));
-      node = avlRotateRight(node);
-      steps.push(avlBase('after-rotate',
-        `หลัง rotate right: ${node.value} กลายเป็น root ของ subtree`,
-        [], root, { [node.id]: 'found' }, null,
-        `rotated (LL)`,
-        'after rotation'));
+    // 4 cases of rotation
+    if (bf > 1 && v < node.left.value) {
+      // LL: rotateRight
+      steps.push(avlStep('insert',
+        `LL Case: balance=${bf} > 1 และ ${v} < ${node.left.value} (inserted ทาง left ของ left) → rotateRight(${node.value})`,
+        [28], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        undefined, 'LL → rotateRight'));
+      const newRoot = avlRotateRight(node);
+      steps.push(avlStep('insert',
+        `หลัง rotateRight: ${node.value} ลงเป็น right child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`,
+        [8, 9, 10, 11, 12], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `rotateRight(${node.value}) → balance แล้ว`, 'หลัง rotate'));
+      return newRoot;
     }
-    // RR Case
-    else if (bf < -1 && value > node.right.value) {
-      steps.push(avlBase('rr-case',
-        `RR Case: balance=${bf} < -1 และ ${value} > ${node.right.value} (insert ทางขวาของ right child) → rotate left`,
-        [16, 17, 18], root, { [node.id]: 'current', [node.right.id]: 'target' }, { nodeId: node.id, type: 'rotate', rotation: 'RR' },
-        undefined, 'RR → rotate left'));
-      node = avlRotateLeft(node);
-      steps.push(avlBase('after-rotate',
-        `หลัง rotate left: ${node.value} กลายเป็น root ของ subtree`,
-        [], root, { [node.id]: 'found' }, null,
-        `rotated (RR)`,
-        'after rotation'));
+    if (bf < -1 && v > node.right.value) {
+      // RR: rotateLeft
+      steps.push(avlStep('insert',
+        `RR Case: balance=${bf} < -1 และ ${v} > ${node.right.value} (inserted ทาง right ของ right) → rotateLeft(${node.value})`,
+        [29], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        undefined, 'RR → rotateLeft'));
+      const newRoot = avlRotateLeft(node);
+      steps.push(avlStep('insert',
+        `หลัง rotateLeft: ${node.value} ลงเป็น left child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`,
+        [14, 15, 16, 17, 18], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `rotateLeft(${node.value}) → balance แล้ว`, 'หลัง rotate'));
+      return newRoot;
     }
-    // LR Case
-    else if (bf > 1 && value > node.left.value) {
-      steps.push(avlBase('lr-case',
-        `LR Case: balance=${bf} > 1 และ ${value} > ${node.left.value} (insert ทางขวาของ left child) → rotate left ที่ left child แล้ว rotate right ที่ node`,
-        [19, 20, 21, 22], root, { [node.id]: 'current', [node.left.id]: 'target' }, { nodeId: node.id, type: 'rotate', rotation: 'LR' },
-        undefined, 'LR → double rotate'));
+    if (bf > 1 && v > node.left.value) {
+      // LR: rotateLeft(left) then rotateRight
+      steps.push(avlStep('insert',
+        `LR Case: balance=${bf} > 1 และ ${v} > ${node.left.value} (inserted ทาง right ของ left) → ต้อง rotate 2 ครั้ง`,
+        [30], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        undefined, 'LR → 2 rotations'));
       node.left = avlRotateLeft(node.left);
-      node = avlRotateRight(node);
-      steps.push(avlBase('after-rotate',
-        `หลัง double rotation (LR): ${node.value} กลายเป็น root ของ subtree`,
-        [], root, { [node.id]: 'found' }, null,
-        `rotated (LR)`,
-        'after rotation'));
+      steps.push(avlStep('insert',
+        `ขั้นที่ 1: rotateLeft(${node.left === null ? '?' : '?'}) — ทำให้กลายเป็น LL case`,
+        [14, 15, 16, 17, 18], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        undefined, 'rotateLeft(left)'));
+      const newRoot = avlRotateRight(node);
+      steps.push(avlStep('insert',
+        `ขั้นที่ 2: rotateRight(${node.value}) — ต้นไม้ balance แล้ว`,
+        [8, 9, 10, 11, 12, 30], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `LR fixed → balance แล้ว`, 'หลัง rotate'));
+      return newRoot;
     }
-    // RL Case
-    else if (bf < -1 && value < node.right.value) {
-      steps.push(avlBase('rl-case',
-        `RL Case: balance=${bf} < -1 และ ${value} < ${node.right.value} (insert ทางซ้ายของ right child) → rotate right ที่ right child แล้ว rotate left ที่ node`,
-        [23, 24, 25, 26], root, { [node.id]: 'current', [node.right.id]: 'target' }, { nodeId: node.id, type: 'rotate', rotation: 'RL' },
-        undefined, 'RL → double rotate'));
+    if (bf < -1 && v < node.right.value) {
+      // RL: rotateRight(right) then rotateLeft
+      steps.push(avlStep('insert',
+        `RL Case: balance=${bf} < -1 และ ${v} < ${node.right.value} (inserted ทาง left ของ right) → ต้อง rotate 2 ครั้ง`,
+        [31], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        undefined, 'RL → 2 rotations'));
       node.right = avlRotateRight(node.right);
-      node = avlRotateLeft(node);
-      steps.push(avlBase('after-rotate',
-        `หลัง double rotation (RL): ${node.value} กลายเป็น root ของ subtree`,
-        [], root, { [node.id]: 'found' }, null,
-        `rotated (RL)`,
-        'after rotation'));
+      steps.push(avlStep('insert',
+        `ขั้นที่ 1: rotateRight(right) — ทำให้กลายเป็น RR case`,
+        [8, 9, 10, 11, 12], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        undefined, 'rotateRight(right)'));
+      const newRoot = avlRotateLeft(node);
+      steps.push(avlStep('insert',
+        `ขั้นที่ 2: rotateLeft(${node.value}) — ต้นไม้ balance แล้ว`,
+        [14, 15, 16, 17, 18, 31], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `RL fixed → balance แล้ว`, 'หลัง rotate'));
+      return newRoot;
     }
 
+    steps.push(avlStep('insert',
+      `balance=${bf} ∈ {-1, 0, 1} → ไม่ต้อง rotate  คืน ${node.value} เป็น root ของ subtree`,
+      [32], root, { [node.id]: 'found' }, undefined, `balance OK`));
     return node;
   }
 
-  root = insert(root, value);
+  const newRoot = insert(root, value);
 
-  steps.push(avlBase('done',
-    `insert(${value}) เสร็จสิ้น — AVL tree ยังคง balanced (height ใน O(log n))`,
-    [], root, {}, null,
-    `Tree height: ${avlHeight(root)}`,
-    'เสร็จสิ้น'));
+  // Final step
+  steps.push(avlStep('insert',
+    `insert(${value}) เสร็จสิ้น — AVL tree balance แล้ว (height ∈ O(log n))`,
+    [], newRoot, {}, `insert(${value}) → สำเร็จ`, 'เสร็จสิ้น'));
 
-  return steps;
+  return { steps, root: newRoot };
 }
 
-// Build sample AVL tree from values
-function avlBuildTree(values) {
+// ===== Rebuild tree from a list of values (silent — no step recording) =====
+function avlMakeInitial(values) {
   let root = null;
   for (const v of values) {
-    // Use the same insert but without recording steps (silent insert)
-    function silentInsert(node, value) {
-      if (!node) return { id: avlId(), value, left: null, right: null, height: 1 };
-      if (value < node.value) node.left = silentInsert(node.left, value);
-      else if (value > node.value) node.right = silentInsert(node.right, value);
-      else return node;
-      avlUpdateHeight(node);
-      const bf = avlBalance(node);
-      if (bf > 1 && value < node.left.value) return avlRotateRight(node);
-      if (bf < -1 && value > node.right.value) return avlRotateLeft(node);
-      if (bf > 1 && value > node.left.value) { node.left = avlRotateLeft(node.left); return avlRotateRight(node); }
-      if (bf < -1 && value < node.right.value) { node.right = avlRotateRight(node.right); return avlRotateLeft(node); }
-      return node;
-    }
-    root = silentInsert(root, v);
+    const result = avlInsertSilent(root, v);
+    root = result;
   }
   return root;
 }
+function avlInsertSilent(node, v) {
+  if (!node) return { id: avlId(), value: v, left: null, right: null, height: 1 };
+  if (v < node.value) node.left = avlInsertSilent(node.left, v);
+  else if (v > node.value) node.right = avlInsertSilent(node.right, v);
+  else return node;
+  avlUpdateHeight(node);
+  const bf = avlBalance(node);
+  if (bf > 1 && v < node.left.value) return avlRotateRight(node);
+  if (bf < -1 && v > node.right.value) return avlRotateLeft(node);
+  if (bf > 1 && v > node.left.value) { node.left = avlRotateLeft(node.left); return avlRotateRight(node); }
+  if (bf < -1 && v < node.right.value) { node.right = avlRotateRight(node.right); return avlRotateLeft(node); }
+  return node;
+}
 
-// Render: tree with values + height/balance labels
+// ===== Renderer =====
 function avlRender(vizArea, vizMeta, step) {
   window.DS.clearChildren(vizArea);
-  const nodes = step.nodes;
-  const edges = step.edges;
-  const roles = step.roles;
-  const N = nodes.length;
+  const nodes = step.nodes || [];
+  const edges = step.edges || [];
+  const roles = step.roles || {};
 
   if (vizMeta) {
-    const maxHeight = nodes.reduce((m, n) => Math.max(m, n.height), 0);
-    vizMeta.textContent = `${N} nodes · tree height = ${maxHeight} · log₂(N+1) = ${N > 0 ? Math.ceil(Math.log2(N + 1)) : 0}`;
+    vizMeta.textContent = `${nodes.length} node${nodes.length !== 1 ? 's' : ''}${nodes.length > 0 ? ` · height = ${nodes[0] ? nodes[0].height : 0}` : ''}`;
   }
 
-  if (N === 0) {
-    vizArea.appendChild(window.DS.el('div', {
-      style: 'color:var(--text-muted);font-family:monospace;padding:40px;text-align:center',
-    }, 'AVL tree ว่าง — กด Insert เพื่อเริ่ม'));
+  const wrap = window.DS.el('div', { style: 'display:flex;flex-direction:column;gap:20px;padding:16px;align-items:center' });
+
+  if (nodes.length === 0) {
+    wrap.appendChild(window.DS.el('div', {
+      style: 'color:var(--text-muted);font-family:monospace;font-size:13px;padding:40px',
+    }, 'Tree ว่าง — กด Insert เพื่อเพิ่ม node แรก'));
+    vizArea.appendChild(wrap);
     return;
   }
 
-  // Build adjacency for layout
-  const children = {};
-  nodes.forEach((n) => { children[n.id] = []; });
-  const nodeMap = {};
-  nodes.forEach((n) => { nodeMap[n.id] = n; });
-  const parentOf = {};
-  edges.forEach(([p, c]) => {
-    children[p].push(c);
-    parentOf[c] = p;
-  });
-  const rootId = nodes.find((n) => !parentOf[n.id]).id;
+  // Build node map
+  const nodeMap = new Map();
+  nodes.forEach((n) => nodeMap.set(n.id, n));
 
-  // Layout: in-order x position
+  // Build children map
+  const children = {};
+  nodes.forEach((n) => { children[n.id] = { left: null, right: null }; });
+  edges.forEach((e) => {
+    if (children[e.from]) children[e.from][e.side] = e.to;
+  });
+
+  // Find root: a node that's not a child of anyone
+  const childIds = new Set(edges.map((e) => e.to));
+  const rootId = nodes.find((n) => !childIds.has(n.id)).id;
+
+  // Layout using in-order traversal
   const positions = {};
   let xCounter = 0;
   function layout(id, depth) {
-    const node = nodeMap[id];
-    const kids = children[id];
-    const leftKid = kids.find((k) => nodeMap[k].value < node.value);
-    const rightKid = kids.find((k) => nodeMap[k].value > node.value);
-    let leftX, rightX;
-    if (leftKid) leftX = layout(leftKid, depth + 1);
-    const myX = xCounter++;
-    if (rightKid) rightX = layout(rightKid, depth + 1);
-    positions[id] = { x: myX, y: depth };
-    return myX;
+    if (!id) return;
+    const ch = children[id];
+    if (!ch.left && !ch.right) {
+      positions[id] = { x: xCounter * 60 + 30, y: depth * 80 + 30 };
+      xCounter++;
+      return;
+    }
+    if (ch.left) layout(ch.left, depth + 1);
+    const leftX = ch.left ? positions[ch.left].x : null;
+    layout(ch.right, depth + 1);
+    const rightX = ch.right ? positions[ch.right].x : null;
+    if (leftX != null && rightX != null) {
+      positions[id] = { x: (leftX + rightX) / 2, y: depth * 80 + 30 };
+    } else if (leftX != null) {
+      positions[id] = { x: leftX + 30, y: depth * 80 + 30 };
+    } else {
+      positions[id] = { x: rightX - 30, y: depth * 80 + 30 };
+    }
   }
   layout(rootId, 0);
 
-  // Compute pixel positions
-  const xSpacing = 56;
-  const ySpacing = 70;
-  const offsetX = 30;
-  const offsetY = 30;
-  Object.keys(positions).forEach((id) => {
-    positions[id].px = offsetX + positions[id].x * xSpacing;
-    positions[id].py = offsetY + positions[id].y * ySpacing;
-  });
+  // Compute tree bounds
+  let maxX = 0, maxY = 0;
+  for (const id in positions) {
+    maxX = Math.max(maxX, positions[id].x);
+    maxY = Math.max(maxY, positions[id].y);
+  }
+  const svgWidth = Math.max(maxX + 60, 200);
+  const svgHeight = maxY + 60;
 
-  // Find max x for SVG width
-  const maxX = Math.max(...Object.values(positions).map((p) => p.px));
-  const maxY = Math.max(...Object.values(positions).map((p) => p.py));
+  const svg = window.DS.el('svg', { width: String(svgWidth), height: String(svgHeight) });
+  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', String(maxX + 60));
-  svg.setAttribute('height', String(maxY + 80));
-
-  // Draw edges
-  edges.forEach(([p, c]) => {
+  // Draw edges first
+  edges.forEach((e) => {
+    const from = positions[e.from];
+    const to = positions[e.to];
+    if (!from || !to) return;
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', String(positions[p].px));
-    line.setAttribute('y1', String(positions[p].py + 18));
-    line.setAttribute('x2', String(positions[c].px));
-    line.setAttribute('y2', String(positions[c].py - 18));
+    line.setAttribute('x1', String(from.x));
+    line.setAttribute('y1', String(from.y + 22));
+    line.setAttribute('x2', String(to.x));
+    line.setAttribute('y2', String(to.y - 22));
     line.setAttribute('stroke', 'var(--text-dim)');
     line.setAttribute('stroke-width', '1.5');
     svg.appendChild(line);
   });
 
   // Draw nodes
-  nodes.forEach((node) => {
-    const pos = positions[node.id];
-    const role = roles[node.id] || '';
-    let fill = 'var(--bg-card)';
-    let stroke = 'var(--text-dim)';
-    let textColor = 'var(--text)';
-    if (role === 'current') { fill = 'var(--amber)'; stroke = 'var(--amber)'; textColor = 'white'; }
-    else if (role === 'new') { fill = 'var(--teal)'; stroke = 'var(--teal)'; textColor = 'white'; }
-    else if (role === 'found') { fill = 'var(--emerald)'; stroke = 'var(--emerald)'; textColor = 'white'; }
-    else if (role === 'target') { fill = 'var(--pink)'; stroke = 'var(--pink)'; textColor = 'white'; }
+  nodes.forEach((n) => {
+    const pos = positions[n.id];
+    if (!pos) return;
+    const role = roles[n.id] || '';
+    let fill = 'var(--bg-card)', stroke = 'var(--text-dim)', textColor = 'var(--text)';
+    if (role === 'current') { fill = 'rgba(245,158,11,0.15)'; stroke = 'var(--amber)'; }
+    else if (role === 'new') { fill = 'rgba(20,184,166,0.15)'; stroke = 'var(--teal)'; textColor = 'var(--teal)'; }
+    else if (role === 'target') { fill = 'rgba(236,72,153,0.15)'; stroke = 'var(--pink)'; }
+    else if (role === 'found') { fill = 'rgba(16,185,129,0.15)'; stroke = 'var(--emerald)'; }
+    else if (role === 'prev') { fill = 'rgba(168,85,247,0.15)'; stroke = 'var(--purple)'; }
+
+    // Pointer chip above
+    if (role) {
+      const chipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      chipBg.setAttribute('x', String(pos.x - 18));
+      chipBg.setAttribute('y', String(pos.y - 40));
+      chipBg.setAttribute('width', '36');
+      chipBg.setAttribute('height', '14');
+      chipBg.setAttribute('rx', '3');
+      let chipColor = 'var(--text-dim)';
+      if (role === 'current') chipColor = 'var(--amber)';
+      else if (role === 'new') chipColor = 'var(--teal)';
+      else if (role === 'target') chipColor = 'var(--pink)';
+      else if (role === 'found') chipColor = 'var(--emerald)';
+      else if (role === 'prev') chipColor = 'var(--purple)';
+      chipBg.setAttribute('fill', chipColor);
+      svg.appendChild(chipBg);
+
+      const chipText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      chipText.setAttribute('x', String(pos.x));
+      chipText.setAttribute('y', String(pos.y - 30));
+      chipText.setAttribute('text-anchor', 'middle');
+      chipText.setAttribute('font-size', '9');
+      chipText.setAttribute('font-family', 'monospace');
+      chipText.setAttribute('font-weight', 'bold');
+      chipText.setAttribute('fill', 'white');
+      chipText.textContent = role;
+      svg.appendChild(chipText);
+    }
 
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', String(pos.px));
-    circle.setAttribute('cy', String(pos.py));
-    circle.setAttribute('r', '18');
+    circle.setAttribute('cx', String(pos.x));
+    circle.setAttribute('cy', String(pos.y));
+    circle.setAttribute('r', '20');
     circle.setAttribute('fill', fill);
     circle.setAttribute('stroke', stroke);
     circle.setAttribute('stroke-width', '2');
     svg.appendChild(circle);
 
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', String(pos.px));
-    text.setAttribute('y', String(pos.py + 5));
+    text.setAttribute('x', String(pos.x));
+    text.setAttribute('y', String(pos.y + 5));
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('font-size', '13');
     text.setAttribute('font-weight', 'bold');
     text.setAttribute('fill', textColor);
-    text.textContent = String(node.value);
+    text.textContent = String(n.value);
     svg.appendChild(text);
 
-    // Height + balance label below
-    const info = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    info.setAttribute('x', String(pos.px));
-    info.setAttribute('y', String(pos.py + 34));
-    info.setAttribute('text-anchor', 'middle');
-    info.setAttribute('font-size', '10');
-    info.setAttribute('font-family', 'monospace');
-    info.setAttribute('fill', 'var(--text-muted)');
-    info.textContent = `h=${node.height} bf=${node.balance}`;
-    svg.appendChild(info);
+    // Height label below
+    const hLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    hLabel.setAttribute('x', String(pos.x));
+    hLabel.setAttribute('y', String(pos.y + 34));
+    hLabel.setAttribute('text-anchor', 'middle');
+    hLabel.setAttribute('font-size', '9');
+    hLabel.setAttribute('font-family', 'monospace');
+    hLabel.setAttribute('fill', 'var(--text-muted)');
+    hLabel.textContent = `h=${n.height}`;
+    svg.appendChild(hLabel);
   });
 
-  vizArea.appendChild(svg);
+  wrap.appendChild(svg);
+  vizArea.appendChild(wrap);
 }
 
 window.AVL = {
-  insert: avlInsertSteps,
+  insert: avlInsert,
   render: avlRender,
-  buildTree: avlBuildTree,
-  makeInitial: (values) => avlBuildTree(values),
+  makeInitial: avlMakeInitial,
+  serialize: avlSerialize,
 };

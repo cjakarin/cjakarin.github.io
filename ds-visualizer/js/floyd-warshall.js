@@ -1,18 +1,19 @@
 // ============ Floyd-Warshall (All-Pairs Shortest Path) ============
 //
-// หาระยะสั้นสุดระหว่างทุกคู่ node — O(V³)
-// ใช้ dynamic programming: dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
-// ตรวจ negative cycle ได้ (ถ้า dist[i][i] < 0 หลังรันจบ)
+// DP แบบ 3 ชั้น: dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+// รองรับ negative edges (แต่ไม่รองรับ negative cycle — ตรวจด้วย dist[i][i] < 0)
+// Time: O(V³) — เหมาะกับ dense graph ที่ต้องการ shortest path ทุกคู่
 
+// Graph ตัวอย่าง: 4 nodes (directed)
 const FW_GRAPH = {
   nodes: ['A', 'B', 'C', 'D'],
   edges: [
     [0, 1, 5],   // A → B: 5
-    [0, 3, 10],  // A → D: 10
-    [1, 2, 3],   // B → C: 3
-    [2, 0, 7],   // C → A: 7
-    [2, 3, 1],   // C → D: 1
-    [3, 1, 2],   // D → B: 2
+    [0, 2, 2],   // A → C: 2
+    [1, 2, 1],   // B → C: 1
+    [1, 3, 6],   // B → D: 6
+    [2, 3, 3],   // C → D: 3
+    [2, 1, 4],   // C → B: 4
   ],
   directed: true,
 };
@@ -20,156 +21,192 @@ const FW_GRAPH = {
 const FW_N = FW_GRAPH.nodes.length;
 const FW_INF = Infinity;
 
-function fwInitDist() {
-  // Build initial distance matrix
-  const dist = Array.from({ length: FW_N }, () => Array.from({ length: FW_N }, () => FW_INF));
-  for (let i = 0; i < FW_N; i++) dist[i][i] = 0;
-  for (const [u, v, w] of FW_GRAPH.edges) dist[u][v] = w;
-  return dist;
+function fwBuildAdj(edges, n) {
+  const adj = Array.from({ length: n }, () => Array.from({ length: n }, () => FW_INF));
+  for (let i = 0; i < n; i++) adj[i][i] = 0;
+  for (const [u, v, w] of edges) adj[u][v] = w;
+  return adj;
 }
 
-function fwBase(operation, description, codeLines, dist, k, i, j, highlightCell, consoleOutput, phase) {
-  return {
-    operation, description, codeLines,
-    dist: dist.map((row) => row.slice()),
-    k, i, j, highlightCell,
-    consoleOutput, phase,
-    nodes: FW_GRAPH.nodes,
-  };
+function fwBase(operation, description, codeLines, state, consoleOutput, phase) {
+  return { operation, description, codeLines, ...state, consoleOutput, phase };
 }
 
-function floydWarshallSteps() {
-  const steps = [];
-  let dist = fwInitDist();
-
-  steps.push(fwBase('init',
-    `เริ่ม Floyd-Warshall — สร้าง distance matrix เริ่มต้น (dist[i][i]=0, dist[i][j]=weight ถ้ามี edge, ∞ ถ้าไม่มี)`,
-    [1, 2, 3, 4, 5, 6], dist, -1, -1, -1, null,
-    `Initial dist matrix:\n${fwFormatMatrix(dist)}`,
-    'เริ่มต้น'));
-
-  // Triple nested loop: k, i, j
-  for (let k = 0; k < FW_N; k++) {
-    steps.push(fwBase('iter-k',
-      `=== k=${k} (${FW_GRAPH.nodes[k]}) === พิจารณาผ่าน node ${FW_GRAPH.nodes[k]} เป็น intermediate`,
-      [9, 10], dist, k, -1, -1, null,
-      undefined, `k=${k}`));
-
-    for (let i = 0; i < FW_N; i++) {
-      for (let j = 0; j < FW_N; j++) {
-        const oldDist = dist[i][j];
-        const throughK = dist[i][k] + dist[k][j];
-        const oldStr = oldDist === FW_INF ? '∞' : oldDist;
-        const throughStr = (dist[i][k] === FW_INF || dist[k][j] === FW_INF) ? '∞' : throughK;
-
-        steps.push(fwBase('consider',
-          `พิจารณา dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${oldStr}  vs  dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}] + dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}] = ${throughStr}`,
-          [11, 12, 13], dist, k, i, j, [i, j],
-          undefined, 'พิจารณา'));
-
-        if (dist[i][k] !== FW_INF && dist[k][j] !== FW_INF && throughK < oldDist) {
-          dist[i][j] = throughK;
-          steps.push(fwBase('update',
-            `${throughStr} < ${oldStr} → อัปเดต dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${throughStr} (ผ่าน ${FW_GRAPH.nodes[k]})`,
-            [13, 14], dist, k, i, j, [i, j],
-            `dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${throughStr}`,
-            'อัปเดต'));
-        } else {
-          steps.push(fwBase('skip',
-            `${throughStr} >= ${oldStr} → ไม่อัปเดต`,
-            [13], dist, k, i, j, [i, j],
-            undefined, 'ข้าม'));
-        }
-      }
-    }
-
-    steps.push(fwBase('iter-k-done',
-      `จบ k=${k} — dist matrix หลังพิจารณา ${FW_GRAPH.nodes[k]} เป็น intermediate`,
-      [], dist, k, -1, -1, null,
-      `After k=${k}:\n${fwFormatMatrix(dist)}`,
-      `จบ k=${k}`));
-  }
-
-  // Check negative cycle
-  let hasNegCycle = false;
-  for (let i = 0; i < FW_N; i++) {
-    if (dist[i][i] < 0) { hasNegCycle = true; break; }
-  }
-  if (hasNegCycle) {
-    steps.push(fwBase('neg-cycle',
-      `⚠ พบ negative cycle! (dist[i][i] < 0 สำหรับบาง i) — ไม่มี shortest path ที่ well-defined`,
-      [16, 17], dist, -1, -1, -1, null,
-      `Negative cycle detected!`,
-      'Negative cycle'));
-  } else {
-    steps.push(fwBase('done',
-      `Floyd-Warshall เสร็จสิ้น — ได้ all-pairs shortest path`,
-      [], dist, -1, -1, -1, null,
-      `Final dist matrix:\n${fwFormatMatrix(dist)}`,
-      'เสร็จสิ้น'));
-  }
-
-  return steps;
-}
-
-function fwFormatMatrix(dist) {
+function fwMatrixStr(dist) {
   let s = '     ' + FW_GRAPH.nodes.map((n) => n.padStart(5)).join('') + '\n';
   for (let i = 0; i < FW_N; i++) {
     s += FW_GRAPH.nodes[i].padEnd(4) + ' ';
     for (let j = 0; j < FW_N; j++) {
-      const v = dist[i][j];
-      s += (v === FW_INF ? '∞' : v).toString().padStart(5);
+      s += (dist[i][j] === FW_INF ? '∞' : dist[i][j]).toString().padStart(5);
     }
-    s += '\n';
+    if (i < FW_N - 1) s += '\n';
   }
-  return s.trim();
+  return s;
 }
 
-function fwInitialState() {
-  const dist = fwInitDist();
-  return fwBase('init',
-    `กราฟตั้งต้น — ${FW_N} nodes, ${FW_GRAPH.edges.length} directed edges  กด "Run Floyd-Warshall" เพื่อหา all-pairs shortest path`,
-    [], dist, -1, -1, -1, null,
-    `Initial dist matrix:\n${fwFormatMatrix(dist)}\n\nกด "Run Floyd-Warshall" เพื่อเริ่ม`,
-    'กราฟตั้งต้น');
+function fwSteps() {
+  const steps = [];
+  let dist = fwBuildAdj(FW_GRAPH.edges, FW_N);
+
+  // ===== Phase 0: Show initial state =====
+  steps.push(fwBase('init',
+    `เริ่ม Floyd-Warshall — ${FW_N} nodes, ${FW_GRAPH.edges.length} directed edges. จะหา shortest path ระหว่างทุกคู่`,
+    [1, 2, 3, 5, 6, 8], {
+      dist: dist.map((r) => r.slice()),
+      k: -1, i: -1, j: -1,
+      highlightCell: null,
+      highlightEdge: null,
+    },
+    `Initial dist matrix (0 = same node, ∞ = no direct edge):\n${fwMatrixStr(dist)}`,
+    'เริ่มต้น'));
+
+  // ===== Triple loop: for k, for i, for j =====
+  for (let k = 0; k < FW_N; k++) {
+    steps.push(fwBase('k-iter',
+      `รอบ k=${FW_GRAPH.nodes[k]} — ให้ ${FW_GRAPH.nodes[k]} เป็น intermediate node ทดสอบทุกคู่ (i, j)`,
+      [9], {
+        dist: dist.map((r) => r.slice()),
+        k, i: -1, j: -1,
+        highlightCell: null,
+        highlightEdge: null,
+      },
+      `k = ${FW_GRAPH.nodes[k]}  ทดสอบ: dist[i][j] vs dist[i][${FW_GRAPH.nodes[k]}] + dist[${FW_GRAPH.nodes[k]}][j]`,
+      `รอบ k=${FW_GRAPH.nodes[k]}`));
+
+    for (let i = 0; i < FW_N; i++) {
+      for (let j = 0; j < FW_N; j++) {
+        if (i === j) continue;
+        if (dist[i][k] === FW_INF || dist[k][j] === FW_INF) {
+          // Skip — no path through k
+          steps.push(fwBase('skip',
+            `ข้าม (${FW_GRAPH.nodes[i]},${FW_GRAPH.nodes[j]}): dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]=${dist[i][k] === FW_INF ? '∞' : dist[i][k]} หรือ dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}]=${dist[k][j] === FW_INF ? '∞' : dist[k][j]} เป็น ∞ → ไม่สามารถผ่าน ${FW_GRAPH.nodes[k]}`,
+            [12], {
+              dist: dist.map((r) => r.slice()),
+              k, i, j,
+              highlightCell: [i, j],
+              highlightEdge: null,
+            },
+            undefined, 'ข้าม'));
+          continue;
+        }
+
+        const newDist = dist[i][k] + dist[k][j];
+        const oldDist = dist[i][j];
+
+        steps.push(fwBase('relax',
+          `เปรียบเทียบ dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}]=${oldDist === FW_INF ? '∞' : oldDist}  กับ  dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]+dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}] = ${dist[i][k]}+${dist[k][j]} = ${newDist}`,
+          [10, 11, 12, 13], {
+            dist: dist.map((r) => r.slice()),
+            k, i, j,
+            highlightCell: [i, j],
+            highlightEdge: [i, k, k, j],
+          },
+          undefined, 'เปรียบเทียบ'));
+
+        if (newDist < oldDist) {
+          dist[i][j] = newDist;
+          steps.push(fwBase('update',
+            `${newDist} < ${oldDist === FW_INF ? '∞' : oldDist} → อัปเดต dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${newDist}`,
+            [14], {
+              dist: dist.map((r) => r.slice()),
+              k, i, j,
+              highlightCell: [i, j],
+              highlightEdge: [i, k, k, j],
+            },
+            `dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${newDist}`,
+            'อัปเดต'));
+        }
+      }
+    }
+
+    steps.push(fwBase('k-done',
+      `จบรอบ k=${FW_GRAPH.nodes[k]} — ทดสอบผ่าน ${FW_GRAPH.nodes[k]} ครบทุกคู่แล้ว`,
+      [], {
+        dist: dist.map((r) => r.slice()),
+        k, i: -1, j: -1,
+        highlightCell: null,
+        highlightEdge: null,
+      },
+      `หลังรอบ k=${FW_GRAPH.nodes[k]}:\n${fwMatrixStr(dist)}`,
+      `จบรอบ k=${FW_GRAPH.nodes[k]}`));
+  }
+
+  // ===== Check negative cycle =====
+  let hasNegCycle = false;
+  let negCycleNode = -1;
+  for (let i = 0; i < FW_N; i++) {
+    if (dist[i][i] < 0) { hasNegCycle = true; negCycleNode = i; break; }
+  }
+
+  if (hasNegCycle) {
+    steps.push(fwBase('neg-cycle',
+      `⚠ พบ negative cycle! dist[${FW_GRAPH.nodes[negCycleNode]}][${FW_GRAPH.nodes[negCycleNode]}] = ${dist[negCycleNode][negCycleNode]} < 0`,
+      [16, 17], {
+        dist: dist.map((r) => r.slice()),
+        k: -1, i: negCycleNode, j: negCycleNode,
+        highlightCell: [negCycleNode, negCycleNode],
+        highlightEdge: null,
+      },
+      `Negative cycle detected! ไม่สามารถหา shortest path ได้`,
+      'Negative cycle'));
+    return steps;
+  }
+
+  // ===== Final result =====
+  steps.push(fwBase('done',
+    `Floyd-Warshall เสร็จสิ้น — ไม่พบ negative cycle  ได้ all-pairs shortest path ครบทุกคู่`,
+    [], {
+      dist: dist.map((r) => r.slice()),
+      k: -1, i: -1, j: -1,
+      highlightCell: null,
+      highlightEdge: null,
+    },
+    `Final distance matrix:\n${fwMatrixStr(dist)}`,
+    'เสร็จสิ้น'));
+
+  return steps;
 }
 
-// Render: graph (top) + distance matrix (bottom)
+// ===== Renderer =====
 function fwRender(vizArea, vizMeta, step) {
   window.DS.clearChildren(vizArea);
   const dist = step.dist;
-  const K = step.k;
-  const I = step.i;
-  const J = step.j;
-  const hl = step.highlightCell;
+  const k = step.k;
+  const i = step.i;
+  const j = step.j;
+  const phase = step.phase || '';
 
   if (vizMeta) {
-    let info = `${FW_N}×${FW_N} matrix`;
-    if (K >= 0) info += ` · k=${FW_GRAPH.nodes[K]}`;
-    if (I >= 0 && J >= 0) info += ` · checking [${FW_GRAPH.nodes[I]}][${FW_GRAPH.nodes[J]}]`;
+    let info = '';
+    if (phase === 'เริ่มต้น' || step.operation === 'init') info = `${FW_N} nodes · ${FW_GRAPH.edges.length} edges`;
+    else if (k >= 0 && i < 0) info = `รอบ k=${FW_GRAPH.nodes[k]}`;
+    else if (k >= 0 && i >= 0) info = `k=${FW_GRAPH.nodes[k]} · ทดสอบ (${FW_GRAPH.nodes[i]},${FW_GRAPH.nodes[j]})`;
+    else if (step.operation === 'done') info = `Final: All-Pairs Shortest Path`;
+    else if (step.operation === 'neg-cycle') info = `Negative cycle!`;
     vizMeta.textContent = info;
   }
 
-  const wrap = window.DS.el('div', { style: 'display:flex;flex-direction:column;gap:16px;padding:16px;align-items:center' });
+  const wrap = window.DS.el('div', { style: 'display:flex;gap:24px;padding:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start' });
 
-  // ===== Graph SVG (top) =====
-  const svgWidth = 360, svgHeight = 280;
+  // ===== Left: Graph SVG =====
+  const positions = [];
+  const radius = 100, cx = 150, cy = 130;
+  for (let i = 0; i < FW_N; i++) {
+    const angle = (i / FW_N) * 2 * Math.PI - Math.PI / 2;
+    positions.push({ x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) });
+  }
+
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', String(svgWidth));
-  svg.setAttribute('height', String(svgHeight));
-  svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+  svg.setAttribute('width', '300');
+  svg.setAttribute('height', '270');
+  svg.setAttribute('viewBox', '0 0 300 270');
 
-  // Node positions — square layout for 4 nodes
-  const positions = [
-    { x: 80, y: 60 },    // A (top-left)
-    { x: 280, y: 60 },   // B (top-right)
-    { x: 280, y: 220 },  // C (bottom-right)
-    { x: 80, y: 220 },   // D (bottom-left)
-  ];
+  // Determine highlighted edge
+  const hl = step.highlightEdge; // [u1, v1, u2, v2]
+  const isHlEdge = (u, v) => hl && ((hl[0] === u && hl[1] === v) || (hl[2] === u && hl[3] === v));
 
-  // Draw edges with weights
+  // Draw edges
   FW_GRAPH.edges.forEach(([u, v, w]) => {
-    const isHl = (K === u || K === v) || (hl && ((hl[0] === u && hl[1] === v) || (hl[0] === v && hl[1] === u)));
     const dx = positions[v].x - positions[u].x;
     const dy = positions[v].y - positions[u].y;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -179,6 +216,7 @@ function fwRender(vizArea, vizMeta, step) {
     const x2 = positions[v].x - (dx / len) * nodeR;
     const y2 = positions[v].y - (dy / len) * nodeR;
 
+    const isHl = isHlEdge(u, v);
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', String(x1));
     line.setAttribute('y1', String(y1));
@@ -188,7 +226,7 @@ function fwRender(vizArea, vizMeta, step) {
     line.setAttribute('stroke-width', isHl ? '3' : '1.5');
     svg.appendChild(line);
 
-    // Arrow tip
+    // Arrow
     const arrowSize = 7;
     const angle = Math.atan2(y2 - y1, x2 - x1);
     const ax1 = x2 - arrowSize * Math.cos(angle - Math.PI / 6);
@@ -203,13 +241,12 @@ function fwRender(vizArea, vizMeta, step) {
     // Weight label
     const midX = (positions[u].x + positions[v].x) / 2;
     const midY = (positions[u].y + positions[v].y) / 2;
-    // Offset perpendicular to avoid overlap
-    const perpX = -dy / len * 12;
-    const perpY = dx / len * 12;
+    const perpX = -dy / len * 11;
+    const perpY = dx / len * 11;
     const wBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     wBg.setAttribute('cx', String(midX + perpX));
     wBg.setAttribute('cy', String(midY + perpY));
-    wBg.setAttribute('r', '11');
+    wBg.setAttribute('r', '10');
     wBg.setAttribute('fill', isHl ? 'var(--amber)' : 'var(--bg-elev)');
     wBg.setAttribute('stroke', 'var(--border)');
     svg.appendChild(wBg);
@@ -218,7 +255,7 @@ function fwRender(vizArea, vizMeta, step) {
     wText.setAttribute('x', String(midX + perpX));
     wText.setAttribute('y', String(midY + perpY + 4));
     wText.setAttribute('text-anchor', 'middle');
-    wText.setAttribute('font-size', '11');
+    wText.setAttribute('font-size', '10');
     wText.setAttribute('font-family', 'monospace');
     wText.setAttribute('font-weight', 'bold');
     wText.setAttribute('fill', isHl ? 'white' : 'var(--text-muted)');
@@ -229,9 +266,9 @@ function fwRender(vizArea, vizMeta, step) {
   // Draw nodes
   FW_GRAPH.nodes.forEach((label, idx) => {
     const pos = positions[idx];
-    const isK = K === idx;
-    const isI = I === idx;
-    const isJ = J === idx;
+    const isK = k === idx;
+    const isI = i === idx;
+    const isJ = j === idx;
 
     let fill = 'var(--bg-card)', stroke = 'var(--text-dim)', textColor = 'var(--text)';
     if (isK) { fill = 'var(--purple)'; stroke = 'var(--purple)'; textColor = 'white'; }
@@ -250,97 +287,101 @@ function fwRender(vizArea, vizMeta, step) {
     text.setAttribute('x', String(pos.x));
     text.setAttribute('y', String(pos.y + 5));
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('font-size', '14');
+    text.setAttribute('font-size', '13');
     text.setAttribute('font-weight', 'bold');
     text.setAttribute('fill', textColor);
     text.textContent = label;
     svg.appendChild(text);
+
+    // Role label
+    if (isK) {
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', String(pos.x));
+      lbl.setAttribute('y', String(pos.y - 28));
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-size', '9');
+      lbl.setAttribute('font-family', 'monospace');
+      lbl.setAttribute('fill', 'var(--purple)');
+      lbl.textContent = 'k';
+      svg.appendChild(lbl);
+    }
+    if (isI) {
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', String(pos.x - 22));
+      lbl.setAttribute('y', String(pos.y + 4));
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-size', '9');
+      lbl.setAttribute('font-family', 'monospace');
+      lbl.setAttribute('fill', 'var(--amber)');
+      lbl.textContent = 'i';
+      svg.appendChild(lbl);
+    }
+    if (isJ) {
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', String(pos.x + 22));
+      lbl.setAttribute('y', String(pos.y + 4));
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-size', '9');
+      lbl.setAttribute('font-family', 'monospace');
+      lbl.setAttribute('fill', 'var(--amber)');
+      lbl.textContent = 'j';
+      svg.appendChild(lbl);
+    }
   });
 
   wrap.appendChild(svg);
 
-  // ===== Distance matrix (bottom) =====
-  const tableLabel = window.DS.el('div', {
-    style: 'font-size:11px;color:var(--text-muted);font-family:monospace;text-transform:uppercase;letter-spacing:0.05em;text-align:center',
-  }, 'Distance matrix dist[i][j]:');
-  wrap.appendChild(tableLabel);
+  // ===== Right: dist matrix =====
+  const info = window.DS.el('div', { style: 'display:flex;flex-direction:column;gap:12px;min-width:240px;max-width:340px' });
 
-  // Matrix table
-  const table = window.DS.el('table', { style: 'border-collapse:collapse;font-family:monospace;font-size:14px' });
+  const phaseLabel = step.phase || step.operation || '';
+  info.appendChild(window.DS.el('div', {
+    style: 'padding:8px 12px;background:var(--bg-elev);border-radius:8px;font-size:12px;font-weight:600;color:var(--amber);border:1px solid var(--border)',
+  }, phaseLabel));
 
-  // Header row
-  const thead = window.DS.el('thead');
-  const headerRow = window.DS.el('tr');
-  headerRow.appendChild(window.DS.el('th', { style: 'padding:8px 12px;background:var(--bg-elev);border:1px solid var(--border);color:var(--text-muted)' }, ''));
-  for (let j = 0; j < FW_N; j++) {
-    const isHl = (K >= 0 && j === K) || (I >= 0 && j === J);
-    const th = window.DS.el('th', {
-      style: `padding:8px 12px;background:var(--bg-elev);border:1px solid var(--border);color:${isHl ? 'var(--amber)' : 'var(--text-muted)'};font-weight:700`,
-    }, FW_GRAPH.nodes[j]);
-    headerRow.appendChild(th);
+  info.appendChild(window.DS.el('div', { style: 'font-size:11px;color:var(--text-muted);font-family:monospace;text-transform:uppercase;letter-spacing:0.05em' }, 'dist[] matrix:'));
+
+  const table = window.DS.el('table', { style: 'border-collapse:collapse;font-family:monospace;font-size:12px' });
+  const thead = window.DS.el('tr');
+  thead.appendChild(window.DS.el('th', { style: 'padding:4px 8px;color:var(--text-muted)' }, ''));
+  for (let jj = 0; jj < FW_N; jj++) {
+    const thColor = (k >= 0 && jj === k) ? 'var(--purple)' : 'var(--text-muted)';
+    thead.appendChild(window.DS.el('th', { style: `padding:4px 8px;color:${thColor};font-weight:${jj === k ? 'bold' : 'normal'}` }, FW_GRAPH.nodes[jj]));
   }
-  thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Body
-  const tbody = window.DS.el('tbody');
-  for (let i = 0; i < FW_N; i++) {
+  for (let ii = 0; ii < FW_N; ii++) {
     const tr = window.DS.el('tr');
-    const isRowHl = (K >= 0 && i === K) || (I >= 0 && i === I);
-    const rowLabel = window.DS.el('th', {
-      style: `padding:8px 12px;background:var(--bg-elev);border:1px solid var(--border);color:${isRowHl ? 'var(--amber)' : 'var(--text-muted)'};font-weight:700;text-align:right`,
-    }, FW_GRAPH.nodes[i]);
-    tr.appendChild(rowLabel);
-
-    for (let j = 0; j < FW_N; j++) {
-      const v = dist[i][j];
-      const isCell = hl && hl[0] === i && hl[1] === j;
-      const isDiag = i === j;
-      const isRowK = K === i;
-      const isColK = K === j;
-
-      let bg = 'var(--bg-card)';
+    const rowColor = (k >= 0 && ii === k) ? 'var(--purple)' : 'var(--text-muted)';
+    tr.appendChild(window.DS.el('th', { style: `padding:4px 8px;color:${rowColor};text-align:right;font-weight:${ii === k ? 'bold' : 'normal'}` }, FW_GRAPH.nodes[ii]));
+    for (let jj = 0; jj < FW_N; jj++) {
+      const v = dist[ii][jj];
+      const isHl = step.highlightCell && step.highlightCell[0] === ii && step.highlightCell[1] === jj;
+      const isK = (k >= 0 && (ii === k || jj === k));
+      let bg = '';
       let color = 'var(--text)';
-      let fontWeight = '400';
-      if (isCell) {
-        bg = 'var(--amber)';
-        color = 'white';
-        fontWeight = '700';
-      } else if (isRowK || isColK) {
-        bg = 'rgba(245,158,11,0.15)';
-        color = 'var(--amber)';
-        fontWeight = '600';
-      } else if (isDiag) {
-        bg = 'rgba(255,255,255,0.04)';
-        color = 'var(--text-muted)';
-      }
-
-      const td = window.DS.el('td', {
-        style: `padding:8px 14px;border:1px solid var(--border);text-align:center;background:${bg};color:${color};font-weight:${fontWeight};min-width:50px`,
-      }, v === FW_INF ? '∞' : String(v));
-      tr.appendChild(td);
+      if (isHl) { bg = 'background:var(--amber);color:white;font-weight:bold;'; color = 'white'; }
+      else if (isK) { bg = 'background:rgba(168,85,247,0.15);color:var(--purple);'; color = 'var(--purple)'; }
+      else if (ii === jj) { bg = 'color:var(--text-muted);'; color = 'var(--text-muted)'; }
+      tr.appendChild(window.DS.el('td', {
+        style: `padding:4px 10px;text-align:center;${bg || `color:${color}`}`,
+      }, v === FW_INF ? '∞' : String(v)));
     }
-    tbody.appendChild(tr);
+    table.appendChild(tr);
   }
-  table.appendChild(tbody);
-  wrap.appendChild(table);
+  info.appendChild(table);
 
-  // Legend
-  const legend = window.DS.el('div', { style: 'display:flex;gap:16px;font-size:11px;color:var(--text-muted);justify-content:center;flex-wrap:wrap' });
-  legend.innerHTML = `
-    <span><span style="display:inline-block;width:12px;height:12px;background:var(--amber);border-radius:3px;vertical-align:middle"></span> cell ที่กำลังพิจารณา</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(245,158,11,0.15);border-radius:3px;vertical-align:middle"></span> row/col k (intermediate)</span>
-    <span><span style="display:inline-block;width:12px;height:12px;background:rgba(255,255,255,0.04);border-radius:3px;vertical-align:middle"></span> diagonal (dist[i][i]=0)</span>
-    <span><b>∞</b> = ไม่มี path</span>
-  `;
-  wrap.appendChild(legend);
+  // Legend for matrix colors
+  const legend = window.DS.el('div', { style: 'font-size:10px;color:var(--text-muted);font-family:monospace;display:flex;flex-direction:column;gap:3px' });
+  legend.appendChild(window.DS.el('div', { style: 'color:var(--amber)' }, '■ cell ที่กำลัง relax'));
+  legend.appendChild(window.DS.el('div', { style: 'color:var(--purple)' }, '■ แถว/คอลัมน์ของ k'));
+  info.appendChild(legend);
 
+  wrap.appendChild(info);
   vizArea.appendChild(wrap);
 }
 
 window.FLOYD_WARSHALL = {
-  graph: FW_GRAPH,
-  run: floydWarshallSteps,
+  run: fwSteps,
   render: fwRender,
-  initialState: fwInitialState,
 };

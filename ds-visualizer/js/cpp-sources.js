@@ -1613,35 +1613,21 @@ using namespace std;
 const int N = 100;
 long long dist[N][N];
 
-// Floyd-Warshall — หา shortest path ระหว่างทุกคู่ node
-// O(V³) time, O(V²) space
 void floydWarshall(int n) {
-    // dist[i][j] เริ่มต้น: 0 ถ้า i==j, weight ถ้ามี edge, INF ถ้าไม่มี
+    for (int k = 0; k < n; k++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                if (dist[i][k] != LLONG_MAX && dist[k][j] != LLONG_MAX
+                    && dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
 
-    for (int k = 0; k < n; k++) {              // intermediate node
-        for (int i = 0; i < n; i++) {          // source
-            for (int j = 0; j < n; j++) {      // destination
-                if (dist[i][k] != LLONG_MAX &&  // ป้องน INF + INF
-                    dist[k][j] != LLONG_MAX &&
-                    dist[i][k] + dist[k][j] < dist[i][j]) {
-                    dist[i][j] = dist[i][k] + dist[k][j];   // relax
-                }
-            }
-        }
-    }
-
-    // ตรวจ negative cycle
-    for (int i = 0; i < n; i++) {
-        if (dist[i][i] < 0) {
-            cout << "Negative cycle detected!\\n";
-            return;
-        }
-    }
+    for (int i = 0; i < n; i++)
+        if (dist[i][i] < 0) { cout << "Negative cycle!\\n"; return; }
 }`,
   },
 };
 
-// ---------- Tarjan's Strongly Connected Components ----------
+// ---------- Tarjan's SCC ----------
 
 const CPP_TARJAN_SCC = {
   tarjan: {
@@ -1652,123 +1638,65 @@ const CPP_TARJAN_SCC = {
 #include <stack>
 using namespace std;
 
-const int N = 100;
-vector<int> adj[N];
-int idx[N], low[N], timer = 0;
-bool onStack[N];
+vector<int> adj[100];
+int idx[100], low[100], timer = 0;
+bool onStack[100];
 stack<int> st;
 vector<vector<int>> sccs;
 
 void strongconnect(int v) {
-    idx[v] = low[v] = timer++;      // กำหนด index และ low-link
-    st.push(v);
-    onStack[v] = true;
-
-    for (int w : adj[v]) {          // วนเพื่อนบ้านทุกตัว
-        if (idx[w] == -1) {         // ถ้ายังไม่เยี่ยม
-            strongconnect(w);       // recurse
-            low[v] = min(low[v], low[w]);   // อัปเดต low หลังกลับ
-        } else if (onStack[w]) {    // ถ้าอยู่ใน stack = back edge
-            low[v] = min(low[v], idx[w]);
-        }
+    idx[v] = low[v] = timer++;
+    st.push(v); onStack[v] = true;
+    for (int w : adj[v]) {
+        if (idx[w] == -1) { strongconnect(w); low[v] = min(low[v], low[w]); }
+        else if (onStack[w]) low[v] = min(low[v], idx[w]);
     }
-
-    // ถ้า v เป็น root ของ SCC (low == index)
     if (low[v] == idx[v]) {
-        vector<int> scc;
-        int w;
-        do {
-            w = st.top(); st.pop();
-            onStack[w] = false;
-            scc.push_back(w);
-        } while (w != v);
+        vector<int> scc; int w;
+        do { w = st.top(); st.pop(); onStack[w] = false; scc.push_back(w); } while (w != v);
         sccs.push_back(scc);
-    }
-}
-
-void tarjan(int n) {
-    for (int i = 0; i < n; i++) idx[i] = -1;
-    for (int v = 0; v < n; v++) {
-        if (idx[v] == -1) strongconnect(v);
     }
 }`,
   },
 };
 
-// ---------- AVL Tree (Self-Balancing BST) ----------
+// ---------- AVL Tree ----------
 
 const CPP_AVL = {
   insert: {
     title: 'avlInsert',
     fileName: 'avl_tree.cpp',
-    code: `#include <iostream>
-#include <algorithm>
+    code: `#include <algorithm>
 using namespace std;
 
-struct Node {
-    int value;
-    Node* left;
-    Node* right;
-    int height;
-    Node(int v) : value(v), left(nullptr), right(nullptr), height(1) {}
-};
-
+struct Node { int value; Node* left; Node* right; int height; };
 int height(Node* n) { return n ? n->height : 0; }
 int balance(Node* n) { return n ? height(n->left) - height(n->right) : 0; }
-void updateHeight(Node* n) {
-    if (n) n->height = 1 + max(height(n->left), height(n->right));
-}
 
 Node* rotateRight(Node* y) {
-    Node* x = y->left;
-    Node* T2 = x->right;
-    x->right = y;
-    y->left = T2;
-    updateHeight(y);
-    updateHeight(x);
+    Node* x = y->left; y->left = x->right; x->right = y;
+    y->height = 1 + max(height(y->left), height(y->right));
+    x->height = 1 + max(height(x->left), height(x->right));
     return x;
 }
-
 Node* rotateLeft(Node* x) {
-    Node* y = x->right;
-    Node* T2 = y->left;
-    y->left = x;
-    x->right = T2;
-    updateHeight(x);
-    updateHeight(y);
+    Node* y = x->right; x->right = y->left; y->left = x;
+    x->height = 1 + max(height(x->left), height(x->right));
+    y->height = 1 + max(height(y->left), height(y->right));
     return y;
 }
 
-Node* insert(Node* node, int value) {
-    if (!node) return new Node(value);
-
-    if (value < node->value)
-        node->left = insert(node->left, value);
-    else if (value > node->value)
-        node->right = insert(node->right, value);
-    else
-        return node;  // ไม่รับค่าซ้ำ
-
-    updateHeight(node);
+Node* insert(Node* node, int v) {
+    if (!node) return new Node{v, nullptr, nullptr, 1};
+    if (v < node->value) node->left = insert(node->left, v);
+    else if (v > node->value) node->right = insert(node->right, v);
+    else return node;
+    node->height = 1 + max(height(node->left), height(node->right));
     int bf = balance(node);
-
-    // LL Case
-    if (bf > 1 && value < node->left->value)
-        return rotateRight(node);
-    // RR Case
-    if (bf < -1 && value > node->right->value)
-        return rotateLeft(node);
-    // LR Case
-    if (bf > 1 && value > node->left->value) {
-        node->left = rotateLeft(node->left);
-        return rotateRight(node);
-    }
-    // RL Case
-    if (bf < -1 && value < node->right->value) {
-        node->right = rotateRight(node->right);
-        return rotateLeft(node);
-    }
-
+    if (bf > 1 && v < node->left->value) return rotateRight(node);
+    if (bf < -1 && v > node->right->value) return rotateLeft(node);
+    if (bf > 1 && v > node->left->value) { node->left = rotateLeft(node->left); return rotateRight(node); }
+    if (bf < -1 && v < node->right->value) { node->right = rotateRight(node->right); return rotateLeft(node); }
     return node;
 }`,
   },
@@ -1780,105 +1708,145 @@ const CPP_RB_TREE = {
   insert: {
     title: 'rbInsert',
     fileName: 'red_black_tree.cpp',
-    code: `#include <iostream>
-using namespace std;
-
+    code: `using namespace std;
 enum Color { RED, BLACK };
-
-struct Node {
-    int value;
-    Color color;
-    Node* left;
-    Node* right;
-    Node* parent;
-    Node(int v) : value(v), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
-};
-
-Node* root = nullptr;
+struct Node { int value; Color color; Node* left; Node* right; Node* parent; };
 
 void rotateLeft(Node*& root, Node* x) {
-    Node* y = x->right;
-    x->right = y->left;
+    Node* y = x->right; x->right = y->left;
     if (y->left) y->left->parent = x;
     y->parent = x->parent;
     if (!x->parent) root = y;
     else if (x == x->parent->left) x->parent->left = y;
     else x->parent->right = y;
-    y->left = x;
-    x->parent = y;
+    y->left = x; x->parent = y;
 }
-
 void rotateRight(Node*& root, Node* x) {
-    Node* y = x->left;
-    x->left = y->right;
+    Node* y = x->left; x->left = y->right;
     if (y->right) y->right->parent = x;
     y->parent = x->parent;
     if (!x->parent) root = y;
     else if (x == x->parent->right) x->parent->right = y;
     else x->parent->left = y;
-    y->right = x;
-    x->parent = y;
+    y->right = x; x->parent = y;
 }
 
 void fixInsert(Node*& root, Node* z) {
     while (z->parent && z->parent->color == RED) {
         Node* gp = z->parent->parent;
         if (z->parent == gp->left) {
-            Node* uncle = gp->right;
-            if (uncle && uncle->color == RED) {
-                // Case 1: uncle RED → recolor
-                z->parent->color = BLACK;
-                uncle->color = BLACK;
-                gp->color = RED;
-                z = gp;
-            } else {
-                if (z == z->parent->right) {
-                    // Case 2: LR → rotate parent left
-                    z = z->parent;
-                    rotateLeft(root, z);
-                }
-                // Case 3: LL → rotate grandparent right
-                z->parent->color = BLACK;
-                gp->color = RED;
-                rotateRight(root, gp);
+            Node* u = gp->right;
+            if (u && u->color == RED) { z->parent->color = BLACK; u->color = BLACK; gp->color = RED; z = gp; }
+            else {
+                if (z == z->parent->right) { z = z->parent; rotateLeft(root, z); }
+                z->parent->color = BLACK; gp->color = RED; rotateRight(root, gp);
             }
         } else {
-            // Mirror cases (RL, RR)
-            Node* uncle = gp->left;
-            if (uncle && uncle->color == RED) {
-                z->parent->color = BLACK;
-                uncle->color = BLACK;
-                gp->color = RED;
-                z = gp;
-            } else {
-                if (z == z->parent->left) {
-                    z = z->parent;
-                    rotateRight(root, z);
-                }
-                z->parent->color = BLACK;
-                gp->color = RED;
-                rotateLeft(root, gp);
+            Node* u = gp->left;
+            if (u && u->color == RED) { z->parent->color = BLACK; u->color = BLACK; gp->color = RED; z = gp; }
+            else {
+                if (z == z->parent->left) { z = z->parent; rotateRight(root, z); }
+                z->parent->color = BLACK; gp->color = RED; rotateLeft(root, gp);
             }
         }
     }
-    root->color = BLACK;  // root เป็น BLACK เสมอ
+    root->color = BLACK;
+}`,
+  },
+};
+
+// ---------- Johnson's Algorithm (All-Pairs Shortest Path with negative edges) ----------
+
+const CPP_JOHNSON = {
+  johnson: {
+    title: 'johnson',
+    fileName: 'johnson.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+const int N = 100;
+const long long INF = LLONG_MAX;
+vector<pair<int,long long>> adj[N];  // original graph
+vector<pair<int,long long>> radj[N]; // reweighted graph
+long long h[N];          // Bellman-Ford distances from virtual source
+long long dist[N][N];    // final all-pairs shortest paths
+
+// Bellman-Ford from virtual source S (connected to all nodes with w=0)
+bool bellmanFord(int n) {
+    for (int i = 0; i < n; i++) h[i] = INF;
+    h[n] = 0;  // virtual source S = node n
+
+    // V+1 iterations (V real nodes + 1 virtual)
+    for (int iter = 0; iter < n; iter++) {
+        // Virtual edges S → i (weight 0)
+        for (int i = 0; i < n; i++) {
+            if (h[n] + 0 < h[i]) h[i] = h[n] + 0;
+        }
+        // Original edges
+        for (int u = 0; u < n; u++) {
+            if (h[u] == INF) continue;
+            for (auto& [v, w] : adj[u]) {
+                if (h[u] + w < h[v]) h[v] = h[u] + w;
+            }
+        }
+    }
+
+    // Check negative cycle
+    for (int u = 0; u < n; u++) {
+        if (h[u] == INF) continue;
+        for (auto& [v, w] : adj[u]) {
+            if (h[u] + w < h[v]) return false;  // negative cycle!
+        }
+    }
+    return true;
 }
 
-void insert(int value) {
-    Node* z = new Node(value);
-    Node* y = nullptr;
-    Node* x = root;
-    while (x) {
-        y = x;
-        if (z->value < x->value) x = x->left;
-        else x = x->right;
-    }
-    z->parent = y;
-    if (!y) root = z;
-    else if (z->value < y->value) y->left = z;
-    else y->right = z;
+// Dijkstra from source s using reweighted edges
+void dijkstra(int s, int n) {
+    for (int i = 0; i < n; i++) dist[s][i] = INF;
+    dist[s][s] = 0;
+    priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<>> pq;
+    pq.push({0, s});
 
-    fixInsert(root, z);  // แก้ violation
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[s][u]) continue;
+        for (auto& [v, w] : radj[u]) {
+            if (dist[s][u] + w < dist[s][v]) {
+                dist[s][v] = dist[s][u] + w;
+                pq.push({dist[s][v], v});
+            }
+        }
+    }
+}
+
+// Johnson's Algorithm: all-pairs shortest path (รองรับ negative edges)
+bool johnson(int n) {
+    // เฟส 1: Bellman-Ford จาก virtual source S
+    if (!bellmanFord(n)) return false;  // negative cycle
+
+    // เฟส 2: Reweight edges: w'(u,v) = w(u,v) + h(u) - h(v) ≥ 0
+    for (int u = 0; u < n; u++) {
+        for (auto& [v, w] : adj[u]) {
+            long long newW = w + h[u] - h[v];
+            radj[u].push_back({v, newW});
+        }
+    }
+
+    // เฟส 3: Dijkstra จากทุก node + ปรับกลับ
+    for (int s = 0; s < n; s++) {
+        dijkstra(s, n);
+        // ปรับกลับ: dist(u,v) = dist'(u,v) - h(u) + h(v)
+        for (int v = 0; v < n; v++) {
+            if (dist[s][v] != INF) {
+                dist[s][v] = dist[s][v] - h[s] + h[v];
+            }
+        }
+    }
+    return true;
 }`,
   },
 };
@@ -1907,4 +1875,5 @@ window.CPP_SOURCES = {
   TARJAN_SCC: CPP_TARJAN_SCC,
   AVL: CPP_AVL,
   RB_TREE: CPP_RB_TREE,
+  JOHNSON: CPP_JOHNSON,
 };

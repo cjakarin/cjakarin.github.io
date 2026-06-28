@@ -871,13 +871,7 @@ function dfsSteps(graph, source) {
   adj.forEach((lst) => lst.sort((a, b) => a.to - b.to));
 
   const visited = new Set();
-  // visitedParent: parent in DFS tree (only set when node is actually visited/popped)
-  const visitedParent = Array.from({ length: N }, () => -1);
-  // pendingParent: tracks the most recent node that "discovered" this node by pushing it
-  // Updated whenever a node pushes an unvisited neighbor. When the neighbor is finally
-  // popped (visited), pendingParent is copied to visitedParent — this makes the parent
-  // be the LATEST discoverer (mimics recursive DFS where the most recent ancestor wins).
-  const pendingParent = Array.from({ length: N }, () => -1);
+  const parent = Array.from({ length: N }, () => -1);
   const order = [];
   const stack = [];
 
@@ -886,9 +880,9 @@ function dfsSteps(graph, source) {
     inQueue: stack.slice(),
     current: null,
     dist: [],
-    parent: visitedParent.slice(),
+    parent: parent.slice(),
     highlightEdge: null,
-    inMST: collectTreeEdges(visitedParent, N, source),
+    inMST: collectTreeEdges(parent, N, source),
     bfsOrder: order.slice(),
   });
 
@@ -912,39 +906,32 @@ function dfsSteps(graph, source) {
 
     visited.add(u);
     order.push(u);
-    // Commit the pending parent (the latest discoverer) as the actual tree-edge parent
-    if (pendingParent[u] !== -1) {
-      visitedParent[u] = pendingParent[u];
-    }
 
     steps.push(graphBase('visit',
-      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล${visitedParent[u] !== -1 ? ` (tree edge: ${graph.nodes[visitedParent[u]]}→${graph.nodes[u]})` : ''}`,
+      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล`,
       [14, 15, 16, 18, 19, 20],
-      { ...baseState(), current: u, highlightEdge: visitedParent[u] !== -1 ? [visitedParent[u], u] : null },
+      { ...baseState(), current: u },
       `+ visit ${graph.nodes[u]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
       'visit'));
 
     // Push neighbors in reverse order so smallest is processed first
     const neighbors = adj[u].filter(({ to }) => !visited.has(to)).reverse();
     for (const { to } of neighbors) {
-      if (!visited.has(to)) {
-        // Update pending parent — latest discoverer wins (mimics recursive DFS)
-        pendingParent[to] = u;
-        if (!stack.includes(to)) {
-          stack.push(to);
-          steps.push(graphBase('push',
-            `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
-            [23, 24, 25, 26],
-            { ...baseState(), current: u, highlightEdge: [u, to] },
-            `+ push ${graph.nodes[to]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
-            'push'));
-        } else {
-          steps.push(graphBase('skip',
-            `${graph.nodes[to]} อยู่ใน stack แล้ว → อัปเดต pending parent เป็น ${graph.nodes[u]} (latest discoverer)`,
-            [23, 24, 25],
-            { ...baseState(), current: u, highlightEdge: [u, to] },
-            undefined, 'ข้าม'));
-        }
+      if (!visited.has(to) && !stack.includes(to)) {
+        if (parent[to] === -1) parent[to] = u;
+        stack.push(to);
+        steps.push(graphBase('push',
+          `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
+          [23, 24, 25, 26],
+          { ...baseState(), current: u, highlightEdge: [u, to] },
+          `+ push ${graph.nodes[to]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
+          'push'));
+      } else if (stack.includes(to)) {
+        steps.push(graphBase('skip',
+          `${graph.nodes[to]} อยู่ใน stack แล้ว → ไม่ push ซ้ำ`,
+          [23, 24, 25],
+          { ...baseState(), current: u, highlightEdge: [u, to] },
+          undefined, 'ข้าม'));
       }
     }
   }
