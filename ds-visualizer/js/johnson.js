@@ -46,7 +46,7 @@ function johnsonSteps() {
     [1, 2], {
       h: Array.from({ length: J_N }, () => null),
       reweightedEdges: null,
-      phase: 'initial',
+      algoPhase: 'initial',
       currentSource: -1,
       bellmanDist: null,
       dijkstraDist: null,
@@ -62,7 +62,7 @@ function johnsonSteps() {
     [3, 4, 5], {
       h: Array.from({ length: J_N }, () => J_INF),
       reweightedEdges: null,
-      phase: 'bellman',
+      algoPhase: 'bellman',
       currentSource: J_N, // S
       bellmanDist: Array.from({ length: J_N }, () => J_INF),
       dijkstraDist: null,
@@ -88,7 +88,7 @@ function johnsonSteps() {
       [6, 7, 8], {
         h: bellmanDist.slice(0, J_N),
         reweightedEdges: null,
-        phase: 'bellman',
+        algoPhase: 'bellman',
         currentSource: J_N,
         bellmanDist: bellmanDist.slice(0, J_N),
         bellmanIter: iter,
@@ -110,7 +110,7 @@ function johnsonSteps() {
           [9, 10, 11], {
             h: bellmanDist.slice(0, J_N),
             reweightedEdges: null,
-            phase: 'bellman',
+            algoPhase: 'bellman',
             currentSource: J_N,
             bellmanDist: bellmanDist.slice(0, J_N),
             bellmanIter: iter,
@@ -129,7 +129,7 @@ function johnsonSteps() {
         [], {
           h: bellmanDist.slice(0, J_N),
           reweightedEdges: null,
-          phase: 'bellman',
+          algoPhase: 'bellman',
           currentSource: J_N,
           bellmanDist: bellmanDist.slice(0, J_N),
           dijkstraDist: null,
@@ -155,7 +155,7 @@ function johnsonSteps() {
       [12, 13], {
         h: bellmanDist.slice(0, J_N),
         reweightedEdges: null,
-        phase: 'bellman',
+        algoPhase: 'bellman',
         currentSource: J_N,
         bellmanDist: bellmanDist.slice(0, J_N),
         dijkstraDist: null,
@@ -172,7 +172,7 @@ function johnsonSteps() {
     [], {
       h: h.slice(),
       reweightedEdges: null,
-      phase: 'bellman',
+      algoPhase: 'bellman',
       currentSource: J_N,
       bellmanDist: h.slice(),
       dijkstraDist: null,
@@ -187,7 +187,7 @@ function johnsonSteps() {
     [14, 15, 16], {
       h: h.slice(),
       reweightedEdges: null,
-      phase: 'reweight',
+      algoPhase: 'reweight',
       currentSource: -1,
       bellmanDist: h.slice(),
       dijkstraDist: null,
@@ -205,7 +205,7 @@ function johnsonSteps() {
       [17, 18], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-        phase: 'reweight',
+        algoPhase: 'reweight',
         currentSource: -1,
         bellmanDist: h.slice(),
         highlightEdge: [u, v],
@@ -221,7 +221,7 @@ function johnsonSteps() {
     [], {
       h: h.slice(),
       reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-      phase: 'reweight',
+      algoPhase: 'reweight',
       currentSource: -1,
       bellmanDist: h.slice(),
       dijkstraDist: null,
@@ -239,7 +239,7 @@ function johnsonSteps() {
     [19, 20], {
       h: h.slice(),
       reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-      phase: 'dijkstra',
+      algoPhase: 'dijkstra',
       currentSource: -1,
       bellmanDist: h.slice(),
       dijkstraDist: null,
@@ -259,7 +259,7 @@ function johnsonSteps() {
       [21, 22, 23], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-        phase: 'dijkstra',
+        algoPhase: 'dijkstra',
         currentSource: src,
         bellmanDist: h.slice(),
         dijkstraDist: distPrime.slice(),
@@ -283,7 +283,7 @@ function johnsonSteps() {
         [24, 25, 26, 27], {
           h: h.slice(),
           reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-          phase: 'dijkstra',
+          algoPhase: 'dijkstra',
           currentSource: src,
           bellmanDist: h.slice(),
           dijkstraDist: distPrime.slice(),
@@ -305,7 +305,7 @@ function johnsonSteps() {
             [28, 29, 30], {
               h: h.slice(),
               reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-              phase: 'dijkstra',
+              algoPhase: 'dijkstra',
               currentSource: src,
               bellmanDist: h.slice(),
               dijkstraDist: distPrime.slice(),
@@ -332,7 +332,7 @@ function johnsonSteps() {
       [31, 32], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-        phase: 'dijkstra',
+        algoPhase: 'dijkstra',
         currentSource: src,
         bellmanDist: h.slice(),
         dijkstraDist: distPrime.slice(),
@@ -358,7 +358,7 @@ function johnsonSteps() {
     [], {
       h: h.slice(),
       reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
-      phase: 'final',
+      algoPhase: 'final',
       currentSource: -1,
       bellmanDist: h.slice(),
       dijkstraDist: null,
@@ -375,7 +375,7 @@ function johnsonRender(vizArea, vizMeta, step) {
   window.DS.clearChildren(vizArea);
   const h = step.h || [];
   const reweightedEdges = step.reweightedEdges;
-  const phase = step.phase;
+  const phase = step.algoPhase || step.phase || 'initial';
   const finalDist = step.finalDist;
 
   if (vizMeta) {

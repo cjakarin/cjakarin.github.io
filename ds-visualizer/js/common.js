@@ -472,7 +472,8 @@ function buildOpsPanel(config) {
     back.addEventListener('click', () => pb.onStepBack && pb.onStepBack());
     fwd.addEventListener('click', () => pb.onStepForward && pb.onStepForward());
     playBtn.addEventListener('click', () => {
-      if (pb.isPlaying) { pb.onPause && pb.onPause(); }
+      // Use the latest state from the playback config (updated by updatePlaybackUI)
+      if (pb._isPlaying) { pb.onPause && pb.onPause(); }
       else { pb.onPlay && pb.onPlay(); }
     });
     // expose for state updates
@@ -514,6 +515,7 @@ function buildOpsPanel(config) {
 
     panel.appendChild(sec);
     panel._playbackSection = sec;
+    panel._playbackConfig = pb;
   }
 
   return panel;
@@ -524,6 +526,11 @@ function updatePlaybackUI(panel, state) {
   if (!panel._playbackSection) return;
   const sec = panel._playbackSection;
   const playBtn = sec._playBtn;
+  // Update the playback config's playing flag so the click handler knows
+  // whether to call onPause or onPlay
+  if (panel._playbackConfig) {
+    panel._playbackConfig._isPlaying = state.isPlaying;
+  }
   if (state.isPlaying) {
     playBtn.classList.add('btn-purple');
     playBtn.innerHTML = ICONS.pause;
