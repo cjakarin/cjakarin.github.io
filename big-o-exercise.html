@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบฝึกหัดวิเคราะห์ Big O จาก Pseudo Code</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --bg-card: #ffffff;
+    --bg-code: #1e293b;
+    --text: #0f172a;
+    --text-soft: #475569;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --accent: #6366f1;
+    --accent-soft: #eef2ff;
+
+    --c-constant: #10b981;   /* O(1) */
+    --c-log:     #3b82f6;   /* O(log n) */
+    --c-linear:  #f59e0b;   /* O(n) */
+    --c-nlogn:   #f97316;   /* O(n log n) */
+    --c-quadratic:#ef4444;  /* O(n^2) */
+    --c-cubic:   #dc2626;   /* O(n^3) */
+    --c-exp:     #7c3aed;   /* O(2^n) */
+    --c-factorial:#be185d; /* O(n!) */
+    --c-sqrt:    #0d9488;   /* O(√n) */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', 'Sarabun', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e0e7ff 100%);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  /* ===== Header ===== */
+  header {
+    text-align: center;
+    padding: 40px 20px 30px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    border-radius: 18px;
+    margin-bottom: 28px;
+    box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+  }
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    font-size: 1rem;
+    opacity: 0.92;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ===== Difficulty Tabs ===== */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: #fff;
+    padding: 8px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .tab-btn {
+    flex: 1 1 auto;
+    min-width: 110px;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+  }
+  .tab-btn:not(.active):hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .tab-btn .badge-count {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+  .tab-btn:not(.active) .badge-count {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  /* ===== Problem Card ===== */
+  .problem-list { display: none; }
+  .problem-list.active { display: block; }
+
+  .problem-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 26px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.25s ease;
+  }
+  .problem-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+  .problem-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .problem-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .problem-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .difficulty-pill {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .difficulty-pill.easy    { background: #d1fae5; color: #065f46; }
+  .difficulty-pill.hard    { background: #fee2e2; color: #991b1b; }
+  .difficulty-pill.complex { background: #ede9fe; color: #5b21b6; }
+  .difficulty-pill.graph   { background: #dbeafe; color: #1e40af; }
+  .difficulty-pill.heap    { background: #fef3c7; color: #92400e; }
+  .difficulty-pill.hash    { background: #fce7f3; color: #9d174d; }
+  .difficulty-pill.trie    { background: #d1fae5; color: #065f46; }
+
+  /* category pill (หมวดเพิ่มเติม) */
+  .category-pill {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+  .category-pill.graph { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+  .category-pill.heap  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .category-pill.hash  { background: #fce7f3; color: #9d174d; border-color: #f9a8d4; }
+  .category-pill.trie  { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+
+  .pill-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .problem-desc {
+    color: var(--text-soft);
+    margin-bottom: 14px;
+    font-size: 0.95rem;
+  }
+
+  /* ===== Code Block ===== */
+  .code-block {
+    background: var(--bg-code);
+    color: #e2e8f0;
+    padding: 18px 20px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--accent);
+  }
+  .code-block .ln {
+    display: inline-block;
+    width: 28px;
+    color: var(--text-muted);
+    user-select: none;
+    text-align: right;
+    margin-right: 14px;
+  }
+  .code-block .kw { color: #c084fc; }    /* keyword */
+  .code-block .fn { color: #60a5fa; }    /* function name */
+  .code-block .num { color: #fbbf24; }   /* number */
+  .code-block .cm { color: #64748b; font-style: italic; } /* comment */
+  .code-block .op { color: #f472b6; }    /* operator */
+
+  /* ===== Button ===== */
+  .reveal-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reveal-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+  }
+  .reveal-btn .arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+  }
+  .reveal-btn.expanded .arrow { transform: rotate(90deg); }
+
+  /* ===== Solution Section ===== */
+  .solution {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, margin-top 0.3s ease;
+    margin-top: 0;
+  }
+  .solution.open {
+    max-height: 4000px;
+    margin-top: 18px;
+  }
+  .solution-inner {
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 20px 22px;
+    border: 1px solid #c7d2fe;
+  }
+  .solution-title {
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+    font-size: 1.02rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .solution-title::before {
+    content: "🔍";
+    font-size: 1.1rem;
+  }
+
+  /* ===== Line Analysis Table ===== */
+  .analysis-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+  .analysis-table th {
+    background: #312e81;
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .analysis-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .analysis-table tr:last-child td { border-bottom: none; }
+  .analysis-table tr:nth-child(even) td { background: #f8fafc; }
+  .analysis-table .line-no {
+    font-family: monospace;
+    color: var(--text-muted);
+    width: 50px;
+    text-align: center;
+  }
+  .analysis-table .code-snippet {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #1e293b;
+    white-space: pre-wrap;
+  }
+  .analysis-table .reasoning {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+  }
+  .complexity-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .complexity-tag.c-constant { background: var(--c-constant); }
+  .complexity-tag.c-log      { background: var(--c-log); }
+  .complexity-tag.c-linear   { background: var(--c-linear); }
+  .complexity-tag.c-nlogn    { background: var(--c-nlogn); }
+  .complexity-tag.c-quadratic{ background: var(--c-quadratic); }
+  .complexity-tag.c-cubic    { background: var(--c-cubic); }
+  .complexity-tag.c-exp      { background: var(--c-exp); }
+  .complexity-tag.c-factorial{ background: var(--c-factorial); }
+  .complexity-tag.c-sqrt     { background: var(--c-sqrt); }
+
+  /* ===== Final Answer ===== */
+  .final-answer {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .final-answer .label {
+    font-weight: 700;
+    color: #78350f;
+    font-size: 1rem;
+  }
+  .final-answer .label small {
+    display: block;
+    font-weight: 500;
+    font-size: 0.82rem;
+    color: #92400e;
+    margin-top: 2px;
+  }
+  .final-answer .big-o {
+    font-family: monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 10px;
+    color: #fff;
+  }
+
+  .recurrence {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+    border-left: 3px solid var(--c-log);
+  }
+  .recurrence strong { color: var(--accent); }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 30px 20px;
+    margin-top: 20px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.5rem; }
+    .problem-card { padding: 18px; }
+    .analysis-table { font-size: 0.82rem; }
+    .analysis-table th, .analysis-table td { padding: 8px 10px; }
+    .problem-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📘 แบบฝึกหัดวิเคราะห์ Big O</h1>
+    <p>วิเคราะห์ความซับซ้อนของเวลา (Time Complexity) จาก Pseudo Code ทีละบรรทัด — สำหรับนักศึกษาวิชา Data Structures &amp; Algorithms</p>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="easy">🟢 ง่าย <span class="badge-count" id="cnt-easy">0</span></button>
+    <button class="tab-btn" data-tab="hard">🔴 ยาก <span class="badge-count" id="cnt-hard">0</span></button>
+    <button class="tab-btn" data-tab="complex">🟣 ซับซ้อน <span class="badge-count" id="cnt-complex">0</span></button>
+    <button class="tab-btn" data-tab="graph">🕸 Graph <span class="badge-count" id="cnt-graph">0</span></button>
+    <button class="tab-btn" data-tab="heap">📦 Heap <span class="badge-count" id="cnt-heap">0</span></button>
+    <button class="tab-btn" data-tab="hash">#️⃣ Hash <span class="badge-count" id="cnt-hash">0</span></button>
+    <button class="tab-btn" data-tab="trie">🌳 Trie <span class="badge-count" id="cnt-trie">0</span></button>
+  </div>
+
+  <!-- Easy Problems -->
+  <div class="problem-list active" id="list-easy"></div>
+  <!-- Hard Problems -->
+  <div class="problem-list" id="list-hard"></div>
+  <!-- Complex Problems -->
+  <div class="problem-list" id="list-complex"></div>
+  <!-- Graph Problems -->
+  <div class="problem-list" id="list-graph"></div>
+  <!-- Heap Problems -->
+  <div class="problem-list" id="list-heap"></div>
+  <!-- Hash Problems -->
+  <div class="problem-list" id="list-hash"></div>
+  <!-- Trie Problems -->
+  <div class="problem-list" id="list-trie"></div>
+
+  <footer>
+    แบบฝึกหัดเรื่อง Big O Notation • กดปุ่ม "แสดงเฉลย" เพื่อดูการวิเคราะห์ทีละบรรทัด
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   DATA: โจทย์ทั้งหมด (Easy + Hard)
+   - แต่ละโจทย์มี: title, desc, difficulty, code (HTML),
+     lines[] = { no, code, reasoning, complexity, tag }
+     recurrence (optional), final { bigO, tag, note }
+   ========================================================= */
+
+const PROBLEMS = [
+
+  /* ===================== EASY ===================== */
+
+  {
+    id: "e1",
+    difficulty: "easy",
+    title: "ผลรวม 1 ถึง n (แบบวนลูป)",
+    desc: "ฟังก์ชันคำนวณผลรวมของจำนวน 1 ถึง n โดยใช้ลูป",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">sum</span>(n):
+<span class="ln">2</span>    total = <span class="num">0</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">4</span>        total = total + i
+<span class="ln">5</span>    <span class="kw">return</span> total`,
+    lines: [
+      { no: 1, code: "function sum(n):", reasoning: "การประกาศฟังก์ชัน ไม่มีการทำงานจริง", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "total = 0", reasoning: "กำหนดค่าเริ่มต้นให้ตัวแปร ทำครั้งเดียว", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 1 to n:", reasoning: "ลูปทำงาน n รอบ เพราะ i วิ่งจาก 1 ถึง n", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "total = total + i", reasoning: "บวกค่าทีละครั้ง ทำ 1 ครั้งต่อรอบ → n ครั้ง", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "return total", reasoning: "คืนค่าทำครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(n)",
+      tag: "c-linear",
+      note: "เป็น Linear Time — เวลาทำงานเติบโตตามขนาดของ n ตรง ๆ"
+    }
+  },
+
+  {
+    id: "e2",
+    difficulty: "easy",
+    title: "หาค่ามากสุดในอาร์เรย์",
+    desc: "หาค่ามากที่สุดจากอาร์เรย์ A ขนาด n ตัว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">findMax</span>(A, n):
+<span class="ln">2</span>    max = A[<span class="num">0</span>]
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">if</span> A[i] <span class="op">&gt;</span> max:
+<span class="ln">5</span>            max = A[i]
+<span class="ln">6</span>    <span class="kw">return</span> max`,
+    lines: [
+      { no: 1, code: "function findMax(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "max = A[0]", reasoning: "เข้าถึงสมาชิกตัวแรก ทำครั้งเดียว", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 1 to n-1:", reasoning: "ลูปทำ n−1 รอบ → O(n)", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "if A[i] > max:", reasoning: "เปรียบเทียบทีละตัว ทำ n−1 ครั้ง", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "max = A[i]", reasoning: "กำหนดค่าใหม่ กรณีเลวร้ายทำทุกรอบได้ → O(n)", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "return max", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(n)",
+      tag: "c-linear",
+      note: "ต้องสแกนทุกตัวจึงรู้ค่ามากสุด → Linear Time"
+    }
+  },
+
+  {
+    id: "e3",
+    difficulty: "easy",
+    title: "ผลรวมด้วยสูตร (ไม่มีลูป)",
+    desc: "คำนวณผลรวม 1..n โดยใช้สูตรคณิตศาสตร์",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">sumFormula</span>(n):
+<span class="ln">2</span>    <span class="kw">return</span> n <span class="op">*</span> (n <span class="op">+</span> <span class="num">1</span>) <span class="op">/</span> <span class="num">2</span>`,
+    lines: [
+      { no: 1, code: "function sumFormula(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "return n * (n + 1) / 2", reasoning: "คำนวณเลขคณิต 3 ตัว ไม่ขึ้นกับขนาด n", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(1)",
+      tag: "c-constant",
+      note: "Constant Time — ใช้เวลาเท่ากันไม่ว่า n จะเท่าไหร่ เร็วกว่าข้อ 1 มาก"
+    }
+  },
+
+  {
+    id: "e4",
+    difficulty: "easy",
+    title: "พิมพ์คู่อันดับทุกคู่ (i, j)",
+    desc: "ลูปซ้อน 2 ชั้น ทั้งคู่วิ่ง n รอบอย่างอิสระ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">printPairs</span>(n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">3</span>        <span class="kw">for</span> j = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">4</span>            print(i, j)`,
+    lines: [
+      { no: 1, code: "function printPairs(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 1 to n:", reasoning: "ลูปนอกทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "for j = 1 to n:", reasoning: "ลูปในทำ n รอบ ต่อ 1 รอบของลูปนอก", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "print(i, j)", reasoning: "print ทำ n × n = n² ครั้ง", complexity: "O(n²)", tag: "c-quadratic" }
+    ],
+    final: {
+      bigO: "O(n²)",
+      tag: "c-quadratic",
+      note: "Quadratic Time — ลูปซ้อนอิสระ 2 ชั้น → คูณกันตรง ๆ"
+    }
+  },
+
+  {
+    id: "e5",
+    difficulty: "easy",
+    title: "พิมพ์รูปสามเหลี่ยม (ลูปในขึ้นกับ i)",
+    desc: "ลูปในวิ่งจาก 1 ถึง i ซึ่งขึ้นกับค่าของลูปนอก",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">printTriangle</span>(n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">3</span>        <span class="kw">for</span> j = <span class="num">1</span> <span class="kw">to</span> i:
+<span class="ln">4</span>            print(i, j)`,
+    lines: [
+      { no: 1, code: "function printTriangle(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 1 to n:", reasoning: "ลูปนอกทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "for j = 1 to i:", reasoning: "ลูปในทำ i รอบ → รวม 1+2+...+n = n(n+1)/2", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 4, code: "print(i, j)", reasoning: "print ทำ n(n+1)/2 ครั้ง", complexity: "O(n²)", tag: "c-quadratic" }
+    ],
+    final: {
+      bigO: "O(n²)",
+      tag: "c-quadratic",
+      note: "ลูปในไม่เท่ากันทุกรอบ แต่ผลรวม 1+2+...+n = n(n+1)/2 ซึ่งก็คือ O(n²)"
+    }
+  },
+
+  /* ===================== HARD ===================== */
+
+  {
+    id: "h1",
+    difficulty: "hard",
+    title: "Binary Search (ค้นหาแบบทวิภาค)",
+    desc: "ค้นหา target ในอาร์เรย์ที่เรียงแล้ว โดยหั่นช่วงครึ่งต่อรอบ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">binarySearch</span>(A, n, target):
+<span class="ln">2</span>    low = <span class="num">0</span>
+<span class="ln">3</span>    high = n <span class="op">-</span> <span class="num">1</span>
+<span class="ln">4</span>    <span class="kw">while</span> low <span class="op">&lt;=</span> high:
+<span class="ln">5</span>        mid = (low <span class="op">+</span> high) <span class="op">/</span> <span class="num">2</span>
+<span class="ln">6</span>        <span class="kw">if</span> A[mid] == target: <span class="kw">return</span> mid
+<span class="ln">7</span>        <span class="kw">else if</span> A[mid] <span class="op">&lt;</span> target: low = mid <span class="op">+</span> <span class="num">1</span>
+<span class="ln">8</span>        <span class="kw">else</span>: high = mid <span class="op">-</span> <span class="num">1</span>
+<span class="ln">9</span>    <span class="kw">return</span> <span class="op">-</span><span class="num">1</span>`,
+    lines: [
+      { no: 1, code: "function binarySearch(...):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "low = 0", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "high = n - 1", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "while low <= high:", reasoning: "ทุกรอบช่วงลดลงครึ่งหนึ่ง → ลูปทำ log₂(n) รอบ", complexity: "O(log n)", tag: "c-log" },
+      { no: 5, code: "mid = (low + high) / 2", reasoning: "คำนวณเลขคณิต ทำครั้งละ O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "if A[mid] == target: return mid", reasoning: "เปรียบเทียบและคืนค่า O(1) ต่อรอบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "else if A[mid] < target: low = mid + 1", reasoning: "ขยับ low ข้ามครึ่งล่าง", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "else: high = mid - 1", reasoning: "ขยับ high ข้ามครึ่งบน", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "return -1", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(log n)",
+      tag: "c-log",
+      note: "Logarithmic Time — ทุกรอบช่วงค้นหาเหลือครึ่ง → ใช้ไม่กี่รอบแม้ n ใหญ่มาก"
+    }
+  },
+
+  {
+    id: "h2",
+    difficulty: "hard",
+    title: "Recursive Factorial (แฟกทอเรียลแบบเรียกซ้ำ)",
+    desc: "คำนวณ n! ด้วยการเรียกตัวเองซ้ำ ลดค่าลงทีละ 1",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">factorial</span>(n):
+<span class="ln">2</span>    <span class="kw">if</span> n <span class="op">&lt;=</span> <span class="num">1</span>:
+<span class="ln">3</span>        <span class="kw">return</span> <span class="num">1</span>
+<span class="ln">4</span>    <span class="kw">return</span> n <span class="op">*</span> <span class="fn">factorial</span>(n<span class="op">-</span><span class="num">1</span>)`,
+    lines: [
+      { no: 1, code: "function factorial(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n <= 1:", reasoning: "base case เปรียบเทียบครั้งเดียว", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "return 1", reasoning: "คืนค่าเมื่อถึง base", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "return n * factorial(n-1)", reasoning: "เรียกซ้ำ n ครั้ง (n→n−1→...→1)", complexity: "T(n−1)+O(1)", tag: "c-linear" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = T(n−1) + O(1)  &nbsp;|&nbsp;  T(1) = O(1)  →  <strong>T(n) = O(n)</strong>",
+    final: {
+      bigO: "O(n)",
+      tag: "c-linear",
+      note: "เรียกซ้ำ n ครั้ง แต่ละครั้งทำงาน O(1) → รวม O(n) (เทียบเท่าลูป for)"
+    }
+  },
+
+  {
+    id: "h3",
+    difficulty: "hard",
+    title: "Recursive Fibonacci (ต้นไม้เรียกซ้ำ)",
+    desc: "คำนวณ fib(n) โดยเรียกตัวเอง 2 ครั้งในแต่ละรอบ → ต้นไม้ทวิภาค",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">fib</span>(n):
+<span class="ln">2</span>    <span class="kw">if</span> n <span class="op">&lt;=</span> <span class="num">1</span>:
+<span class="ln">3</span>        <span class="kw">return</span> n
+<span class="ln">4</span>    <span class="kw">return</span> <span class="fn">fib</span>(n<span class="op">-</span><span class="num">1</span>) <span class="op">+</span> <span class="fn">fib</span>(n<span class="op">-</span><span class="num">2</span>)`,
+    lines: [
+      { no: 1, code: "function fib(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n <= 1:", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "return n", reasoning: "คืนค่าที่ base", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "return fib(n-1) + fib(n-2)", reasoning: "แตกออก 2 กิ่ง แต่ละกิ่งเรียกซ้ำต่อ → ต้นไม้ลึก n", complexity: "T(n−1)+T(n−2)+O(1)", tag: "c-exp" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = T(n−1) + T(n−2) + O(1)  &nbsp;|&nbsp;  T(0)=T(1)=O(1)  →  <strong>T(n) = O(2ⁿ)</strong> (จำนวนโหนดในต้นไม้ทวิภาค)",
+    final: {
+      bigO: "O(2ⁿ)",
+      tag: "c-exp",
+      note: "Exponential Time — มีการคำนวณซ้ำซ้อนเป็นจำนวนมาก ไม่เหมาะกับ n ใหญ่ (ใช้ memoization แล้วจะเหลือ O(n))"
+    }
+  },
+
+  {
+    id: "h4",
+    difficulty: "hard",
+    title: "Merge Sort (แบ่งและเก็บ)",
+    desc: "อัลกอริทึมเรียงลำดับแบบแบ่งครึ่งแล้วผสาน — Divide & Conquer",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">mergeSort</span>(A, left, right):
+<span class="ln">2</span>    <span class="kw">if</span> left <span class="op">&lt;</span> right:
+<span class="ln">3</span>        mid = (left <span class="op">+</span> right) <span class="op">/</span> <span class="num">2</span>
+<span class="ln">4</span>        <span class="fn">mergeSort</span>(A, left, mid)
+<span class="ln">5</span>        <span class="fn">mergeSort</span>(A, mid<span class="op">+</span><span class="num">1</span>, right)
+<span class="ln">6</span>        <span class="fn">merge</span>(A, left, mid, right)`,
+    lines: [
+      { no: 1, code: "function mergeSort(...):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if left < right:", reasoning: "ตรวจ base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "mid = (left + right) / 2", reasoning: "หาจุดกึ่งกลาง O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "mergeSort(A, left, mid)", reasoning: "เรียกซ้ำครึ่งซ้าย ขนาด n/2", complexity: "T(n/2)", tag: "c-nlogn" },
+      { no: 5, code: "mergeSort(A, mid+1, right)", reasoning: "เรียกซ้ำครึ่งขวา ขนาด n/2", complexity: "T(n/2)", tag: "c-nlogn" },
+      { no: 6, code: "merge(A, left, mid, right)", reasoning: "ผสานอาร์เรย์ 2 ช่วง ต้องสแกน n ตัว", complexity: "O(n)", tag: "c-linear" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = 2·T(n/2) + O(n)  &nbsp;|&nbsp;  T(1) = O(1)  →  ตาม <strong>Master Theorem</strong> (a=2, b=2, f(n)=n) → <strong>T(n) = O(n log n)</strong>",
+    final: {
+      bigO: "O(n log n)",
+      tag: "c-nlogn",
+      note: "Linearithmic Time — ดีที่สุดสำหรับการเรียงแบบเปรียบเทียบ เร็วกว่า O(n²) มาก"
+    }
+  },
+
+  {
+    id: "h5",
+    difficulty: "hard",
+    title: "ลูปที่หั่นครึ่ง (Logarithmic Loop)",
+    desc: "ตัวแปร i ลดลงครึ่งหนึ่งในแต่ละรอบ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">halving</span>(n):
+<span class="ln">2</span>    i = n
+<span class="ln">3</span>    <span class="kw">while</span> i <span class="op">&gt;</span> <span class="num">1</span>:
+<span class="ln">4</span>        i = i <span class="op">/</span> <span class="num">2</span>
+<span class="ln">5</span>        print(i)`,
+    lines: [
+      { no: 1, code: "function halving(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "i = n", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "while i > 1:", reasoning: "i ลดลงครึ่งต่อรอบ → ทำ log₂(n) รอบ", complexity: "O(log n)", tag: "c-log" },
+      { no: 4, code: "i = i / 2", reasoning: "หารครึ่ง O(1) ต่อรอบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "print(i)", reasoning: "พิมพ์ครั้งละ O(1)", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(log n)",
+      tag: "c-log",
+      note: "Logarithmic Time — รูปแบบคลาสสิก: ลดขนาดปัญหาครึ่งหนึ่งต่อรอบ"
+    }
+  },
+
+  {
+    id: "h6",
+    difficulty: "hard",
+    title: "ลูปซ้อน 3 ชั้น (Triple Nested)",
+    desc: "ลูป for ซ้อนกัน 3 ชั้น แต่ละชั้นทำ n รอบ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">tripleLoop</span>(n):
+<span class="ln">2</span>    sum = <span class="num">0</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">4</span>        <span class="kw">for</span> j = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">5</span>            <span class="kw">for</span> k = <span class="num">1</span> <span class="kw">to</span> n:
+<span class="ln">6</span>                sum = sum <span class="op">+</span> <span class="num">1</span>
+<span class="ln">7</span>    <span class="kw">return</span> sum`,
+    lines: [
+      { no: 1, code: "function tripleLoop(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "sum = 0", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 1 to n:", reasoning: "ลูปนอกสุดทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "for j = 1 to n:", reasoning: "ลูปกลางทำ n รอบ ต่อลูปนอก 1 รอบ", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "for k = 1 to n:", reasoning: "ลูปในสุดทำ n รอบ ต่อลูปกลาง 1 รอบ", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 6, code: "sum = sum + 1", reasoning: "ทำ n×n×n = n³ ครั้ง", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 7, code: "return sum", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: {
+      bigO: "O(n³)",
+      tag: "c-cubic",
+      note: "Cubic Time — ลูปซ้อนอิสระ k ชั้น → O(nᵏ); n=100 ก็ทำ 1,000,000 ครั้งแล้ว"
+    }
+  },
+
+  /* ===================== EASY (เพิ่มเติม) ===================== */
+
+  {
+    id: "e6",
+    difficulty: "easy",
+    title: "กลับข้อความ (Reverse String)",
+    desc: "สร้างสตริงกลับด้านจากสตริงต้นทาง s ที่มีความยาว n",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">reverse</span>(s, n):
+<span class="ln">2</span>    result = <span class="cm">""</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = n<span class="op">-</span><span class="num">1</span> <span class="kw">down to</span> <span class="num">0</span>:
+<span class="ln">4</span>        result = result <span class="op">+</span> s[i]
+<span class="ln">5</span>    <span class="kw">return</span> result`,
+    lines: [
+      { no: 1, code: "function reverse(s, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: 'result = ""', reasoning: "สร้างสตริงว่าง", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = n-1 down to 0:", reasoning: "วนจากท้ายมาต้น ทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "result = result + s[i]", reasoning: "ต่ออักขระทีละตัว → n ครั้ง", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "return result", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "ต้องเดินผ่านทุกตัวอักขระ → Linear Time" }
+  },
+
+  {
+    id: "e7",
+    difficulty: "easy",
+    title: "ตรวจจำนวนเฉพาะ (Primality Test)",
+    desc: "ตรวจว่า n เป็นจำนวนเฉพาะหรือไม่ โดยทดสอบหารตั้งแต่ 2 ถึง √n",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">isPrime</span>(n):
+<span class="ln">2</span>    <span class="kw">if</span> n <span class="op">&lt;</span> <span class="num">2</span>: <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">2</span> <span class="kw">to</span> sqrt(n):
+<span class="ln">4</span>        <span class="kw">if</span> n <span class="op">%</span> i == <span class="num">0</span>:
+<span class="ln">5</span>            <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">6</span>    <span class="kw">return</span> <span class="kw">true</span>`,
+    lines: [
+      { no: 1, code: "function isPrime(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n < 2: return false", reasoning: "เช็คเงื่อนไขตั้งต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 2 to sqrt(n):", reasoning: "ลูปทำ √n รอบ", complexity: "O(√n)", tag: "c-sqrt" },
+      { no: 4, code: "if n % i == 0:", reasoning: "หารเช็คทีละตัว O(1) ต่อรอบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "return false", reasoning: "เจอตัวประกอบ → คืนค่า", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "return true", reasoning: "ไม่เจอตัวประกอบ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(√n)", tag: "c-sqrt", note: "Sublinear Time — ตัวประกอบที่เล็กที่สุดต้องไม่เกิน √n" }
+  },
+
+  {
+    id: "e8",
+    difficulty: "easy",
+    title: "พิมพ์เลขคู่ 1 ถึง n",
+    desc: "พิมพ์จำนวนคู่ทั้งหมดตั้งแต่ 1 ถึง n",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">printEven</span>(n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">2</span> <span class="kw">to</span> n <span class="kw">step</span> <span class="num">2</span>:
+<span class="ln">3</span>        print(i)`,
+    lines: [
+      { no: 1, code: "function printEven(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 2 to n step 2:", reasoning: "กระโดดทีละ 2 → ทำ n/2 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "print(i)", reasoning: "พิมพ์ครั้งละ O(1)", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "n/2 ก็ยังเป็น O(n) เพราะค่าคงที่ 1/2 ไม่นับ" }
+  },
+
+  {
+    id: "e9",
+    difficulty: "easy",
+    title: "ผลรวมสมาชิกอาร์เรย์",
+    desc: "บวกสมาชิกทุกตัวในอาร์เรย์ A ขนาด n",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">arraySum</span>(A, n):
+<span class="ln">2</span>    sum = <span class="num">0</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        sum = sum <span class="op">+</span> A[i]
+<span class="ln">5</span>    <span class="kw">return</span> sum`,
+    lines: [
+      { no: 1, code: "function arraySum(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "sum = 0", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 0 to n-1:", reasoning: "ลูปทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "sum = sum + A[i]", reasoning: "บวกทีละตัว → n ครั้ง", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "return sum", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "ต้องอ่านสมาชิกทุกตัว → Linear Time" }
+  },
+
+  {
+    id: "e10",
+    difficulty: "easy",
+    title: "นับจำนวนครั้งที่ x ปรากฏ",
+    desc: "นับว่าค่า x ปรากฏกี่ครั้งในอาร์เรย์ A ขนาด n",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">countX</span>(A, n, x):
+<span class="ln">2</span>    count = <span class="num">0</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">if</span> A[i] == x:
+<span class="ln">5</span>            count = count <span class="op">+</span> <span class="num">1</span>
+<span class="ln">6</span>    <span class="kw">return</span> count`,
+    lines: [
+      { no: 1, code: "function countX(A, n, x):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "count = 0", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 0 to n-1:", reasoning: "ลูปทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "if A[i] == x:", reasoning: "เปรียบเทียบทีละตัว", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "count = count + 1", reasoning: "นับเมื่อเจอ (กรณีเลวร้าย n ครั้ง)", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "return count", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear Search แบบนับ → ต้องสแกนทุกตัว" }
+  },
+
+  {
+    id: "e11",
+    difficulty: "easy",
+    title: "ตรวจว่าอาร์เรย์เรียงลำดับแล้ว",
+    desc: "ตรวจว่าอาร์เรย์ A ขนาด n เรียงจากน้อยไปมากหรือไม่",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">isSorted</span>(A, n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">2</span>:
+<span class="ln">3</span>        <span class="kw">if</span> A[i] <span class="op">&gt;</span> A[i<span class="op">+</span><span class="num">1</span>]:
+<span class="ln">4</span>            <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">5</span>    <span class="kw">return</span> <span class="kw">true</span>`,
+    lines: [
+      { no: 1, code: "function isSorted(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 0 to n-2:", reasoning: "ลูปทำ n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "if A[i] > A[i+1]:", reasoning: "เปรียบเทียบคู่ติดกัน", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "return false", reasoning: "เจอคู่ผิดลำดับ → คืน false", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "return true", reasoning: "ผ่านทุกคู่ → เรียงแล้ว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Best case O(1) (เจอผิดตั้งแต่คู่แรก), Worst case O(n)" }
+  },
+
+  {
+    id: "e12",
+    difficulty: "easy",
+    title: "สูตรคูณแม่ n",
+    desc: "พิมพ์สูตรคูณแม่ n ตั้งแต่ 1 ถึง 12",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">multiplicationTable</span>(n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> <span class="num">12</span>:
+<span class="ln">3</span>        print(n, <span class="cm">"x"</span>, i, <span class="cm">"="</span>, n <span class="op">*</span> i)`,
+    lines: [
+      { no: 1, code: "function multiplicationTable(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 1 to 12:", reasoning: "ลูปตายตัว 12 รอบ (ไม่ขึ้นกับ n)", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: 'print(n, "x", i, "=", n * i)', reasoning: "พิมพ์ 12 ครั้ง → ค่าคงที่", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(1)", tag: "c-constant", note: "จำนวนรอบเป็นค่าคงที่ (12) ไม่ขึ้นกับขนาด input → Constant Time" }
+  },
+
+  {
+    id: "e13",
+    difficulty: "easy",
+    title: "Linear Search (ค้นหาเชิงเส้น)",
+    desc: "ค้นหาตำแหน่งของ target ในอาร์เรย์ A",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">linearSearch</span>(A, n, target):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">3</span>        <span class="kw">if</span> A[i] == target:
+<span class="ln">4</span>            <span class="kw">return</span> i
+<span class="ln">5</span>    <span class="kw">return</span> <span class="op">-</span><span class="num">1</span>`,
+    lines: [
+      { no: 1, code: "function linearSearch(...):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 0 to n-1:", reasoning: "ลูปทำ n รอบในกรณีเลวร้าย", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "if A[i] == target:", reasoning: "เปรียบเทียบทีละตัว", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "return i", reasoning: "เจอแล้วคืนตำแหน่ง (best case O(1))", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "return -1", reasoning: "ไม่เจอ → คืน −1", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Worst/Average O(n), Best case O(1) — Big O ใช้กรณีเลวร้ายสุด" }
+  },
+
+  {
+    id: "e14",
+    difficulty: "easy",
+    title: "คัดลอกอาร์เรย์",
+    desc: "สร้างอาร์เรย์ใหม่ B ที่เป็นสำเนาของ A",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">copyArray</span>(A, n):
+<span class="ln">2</span>    B = <span class="kw">new</span> <span class="fn">array</span>(n)
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        B[i] = A[i]
+<span class="ln">5</span>    <span class="kw">return</span> B`,
+    lines: [
+      { no: 1, code: "function copyArray(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "B = new array(n)", reasoning: "จองเมมโมรี่ขนาด n → O(n) ในการเตรียม", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "for i = 0 to n-1:", reasoning: "ลูปทำ n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "B[i] = A[i]", reasoning: "ก๊อปปี้ทีละช่อง → n ครั้ง", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "return B", reasoning: "คืน reference O(1)", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "ต้องอ่านและเขียน n ช่อง → Linear Time" }
+  },
+
+  {
+    id: "e15",
+    difficulty: "easy",
+    title: "นับจำนวนหลักของตัวเลข",
+    desc: "นับว่าเลข n มีกี่หลัก โดยหาร 10 ซ้ำ ๆ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">countDigits</span>(n):
+<span class="ln">2</span>    count = <span class="num">0</span>
+<span class="ln">3</span>    <span class="kw">while</span> n <span class="op">&gt;</span> <span class="num">0</span>:
+<span class="ln">4</span>        n = n <span class="op">/</span> <span class="num">10</span>
+<span class="ln">5</span>        count = count <span class="op">+</span> <span class="num">1</span>
+<span class="ln">6</span>    <span class="kw">return</span> count`,
+    lines: [
+      { no: 1, code: "function countDigits(n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "count = 0", reasoning: "กำหนดค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "while n > 0:", reasoning: "n ลดลง 10 เท่าต่อรอบ → log₁₀(n) รอบ", complexity: "O(log n)", tag: "c-log" },
+      { no: 4, code: "n = n / 10", reasoning: "หาร 10 O(1) ต่อรอบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "count = count + 1", reasoning: "นับเพิ่ม O(1) ต่อรอบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "return count", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(log n)", tag: "c-log", note: "จำนวนหลัก = ⌊log₁₀(n)⌋ + 1 → Logarithmic Time" }
+  },
+
+  /* ===================== HARD (เพิ่มเติม) ===================== */
+
+  {
+    id: "h7",
+    difficulty: "hard",
+    title: "Bubble Sort (เรียงฟอง)",
+    desc: "อัลกอริทึมเรียงลำดับแบบฟอง — สลับคู่ติดกันซ้ำจนกลายเป็นชุดเรียง",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">bubbleSort</span>(A, n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">2</span>:
+<span class="ln">3</span>        <span class="kw">for</span> j = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">2</span><span class="op">-</span>i:
+<span class="ln">4</span>            <span class="kw">if</span> A[j] <span class="op">&gt;</span> A[j<span class="op">+</span><span class="num">1</span>]:
+<span class="ln">5</span>                <span class="fn">swap</span>(A, j, j<span class="op">+</span><span class="num">1</span>)`,
+    lines: [
+      { no: 1, code: "function bubbleSort(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 0 to n-2:", reasoning: "ลูปนอกทำ n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "for j = 0 to n-2-i:", reasoning: "ลูปในทำ (n−1−i) รอบ → รวม n(n−1)/2", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 4, code: "if A[j] > A[j+1]:", reasoning: "เปรียบเทียบคู่ติดกัน", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "swap(A, j, j+1)", reasoning: "สลับค่า O(1) ต่อครั้ง", complexity: "O(n²)", tag: "c-quadratic" }
+    ],
+    final: { bigO: "O(n²)", tag: "c-quadratic", note: "Quadratic — Best case O(n) ถ้ามี flag early exit; กรณีทั่วไป O(n²)" }
+  },
+
+  {
+    id: "h8",
+    difficulty: "hard",
+    title: "Insertion Sort (เรียงแบบแทรก)",
+    desc: "แทรกสมาชิกตัวถัดไปเข้าสู่ตำแหน่งที่ถูกต้องในส่วนที่เรียงแล้ว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">insertionSort</span>(A, n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">3</span>        key = A[i]
+<span class="ln">4</span>        j = i <span class="op">-</span> <span class="num">1</span>
+<span class="ln">5</span>        <span class="kw">while</span> j <span class="op">&gt;=</span> <span class="num">0</span> <span class="kw">and</span> A[j] <span class="op">&gt;</span> key:
+<span class="ln">6</span>            A[j<span class="op">+</span><span class="num">1</span>] = A[j]
+<span class="ln">7</span>            j = j <span class="op">-</span> <span class="num">1</span>
+<span class="ln">8</span>        A[j<span class="op">+</span><span class="num">1</span>] = key`,
+    lines: [
+      { no: 1, code: "function insertionSort(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 1 to n-1:", reasoning: "ลูปนอกทำ n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "key = A[i]", reasoning: "เก็บค่าที่จะแทรก O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "j = i - 1", reasoning: "ตั้งตำแหน่งเริ่มเปรียบเทียบ", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "while j >= 0 and A[j] > key:", reasoning: "เลื่อนหาที่ว่าง กรณีเลวร้ายทำ i ครั้ง", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 6, code: "A[j+1] = A[j]", reasoning: "เลื่อนสมาชิกไปทางขวา", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 7, code: "j = j - 1", reasoning: "ลด j ลง", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 8, code: "A[j+1] = key", reasoning: "วาง key ในตำแหน่งที่ถูกต้อง", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n²)", tag: "c-quadratic", note: "Worst/Avg O(n²), Best case O(n) ถ้าอาร์เรย์เรียงอยู่แล้ว" }
+  },
+
+  {
+    id: "h9",
+    difficulty: "hard",
+    title: "Selection Sort (เรียงแบบเลือก)",
+    desc: "หาค่าน้อยสุดในแต่ละรอบแล้วสลับมาไว้ที่หน้าสุด",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">selectionSort</span>(A, n):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">2</span>:
+<span class="ln">3</span>        minIdx = i
+<span class="ln">4</span>        <span class="kw">for</span> j = i<span class="op">+</span><span class="num">1</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">5</span>            <span class="kw">if</span> A[j] <span class="op">&lt;</span> A[minIdx]:
+<span class="ln">6</span>                minIdx = j
+<span class="ln">7</span>        <span class="fn">swap</span>(A, i, minIdx)`,
+    lines: [
+      { no: 1, code: "function selectionSort(A, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 0 to n-2:", reasoning: "ลูปนอกทำ n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "minIdx = i", reasoning: "ตั้ง min เริ่มต้น O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "for j = i+1 to n-1:", reasoning: "ลูปในสแกนหา min → รวม n(n−1)/2", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "if A[j] < A[minIdx]:", reasoning: "เปรียบเทียบหา min", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 6, code: "minIdx = j", reasoning: "อัปเดตตำแหน่ง min", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 7, code: "swap(A, i, minIdx)", reasoning: "สลับทำ n−1 ครั้ง → O(n)", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n²)", tag: "c-quadratic", note: "Quadratic — ทำ n² ครั้งเสมอ ไม่ว่า input จะเรียงแล้วหรือไม่" }
+  },
+
+  {
+    id: "h10",
+    difficulty: "hard",
+    title: "Quick Sort (เรียงแบบเร็ว)",
+    desc: "Divide & Conquer — เลือก pivot แบ่งอาร์เรย์เป็น 2 ส่วนแล้วเรียงซ้ำ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">quickSort</span>(A, low, high):
+<span class="ln">2</span>    <span class="kw">if</span> low <span class="op">&lt;</span> high:
+<span class="ln">3</span>        pivot = <span class="fn">partition</span>(A, low, high)
+<span class="ln">4</span>        <span class="fn">quickSort</span>(A, low, pivot<span class="op">-</span><span class="num">1</span>)
+<span class="ln">5</span>        <span class="fn">quickSort</span>(A, pivot<span class="op">+</span><span class="num">1</span>, high)`,
+    lines: [
+      { no: 1, code: "function quickSort(A, low, high):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if low < high:", reasoning: "base case ตรวจขนาด", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "pivot = partition(A, low, high)", reasoning: "แบ่งอาร์เรย์ → สแกน n ตัว", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "quickSort(A, low, pivot-1)", reasoning: "เรียงซ้ำส่วนซ้าย ขนาด n/2 (avg)", complexity: "T(n/2)", tag: "c-nlogn" },
+      { no: 5, code: "quickSort(A, pivot+1, high)", reasoning: "เรียงซ้ำส่วนขวา ขนาด n/2 (avg)", complexity: "T(n/2)", tag: "c-nlogn" }
+    ],
+    recurrence: "<strong>กรณีเฉลี่ย:</strong> T(n) = 2·T(n/2) + O(n) → <strong>O(n log n)</strong><br><strong>กรณีเลวร้าย:</strong> pivot สุดโด่งทุกรอบ → T(n) = T(n−1) + O(n) → <strong>O(n²)</strong>",
+    final: { bigO: "O(n log n)", tag: "c-nlogn", note: "Average O(n log n), Worst case O(n²) — ขึ้นกับการเลือก pivot" }
+  },
+
+  {
+    id: "h11",
+    difficulty: "hard",
+    title: "Two Sum (Brute Force)",
+    desc: "หาคู่ตัวเลขใน A ที่บวกกันได้ target — วิธีกำลังดั้ง",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">twoSum</span>(A, n, target):
+<span class="ln">2</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">2</span>:
+<span class="ln">3</span>        <span class="kw">for</span> j = i<span class="op">+</span><span class="num">1</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>            <span class="kw">if</span> A[i] <span class="op">+</span> A[j] == target:
+<span class="ln">5</span>                <span class="kw">return</span> (i, j)
+<span class="ln">6</span>    <span class="kw">return</span> <span class="cm">"not found"</span>`,
+    lines: [
+      { no: 1, code: "function twoSum(...):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "for i = 0 to n-2:", reasoning: "ลูปนอกทำ n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 3, code: "for j = i+1 to n-1:", reasoning: "ลูปในทำ (n−1−i) รอบ → รวม n(n−1)/2", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 4, code: "if A[i] + A[j] == target:", reasoning: "เปรียบเทียบผลรวมคู่", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "return (i, j)", reasoning: "คืนคู่ที่หา (best case O(1))", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: 'return "not found"', reasoning: "ไม่เจอคู่", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n²)", tag: "c-quadratic", note: "Quadratic — ใช้ Hash Map จะเหลือ O(n) แต่ต้องแลกกับเมมโมรี่ O(n)" }
+  },
+
+  {
+    id: "h12",
+    difficulty: "hard",
+    title: "Tower of Hanoi (หอคอยฮานอย)",
+    desc: "ย้ายจาน n แผ่นจากเสา A ไป C โดยใช้ B เป็นเสาช่วย",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">hanoi</span>(n, from, to, via):
+<span class="ln">2</span>    <span class="kw">if</span> n == <span class="num">1</span>:
+<span class="ln">3</span>        <span class="fn">move</span>(from, to)
+<span class="ln">4</span>        <span class="kw">return</span>
+<span class="ln">5</span>    <span class="fn">hanoi</span>(n<span class="op">-</span><span class="num">1</span>, from, via, to)
+<span class="ln">6</span>    <span class="fn">move</span>(from, to)
+<span class="ln">7</span>    <span class="fn">hanoi</span>(n<span class="op">-</span><span class="num">1</span>, via, to, from)`,
+    lines: [
+      { no: 1, code: "function hanoi(n, from, to, via):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n == 1:", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "move(from, to)", reasoning: "ย้ายจาน 1 แผ่น O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "return", reasoning: "ออกจาก base", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "hanoi(n-1, from, via, to)", reasoning: "ย้าย n−1 แผ่นไปเสากลาง", complexity: "T(n−1)", tag: "c-exp" },
+      { no: 6, code: "move(from, to)", reasoning: "ย้ายแผ่นใหญ่สุด O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "hanoi(n-1, via, to, from)", reasoning: "ย้าย n−1 แผ่นไปเสาปลายทาง", complexity: "T(n−1)", tag: "c-exp" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = 2·T(n−1) + O(1)  &nbsp;|&nbsp;  T(1) = O(1)  →  <strong>T(n) = O(2ⁿ)</strong>",
+    final: { bigO: "O(2ⁿ)", tag: "c-exp", note: "Exponential — จำนวนการย้ายขั้นต่ำ = 2ⁿ − 1 (ตำนานวัดฮานอย)" }
+  },
+
+  {
+    id: "h13",
+    difficulty: "hard",
+    title: "GCD แบบ Euclidean (Recursive)",
+    desc: "หา ห.ร.ม. ของ a และ b ด้วยวิธีหารเอาเศษ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">gcd</span>(a, b):
+<span class="ln">2</span>    <span class="kw">if</span> b == <span class="num">0</span>:
+<span class="ln">3</span>        <span class="kw">return</span> a
+<span class="ln">4</span>    <span class="kw">return</span> <span class="fn">gcd</span>(b, a <span class="op">%</span> b)`,
+    lines: [
+      { no: 1, code: "function gcd(a, b):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if b == 0:", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "return a", reasoning: "คืนค่า GCD", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "return gcd(b, a % b)", reasoning: "เศษลดลงเหลือไม่ถึงครึ่งใน 2 รอบ → O(log min(a,b))", complexity: "T(n/2)", tag: "c-log" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(a,b) = T(b, a%b) + O(1)  &nbsp;→&nbsp;  ทุก 2 รอบค่าลดลงครึ่งหนึ่ง → <strong>O(log min(a,b))</strong>",
+    final: { bigO: "O(log n)", tag: "c-log", note: "Logarithmic — Lamé's theorem: จำนวนรอบ ≤ 5·log₁₀(min(a,b))" }
+  },
+
+  {
+    id: "h14",
+    difficulty: "hard",
+    title: "Power Function (x^n แบบเรียกซ้ำ)",
+    desc: "คำนวณ x ยกกำลัง n ด้วยการเรียกซ้ำ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">power</span>(x, n):
+<span class="ln">2</span>    <span class="kw">if</span> n == <span class="num">0</span>:
+<span class="ln">3</span>        <span class="kw">return</span> <span class="num">1</span>
+<span class="ln">4</span>    <span class="kw">return</span> x <span class="op">*</span> <span class="fn">power</span>(x, n<span class="op">-</span><span class="num">1</span>)`,
+    lines: [
+      { no: 1, code: "function power(x, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n == 0:", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "return 1", reasoning: "x⁰ = 1", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "return x * power(x, n-1)", reasoning: "เรียกซ้ำ n ครั้ง", complexity: "T(n−1)+O(1)", tag: "c-linear" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = T(n−1) + O(1)  &nbsp;→&nbsp;  <strong>T(n) = O(n)</strong><br><em>ถ้าใช้ Fast Power (x^(n/2))² จะเหลือ O(log n)</em>",
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear — ใช้ Fast Exponentiation จะเหลือ O(log n)" }
+  },
+
+  {
+    id: "h15",
+    difficulty: "hard",
+    title: "Counting Sort (เรียงนับ)",
+    desc: "เรียงเลขจำนวนเต็มในช่วง 0..k โดยใช้ counting array",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">countingSort</span>(A, n, k):
+<span class="ln">2</span>    C = <span class="kw">new</span> <span class="fn">array</span>(k<span class="op">+</span><span class="num">1</span>) <span class="cm">// ใช้นับ</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        C[A[i]] = C[A[i]] <span class="op">+</span> <span class="num">1</span>
+<span class="ln">5</span>    idx = <span class="num">0</span>
+<span class="ln">6</span>    <span class="kw">for</span> v = <span class="num">0</span> <span class="kw">to</span> k:
+<span class="ln">7</span>        <span class="kw">for</span> t = <span class="num">1</span> <span class="kw">to</span> C[v]:
+<span class="ln">8</span>            A[idx] = v
+<span class="ln">9</span>            idx = idx <span class="op">+</span> <span class="num">1</span>`,
+    lines: [
+      { no: 1, code: "function countingSort(A, n, k):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "C = new array(k+1)", reasoning: "สร้าง counting array ขนาด k+1", complexity: "O(k)", tag: "c-linear" },
+      { no: 3, code: "for i = 0 to n-1:", reasoning: "ลูปนับสมาชิก", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "C[A[i]] = C[A[i]] + 1", reasoning: "นับจำนวนแต่ละค่า", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "idx = 0", reasoning: "ตัวชี้ตำแหน่งเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "for v = 0 to k:", reasoning: "วนค่าที่เป็นไปได้ k+1 ค่า", complexity: "O(k)", tag: "c-linear" },
+      { no: 7, code: "for t = 1 to C[v]:", reasoning: "รวมแล้วเขียน n ตัว", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "A[idx] = v", reasoning: "เขียนค่ากลับ", complexity: "O(n)", tag: "c-linear" },
+      { no: 9, code: "idx = idx + 1", reasoning: "เลื่อนตำแหน่ง", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n + k)", tag: "c-linear", note: "Linear เมื่อ k = O(n) — เร็วกว่า comparison sort แต่ใช้เมมโมรี่ O(k)" }
+  },
+
+  {
+    id: "h16",
+    difficulty: "hard",
+    title: "ความสูงของ Binary Tree",
+    desc: "หาความสูงของ binary tree โดยเรียกซ้ำที่ลูกซ้าย-ขวา",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">height</span>(node):
+<span class="ln">2</span>    <span class="kw">if</span> node == <span class="kw">null</span>:
+<span class="ln">3</span>        <span class="kw">return</span> <span class="num">0</span>
+<span class="ln">4</span>    left = <span class="fn">height</span>(node.left)
+<span class="ln">5</span>    right = <span class="fn">height</span>(node.right)
+<span class="ln">6</span>    <span class="kw">return</span> <span class="num">1</span> <span class="op">+</span> <span class="fn">max</span>(left, right)`,
+    lines: [
+      { no: 1, code: "function height(node):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if node == null:", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "return 0", reasoning: "ความสูงของ subtree ว่าง = 0", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "left = height(node.left)", reasoning: "เยี่ยมลูกซ้ายทุกโหนด", complexity: "T(n/2)", tag: "c-linear" },
+      { no: 5, code: "right = height(node.right)", reasoning: "เยี่ยมลูกขวาทุกโหนด", complexity: "T(n/2)", tag: "c-linear" },
+      { no: 6, code: "return 1 + max(left, right)", reasoning: "เปรียบเทียบและคืนค่า O(1) ต่อโหนด", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear — ต้องเยี่ยมทุกโหนด 1 ครั้ง (n = จำนวนโหนด)" }
+  },
+
+  /* ===================== COMPLEX (ซับซ้อน) ===================== */
+
+  {
+    id: "c1",
+    difficulty: "complex",
+    title: "Matrix Multiplication (การคูณเมทริกซ์)",
+    desc: "คูณเมทริกซ์ A และ B ขนาด n×n แบบดั้งเดิม ลูปซ้อน 3 ชั้น",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">matMul</span>(A, B, n):
+<span class="ln">2</span>    C = <span class="kw">new</span> <span class="fn">matrix</span>(n, n)
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">for</span> j = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">5</span>            C[i][j] = <span class="num">0</span>
+<span class="ln">6</span>            <span class="kw">for</span> k = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">7</span>                C[i][j] <span class="op">+=</span> A[i][k] <span class="op">*</span> B[k][j]
+<span class="ln">8</span>    <span class="kw">return</span> C`,
+    lines: [
+      { no: 1, code: "function matMul(A, B, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "C = new matrix(n, n)", reasoning: "สร้างเมทริกซ์ผลลัพธ์ O(n²)", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 3, code: "for i = 0 to n-1:", reasoning: "ลูปแถว n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "for j = 0 to n-1:", reasoning: "ลูปคอลัมน์ n รอบ → n² ครั้ง", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "C[i][j] = 0", reasoning: "กำหนดค่าเริ่มต้น n² ช่อง", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 6, code: "for k = 0 to n-1:", reasoning: "ลูปในสุด n รอบ ต่อช่อง → n³ ทั้งหมด", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 7, code: "C[i][j] += A[i][k] * B[k][j]", reasoning: "คูณและบวก n³ ครั้ง", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 8, code: "return C", reasoning: "คืนค่าครั้งเดียว", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n³)", tag: "c-cubic", note: "Cubic — คลาสสิก; Strassen ทำได้ O(n^2.807)" }
+  },
+
+  {
+    id: "c2",
+    difficulty: "complex",
+    title: "N-Queens (หมากฮอส n ตัว)",
+    desc: "หาจำนวนวิธีวางหมากฮอส n ตัวบนกระดาน n×n โดยไม่กินกัน",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">solveNQueens</span>(n):
+<span class="ln">2</span>    <span class="kw">return</span> <span class="fn">backtrack</span>(<span class="num">0</span>, n, <span class="cm">[]</span>)
+<span class="ln">3</span>
+<span class="ln">4</span><span class="kw">function</span> <span class="fn">backtrack</span>(row, n, queens):
+<span class="ln">5</span>    <span class="kw">if</span> row == n: <span class="kw">return</span> <span class="num">1</span>
+<span class="ln">6</span>    count = <span class="num">0</span>
+<span class="ln">7</span>    <span class="kw">for</span> col = <span class="num">0</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">8</span>        <span class="kw">if</span> <span class="fn">safe</span>(queens, row, col):
+<span class="ln">9</span>            queens.<span class="fn">add</span>(col)
+<span class="ln">10</span>            count <span class="op">+=</span> <span class="fn">backtrack</span>(row<span class="op">+</span><span class="num">1</span>, n, queens)
+<span class="ln">11</span>            queens.<span class="fn">remove</span>()
+<span class="ln">12</span>    <span class="kw">return</span> count`,
+    lines: [
+      { no: 1, code: "function solveNQueens(n):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "return backtrack(0, n, [])", reasoning: "เริ่ม backtracking ที่แถว 0", complexity: "T(0)", tag: "c-factorial" },
+      { no: 4, code: "function backtrack(row, n, queens):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "if row == n: return 1", reasoning: "พบวิธีวางครบ → นับ 1", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "count = 0", reasoning: "ตัวนับ", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "for col = 0 to n-1:", reasoning: "ลองวางทุกคอลัมน์ในแถวนี้", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "if safe(queens, row, col):", reasoning: "ตรวจ O(n) ว่าปลอดภัย", complexity: "O(n)", tag: "c-linear" },
+      { no: 9, code: "queens.add(col)", reasoning: "วางหมาก O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "count += backtrack(row+1, n, queens)", reasoning: "เรียกซ้ำที่แถวถัดไป → สาขาเป็น permutation tree", complexity: "T(row+1)", tag: "c-factorial" },
+      { no: 11, code: "queens.remove()", reasoning: "ย้อนกลับ (backtrack)", complexity: "O(1)", tag: "c-constant" },
+      { no: 12, code: "return count", reasoning: "คืนจำนวนวิธี", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n!)", tag: "c-factorial", note: "Factorial — ทุกแถวมีตัวเลือกลดลง → คล้าย n! สาขา (ตัดด้วยเงื่อนไข safe)" }
+  },
+
+  {
+    id: "c3",
+    difficulty: "complex",
+    title: "Permutations of String (การเรียงสับเปลี่ยนสตริง)",
+    desc: "สร้างคำทั้งหมดที่เป็นไปได้จากสลับตัวอักขระของ s (ยาว n)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">permute</span>(s, l, r):
+<span class="ln">2</span>    <span class="kw">if</span> l == r:
+<span class="ln">3</span>        print(s)
+<span class="ln">4</span>        <span class="kw">return</span>
+<span class="ln">5</span>    <span class="kw">for</span> i = l <span class="kw">to</span> r:
+<span class="ln">6</span>        <span class="fn">swap</span>(s[l], s[i])
+<span class="ln">7</span>        <span class="fn">permute</span>(s, l<span class="op">+</span><span class="num">1</span>, r)
+<span class="ln">8</span>        <span class="fn">swap</span>(s[l], s[i]) <span class="cm">// backtrack</span>`,
+    lines: [
+      { no: 1, code: "function permute(s, l, r):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if l == r:", reasoning: "ครบทุกตำแหน่ง → พิมพ์", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "print(s)", reasoning: "พิมพ์สตริงยาว n → O(n)", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "return", reasoning: "base case ออก", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "for i = l to r:", reasoning: "วน r−l+1 ตำแหน่ง → ทำรวม n! ใบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "swap(s[l], s[i])", reasoning: "สลับตัวอักขระ", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "permute(s, l+1, r)", reasoning: "เรียกซ้ำที่ตำแหน่งถัดไป", complexity: "T(n−1)", tag: "c-factorial" },
+      { no: 8, code: "swap(s[l], s[i]) // backtrack", reasoning: "สลับคืนเพื่อ backtrack", complexity: "O(1)", tag: "c-constant" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = n·T(n−1) + O(n)  &nbsp;→&nbsp;  <strong>T(n) = O(n·n!)</strong>",
+    final: { bigO: "O(n · n!)", tag: "c-factorial", note: "Factorial — มี n! คำที่เป็นไปได้ พิมพ์แต่ละคำใช้ O(n)" }
+  },
+
+  {
+    id: "c4",
+    difficulty: "complex",
+    title: "Subset Sum (ผลรวมเซตย่อย)",
+    desc: "ตรวจว่ามีเซตย่อยของ A ที่ผลรวม = target หรือไม่ (แบบ brute-force recursive)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">subsetSum</span>(A, n, target):
+<span class="ln">2</span>    <span class="kw">return</span> <span class="fn">ss</span>(A, n<span class="op">-</span><span class="num">1</span>, target)
+<span class="ln">3</span>
+<span class="ln">4</span><span class="kw">function</span> <span class="fn">ss</span>(A, i, sum):
+<span class="ln">5</span>    <span class="kw">if</span> sum == <span class="num">0</span>: <span class="kw">return</span> <span class="kw">true</span>
+<span class="ln">6</span>    <span class="kw">if</span> i <span class="op">&lt;</span> <span class="num">0</span>: <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">7</span>    <span class="kw">return</span> <span class="fn">ss</span>(A, i<span class="op">-</span><span class="num">1</span>, sum) <span class="kw">or</span>
+<span class="ln">8</span>           <span class="fn">ss</span>(A, i<span class="op">-</span><span class="num">1</span>, sum <span class="op">-</span> A[i])`,
+    lines: [
+      { no: 1, code: "function subsetSum(A, n, target):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "return ss(A, n-1, target)", reasoning: "เรียก helper", complexity: "T(n)", tag: "c-exp" },
+      { no: 4, code: "function ss(A, i, sum):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "if sum == 0: return true", reasoning: "เจอผลรวมตรง", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "if i < 0: return false", reasoning: "หมดสมาชิก ไม่เจอ", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "ss(A, i-1, sum)", reasoning: "กรณีไม่เลือก A[i]", complexity: "T(i−1)", tag: "c-exp" },
+      { no: 8, code: "ss(A, i-1, sum - A[i])", reasoning: "กรณีเลือก A[i]", complexity: "T(i−1)", tag: "c-exp" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = 2·T(n−1) + O(1)  &nbsp;→&nbsp;  <strong>T(n) = O(2ⁿ)</strong><br><em>ใช้ DP แล้วจะเหลือ O(n·sum) — pseudo-polynomial</em>",
+    final: { bigO: "O(2ⁿ)", tag: "c-exp", note: "Exponential — มี 2ⁿ เซตย่อยที่เป็นไปได้; NP-Complete" }
+  },
+
+  {
+    id: "c5",
+    difficulty: "complex",
+    title: "0/1 Knapsack (Dynamic Programming)",
+    desc: "เลือกของให้ค่ารวมสูงสุดโดยน้ำหนักรวมไม่เกิน W — แบบ DP",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">knapsack</span>(W, wt, val, n):
+<span class="ln">2</span>    dp = <span class="kw">new</span> <span class="fn">matrix</span>(n<span class="op">+</span><span class="num">1</span>, W<span class="op">+</span><span class="num">1</span>)
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> n:
+<span class="ln">4</span>        <span class="kw">for</span> w = <span class="num">0</span> <span class="kw">to</span> W:
+<span class="ln">5</span>            <span class="kw">if</span> i == <span class="num">0</span> <span class="kw">or</span> w == <span class="num">0</span>:
+<span class="ln">6</span>                dp[i][w] = <span class="num">0</span>
+<span class="ln">7</span>            <span class="kw">else if</span> wt[i<span class="op">-</span><span class="num">1</span>] <span class="op">&lt;=</span> w:
+<span class="ln">8</span>                dp[i][w] = <span class="fn">max</span>(val[i<span class="op">-</span><span class="num">1</span>] <span class="op">+</span> dp[i<span class="op">-</span><span class="num">1</span>][w<span class="op">-</span>wt[i<span class="op">-</span><span class="num">1</span>]], dp[i<span class="op">-</span><span class="num">1</span>][w])
+<span class="ln">9</span>            <span class="kw">else</span>:
+<span class="ln">10</span>                dp[i][w] = dp[i<span class="op">-</span><span class="num">1</span>][w]
+<span class="ln">11</span>    <span class="kw">return</span> dp[n][W]`,
+    lines: [
+      { no: 1, code: "function knapsack(W, wt, val, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "dp = new matrix(n+1, W+1)", reasoning: "สร้างตาราง DP", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 3, code: "for i = 0 to n:", reasoning: "ลูปสมาชิก n+1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "for w = 0 to W:", reasoning: "ลูปน้ำหนัก W+1 รอบ", complexity: "O(W)", tag: "c-linear" },
+      { no: 5, code: "if i == 0 or w == 0:", reasoning: "เงื่อนไขขอบ", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 6, code: "dp[i][w] = 0", reasoning: "base case", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 7, code: "else if wt[i-1] <= w:", reasoning: "เช็คว่าใส่ของได้", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 8, code: "dp[i][w] = max(...)", reasoning: "เลือก max ระหว่างเอา/ไม่เอา O(1)", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 9, code: "else:", reasoning: "กรณีใส่ไม่ได้", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 10, code: "dp[i][w] = dp[i-1][w]", reasoning: "สืบทอดค่า", complexity: "O(n·W)", tag: "c-quadratic" },
+      { no: 11, code: "return dp[n][W]", reasoning: "คืนคำตอบ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n · W)", tag: "c-quadratic", note: "Pseudo-polynomial — ขึ้นกับทั้ง n และ W; ถ้า W ใหญ่มากจะช้า (NP-Hard ใน input size)" }
+  },
+
+  {
+    id: "c6",
+    difficulty: "complex",
+    title: "Longest Common Subsequence (DP)",
+    desc: "หาความยาวของ subsequence ร่วมที่ยาวสุดระหว่างสตริง X และ Y",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">lcs</span>(X, Y, m, n):
+<span class="ln">2</span>    dp = <span class="kw">new</span> <span class="fn">matrix</span>(m<span class="op">+</span><span class="num">1</span>, n<span class="op">+</span><span class="num">1</span>)
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> m:
+<span class="ln">4</span>        <span class="kw">for</span> j = <span class="num">0</span> <span class="kw">to</span> n:
+<span class="ln">5</span>            <span class="kw">if</span> i == <span class="num">0</span> <span class="kw">or</span> j == <span class="num">0</span>:
+<span class="ln">6</span>                dp[i][j] = <span class="num">0</span>
+<span class="ln">7</span>            <span class="kw">else if</span> X[i<span class="op">-</span><span class="num">1</span>] == Y[j<span class="op">-</span><span class="num">1</span>]:
+<span class="ln">8</span>                dp[i][j] = dp[i<span class="op">-</span><span class="num">1</span>][j<span class="op">-</span><span class="num">1</span>] <span class="op">+</span> <span class="num">1</span>
+<span class="ln">9</span>            <span class="kw">else</span>:
+<span class="ln">10</span>                dp[i][j] = <span class="fn">max</span>(dp[i<span class="op">-</span><span class="num">1</span>][j], dp[i][j<span class="op">-</span><span class="num">1</span>])
+<span class="ln">11</span>    <span class="kw">return</span> dp[m][n]`,
+    lines: [
+      { no: 1, code: "function lcs(X, Y, m, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "dp = new matrix(m+1, n+1)", reasoning: "สร้างตาราง DP", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 3, code: "for i = 0 to m:", reasoning: "ลูปสตริง X", complexity: "O(m)", tag: "c-linear" },
+      { no: 4, code: "for j = 0 to n:", reasoning: "ลูปสตริง Y → m×n ครั้ง", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 5, code: "if i == 0 or j == 0:", reasoning: "ขอบตาราง", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 6, code: "dp[i][j] = 0", reasoning: "base case", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 7, code: "else if X[i-1] == Y[j-1]:", reasoning: "ตัวอักขระเท่ากัน", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 8, code: "dp[i][j] = dp[i-1][j-1] + 1", reasoning: "ต่อจาก LCS ก่อนหน้า", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 9, code: "else:", reasoning: "ตัวไม่เท่ากัน", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 10, code: "dp[i][j] = max(...)", reasoning: "เลือกตัด X หรือตัด Y", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 11, code: "return dp[m][n]", reasoning: "คืนคำตอบ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(m · n)", tag: "c-quadratic", note: "Quadratic in input sizes — เร็วกว่า brute-force O(2^m · 2^n) มาก" }
+  },
+
+  {
+    id: "c7",
+    difficulty: "complex",
+    title: "Strassen Matrix Multiplication",
+    desc: "คูณเมทริกซ์แบบ Divide & Conquer ลดการคูณจาก 8 เป็น 7 subproblems",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">strassen</span>(A, B, n):
+<span class="ln">2</span>    <span class="kw">if</span> n <span class="op">&lt;=</span> threshold: <span class="kw">return</span> <span class="fn">matMul</span>(A, B, n)
+<span class="ln">3</span>    <span class="cm">// แบ่ง A,B เป็น 4 submatrix ขนาด n/2</span>
+<span class="ln">4</span>    <span class="fn">divide</span>(A, A11, A12, A21, A22)
+<span class="ln">5</span>    <span class="fn">divide</span>(B, B11, B12, B21, B22)
+<span class="ln">6</span>    M1 = <span class="fn">strassen</span>(A11<span class="op">+</span>A22, B11<span class="op">+</span>B22, n<span class="op">/</span><span class="num">2</span>)
+<span class="ln">7</span>    M2 = <span class="fn">strassen</span>(A21<span class="op">+</span>A22, B11, n<span class="op">/</span><span class="num">2</span>)
+<span class="ln">8</span>    M3 = <span class="fn">strassen</span>(A11, B12<span class="op">-</span>B22, n<span class="op">/</span><span class="num">2</span>)
+<span class="ln">9</span>    <span class="cm">// ... M4..M7 เช่นกัน (รวม 7 ครั้ง)</span>
+<span class="ln">10</span>    C = <span class="fn">combine</span>(M1..M7)
+<span class="ln">11</span>    <span class="kw">return</span> C`,
+    lines: [
+      { no: 1, code: "function strassen(A, B, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "if n <= threshold: return matMul(...)", reasoning: "base case ใช้คูณปกติ", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "// แบ่งเมทริกซ์", reasoning: "comment", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "divide(A, A11, A12, A21, A22)", reasoning: "หารเมทริกซ์ A ออกเป็น 4 ส่วน O(n²)", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "divide(B, B11, B12, B21, B22)", reasoning: "หารเมทริกซ์ B O(n²)", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 6, code: "M1 = strassen(..., n/2)", reasoning: "เรียกซ้ำ 1 ครั้ง ขนาด n/2", complexity: "T(n/2)", tag: "c-cubic" },
+      { no: 7, code: "M2 = strassen(..., n/2)", reasoning: "เรียกซ้ำครั้งที่ 2", complexity: "T(n/2)", tag: "c-cubic" },
+      { no: 8, code: "M3 = strassen(..., n/2)", reasoning: "เรียกซ้ำครั้งที่ 3", complexity: "T(n/2)", tag: "c-cubic" },
+      { no: 9, code: "// ... M4..M7", reasoning: "รวมเรียกซ้ำ 7 ครั้ง", complexity: "7·T(n/2)", tag: "c-cubic" },
+      { no: 10, code: "C = combine(M1..M7)", reasoning: "รวมผล O(n²)", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 11, code: "return C", reasoning: "คืนผลลัพธ์", complexity: "O(1)", tag: "c-constant" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = 7·T(n/2) + O(n²)  &nbsp;|&nbsp;  Master: a=7, b=2 → log₂7 ≈ 2.807  &nbsp;→&nbsp;  <strong>T(n) = O(n^2.807)</strong>",
+    final: { bigO: "O(n^2.807)", tag: "c-cubic", note: "เร็วกว่า O(n³) แบบดั้งเดิม — แต่ค่าคงที่ใหญ่ จึงเร็วกว่าจริงเมื่อ n ใหญ่มาก" }
+  },
+
+  {
+    id: "c8",
+    difficulty: "complex",
+    title: "Edit Distance (Levenshtein)",
+    desc: "หาจำนวนการแก้ (insert/delete/replace) ขั้นต่ำเพื่อแปลง X → Y",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">editDist</span>(X, Y, m, n):
+<span class="ln">2</span>    dp = <span class="kw">new</span> <span class="fn">matrix</span>(m<span class="op">+</span><span class="num">1</span>, n<span class="op">+</span><span class="num">1</span>)
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> m:
+<span class="ln">4</span>        <span class="kw">for</span> j = <span class="num">0</span> <span class="kw">to</span> n:
+<span class="ln">5</span>            <span class="kw">if</span> i == <span class="num">0</span>: dp[i][j] = j
+<span class="ln">6</span>            <span class="kw">else if</span> j == <span class="num">0</span>: dp[i][j] = i
+<span class="ln">7</span>            <span class="kw">else if</span> X[i<span class="op">-</span><span class="num">1</span>] == Y[j<span class="op">-</span><span class="num">1</span>]:
+<span class="ln">8</span>                dp[i][j] = dp[i<span class="op">-</span><span class="num">1</span>][j<span class="op">-</span><span class="num">1</span>]
+<span class="ln">9</span>            <span class="kw">else</span>:
+<span class="ln">10</span>                dp[i][j] = <span class="num">1</span> <span class="op">+</span> <span class="fn">min</span>(dp[i<span class="op">-</span><span class="num">1</span>][j], dp[i][j<span class="op">-</span><span class="num">1</span>], dp[i<span class="op">-</span><span class="num">1</span>][j<span class="op">-</span><span class="num">1</span>])
+<span class="ln">11</span>    <span class="kw">return</span> dp[m][n]`,
+    lines: [
+      { no: 1, code: "function editDist(X, Y, m, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "dp = new matrix(m+1, n+1)", reasoning: "ตาราง DP", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 3, code: "for i = 0 to m:", reasoning: "ลูป X", complexity: "O(m)", tag: "c-linear" },
+      { no: 4, code: "for j = 0 to n:", reasoning: "ลูป Y → m×n", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 5, code: "if i == 0: dp[i][j] = j", reasoning: "X ว่าง → เพิ่ม j ตัว", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 6, code: "else if j == 0: dp[i][j] = i", reasoning: "Y ว่าง → ลบ i ตัว", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 7, code: "else if X[i-1] == Y[j-1]:", reasoning: "ตัวเท่ากัน ไม่ต้องแก้", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 8, code: "dp[i][j] = dp[i-1][j-1]", reasoning: "สืบทอดค่า", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 9, code: "else:", reasoning: "ต้องเลือก insert/delete/replace", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 10, code: "dp[i][j] = 1 + min(...)", reasoning: "เลือกการแก้ที่ถูกสุด O(1)", complexity: "O(m·n)", tag: "c-quadratic" },
+      { no: 11, code: "return dp[m][n]", reasoning: "คืนระยะแก้", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(m · n)", tag: "c-quadratic", note: "Quadratic — ใช้ใน spell checker, DNA sequence alignment" }
+  },
+
+  {
+    id: "c9",
+    difficulty: "complex",
+    title: "Power Set (เซตกำลัง)",
+    desc: "สร้างเซตย่อยทั้งหมดของเซต S ขนาด n (รวมเซตว่าง) แบบ recursive",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">powerSet</span>(S, n):
+<span class="ln">2</span>    result = <span class="cm">[]</span>
+<span class="ln">3</span>    <span class="fn">gen</span>(S, <span class="num">0</span>, <span class="cm">[]</span>, result)
+<span class="ln">4</span>    <span class="kw">return</span> result
+<span class="ln">5</span>
+<span class="ln">6</span><span class="kw">function</span> <span class="fn">gen</span>(S, i, current, result):
+<span class="ln">7</span>    <span class="kw">if</span> i == length(S):
+<span class="ln">8</span>        result.<span class="fn">add</span>(current)
+<span class="ln">9</span>        <span class="kw">return</span>
+<span class="ln">10</span>    <span class="fn">gen</span>(S, i<span class="op">+</span><span class="num">1</span>, current, result) <span class="cm">// ไม่เอา</span>
+<span class="ln">11</span>    <span class="fn">gen</span>(S, i<span class="op">+</span><span class="num">1</span>, current <span class="op">+</span> [S[i]], result) <span class="cm">// เอา</span>`,
+    lines: [
+      { no: 1, code: "function powerSet(S, n):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "result = []", reasoning: "เก็บผลลัพธ์", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "gen(S, 0, [], result)", reasoning: "เริ่ม generate", complexity: "T(0)", tag: "c-exp" },
+      { no: 4, code: "return result", reasoning: "คืนเซตกำลัง", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "function gen(S, i, current, result):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "if i == length(S):", reasoning: "ครบทุกตัว → เก็บผล", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "result.add(current)", reasoning: "เพิ่มเซตย่อยปัจจุบัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "return", reasoning: "base case ออก", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "gen(S, i+1, current, result)", reasoning: "สาขา 'ไม่เลือก'", complexity: "T(i+1)", tag: "c-exp" },
+      { no: 11, code: "gen(S, i+1, current + [S[i]], result)", reasoning: "สาขา 'เลือก' → 2 สาขาต่อตำแหน่ง", complexity: "T(i+1)", tag: "c-exp" }
+    ],
+    recurrence: "<strong>สมการเรียกซ้ำ:</strong> T(n) = 2·T(n−1) + O(1)  &nbsp;→&nbsp;  <strong>T(n) = O(2ⁿ)</strong><br>เซตกำลังมี 2ⁿ สมาชิกเสมอ",
+    final: { bigO: "O(2ⁿ)", tag: "c-exp", note: "Exponential — จำนวนเซตย่อย = 2ⁿ หลีกเลี่ยงไม่ได้" }
+  },
+
+  {
+    id: "c10",
+    difficulty: "complex",
+    title: "Matrix Chain Multiplication (DP)",
+    desc: "หาลำดับการคูณเมทริกซ์ลำดับ n ตัวที่ทำให้จำนวนการคูณน้อยสุด",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">mcm</span>(dims, n):
+<span class="ln">2</span>    dp = <span class="kw">new</span> <span class="fn">matrix</span>(n, n)
+<span class="ln">3</span>    <span class="kw">for</span> L = <span class="num">2</span> <span class="kw">to</span> n<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">for</span> i = <span class="num">1</span> <span class="kw">to</span> n<span class="op">-</span>L:
+<span class="ln">5</span>            j = i <span class="op">+</span> L <span class="op">-</span> <span class="num">1</span>
+<span class="ln">6</span>            dp[i][j] = <span class="op">∞</span>
+<span class="ln">7</span>            <span class="kw">for</span> k = i <span class="kw">to</span> j<span class="op">-</span><span class="num">1</span>:
+<span class="ln">8</span>                cost = dp[i][k] <span class="op">+</span> dp[k<span class="op">+</span><span class="num">1</span>][j] <span class="op">+</span> dims[i<span class="op">-</span><span class="num">1</span>]<span class="op">*</span>dims[k]<span class="op">*</span>dims[j]
+<span class="ln">9</span>                <span class="kw">if</span> cost <span class="op">&lt;</span> dp[i][j]: dp[i][j] = cost
+<span class="ln">10</span>    <span class="kw">return</span> dp[<span class="num">1</span>][n<span class="op">-</span><span class="num">1</span>]`,
+    lines: [
+      { no: 1, code: "function mcm(dims, n):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "dp = new matrix(n, n)", reasoning: "ตาราง DP", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 3, code: "for L = 2 to n-1:", reasoning: "วนความยาว chain จาก 2 ถึง n", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "for i = 1 to n-L:", reasoning: "วนตำแหน่งเริ่มต้น", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 5, code: "j = i + L - 1", reasoning: "คำนวณตำแหน่งสิ้นสุด", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 6, code: "dp[i][j] = ∞", reasoning: "กำหนดค่าเริ่ม infinity", complexity: "O(n²)", tag: "c-quadratic" },
+      { no: 7, code: "for k = i to j-1:", reasoning: "ลองทุกจุดแบ่ง → O(n) ต่อช่อง", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 8, code: "cost = dp[i][k] + dp[k+1][j] + ...", reasoning: "คำนวณต้นทุน O(1) ต่อ k", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 9, code: "if cost < dp[i][j]: dp[i][j] = cost", reasoning: "อัปเดตค่าต่ำสุด", complexity: "O(n³)", tag: "c-cubic" },
+      { no: 10, code: "return dp[1][n-1]", reasoning: "คืนค่าต่ำสุด", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n³)", tag: "c-cubic", note: "Cubic — DP ลดจาก brute-force O(2ⁿ) เหลือ O(n³); เก็บตาราง O(n²)" }
+  },
+
+  /* ===================== GRAPH (BFS/DFS) ===================== */
+
+  {
+    id: "g1",
+    difficulty: "graph",
+    title: "BFS Traversal (เดินทะลุแบบกว้าง)",
+    desc: "เดินทะลุกราฟแบบ Breadth-First จากจุดเริ่มต้น s โดยใช้คิว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">bfs</span>(graph, s):
+<span class="ln">2</span>    visited = <span class="kw">new</span> <span class="fn">set</span>()
+<span class="ln">3</span>    queue = <span class="kw">new</span> <span class="fn">queue</span>()
+<span class="ln">4</span>    queue.<span class="fn">enqueue</span>(s)
+<span class="ln">5</span>    visited.<span class="fn">add</span>(s)
+<span class="ln">6</span>    <span class="kw">while</span> queue <span class="kw">is not empty</span>:
+<span class="ln">7</span>        u = queue.<span class="fn">dequeue</span>()
+<span class="ln">8</span>        <span class="kw">for</span> v <span class="kw">in</span> graph[u]:
+<span class="ln">9</span>            <span class="kw">if</span> v <span class="kw">not in</span> visited:
+<span class="ln">10</span>                visited.<span class="fn">add</span>(v)
+<span class="ln">11</span>                queue.<span class="fn">enqueue</span>(v)`,
+    lines: [
+      { no: 1, code: "function bfs(graph, s):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "visited = new set()", reasoning: "สร้างชุดเก็บโหนดที่เคยเยี่ยม", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "queue = new queue()", reasoning: "สร้างคิว", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "queue.enqueue(s)", reasoning: "ใส่จุดเริ่มต้น O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "visited.add(s)", reasoning: "ทำเครื่องหมายว่าเคยเยี่ยม", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "while queue is not empty:", reasoning: "แต่ละโหนดถูก enqueue/dequeue 1 ครั้ง → V รอบ", complexity: "O(V)", tag: "c-linear" },
+      { no: 7, code: "u = queue.dequeue()", reasoning: "เอาโหนดออกจากคิว O(1)", complexity: "O(V)", tag: "c-linear" },
+      { no: 8, code: "for v in graph[u]:", reasoning: "วนเพื่อนบ้านทั้งหมด → รวมทุก edge 2 ครั้ง", complexity: "O(E)", tag: "c-linear" },
+      { no: 9, code: "if v not in visited:", reasoning: "ตรวจใน set O(1) avg", complexity: "O(E)", tag: "c-linear" },
+      { no: 10, code: "visited.add(v)", reasoning: "เพิ่มเข้า set O(1)", complexity: "O(V)", tag: "c-linear" },
+      { no: 11, code: "queue.enqueue(v)", reasoning: "ใส่คิว O(1)", complexity: "O(V)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(V + E)", tag: "c-linear", note: "Linear in graph size — แต่ละ vertex และ edge ถูกเยี่ยม 1 ครั้ง (V=จำนวนโหนด, E=จำนวนเส้นเชื่อม)" }
+  },
+
+  {
+    id: "g2",
+    difficulty: "graph",
+    title: "DFS Recursive (เดินทะลุแบบลึก)",
+    desc: "เดินทะลุกราฟแบบ Depth-First ด้วยการเรียกซ้ำ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">dfs</span>(graph, s):
+<span class="ln">2</span>    visited = <span class="kw">new</span> <span class="fn">set</span>()
+<span class="ln">3</span>    <span class="fn">dfsVisit</span>(graph, s, visited)
+<span class="ln">4</span>
+<span class="ln">5</span><span class="kw">function</span> <span class="fn">dfsVisit</span>(graph, u, visited):
+<span class="ln">6</span>    visited.<span class="fn">add</span>(u)
+<span class="ln">7</span>    <span class="kw">for</span> v <span class="kw">in</span> graph[u]:
+<span class="ln">8</span>        <span class="kw">if</span> v <span class="kw">not in</span> visited:
+<span class="ln">9</span>            <span class="fn">dfsVisit</span>(graph, v, visited)`,
+    lines: [
+      { no: 1, code: "function dfs(graph, s):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "visited = new set()", reasoning: "สร้างชุดเก็บโหนดที่เยี่ยมแล้ว", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "dfsVisit(graph, s, visited)", reasoning: "เริ่ม DFS ที่ s", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 5, code: "function dfsVisit(graph, u, visited):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "visited.add(u)", reasoning: "ทำเครื่องหมาย O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "for v in graph[u]:", reasoning: "วนเพื่อนบ้าน → รวมทุก edge", complexity: "O(E)", tag: "c-linear" },
+      { no: 8, code: "if v not in visited:", reasoning: "ตรวจ O(1)", complexity: "O(E)", tag: "c-linear" },
+      { no: 9, code: "dfsVisit(graph, v, visited)", reasoning: "เรียกซ้ำเฉพาะโหนดที่ยังไม่เยี่ยม → V ครั้ง", complexity: "O(V+E)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(V + E)", tag: "c-linear", note: "Linear — เหมือน BFS แต่ลำดับการเยี่ยมต่างกัน (ลึกก่อน)" }
+  },
+
+  {
+    id: "g3",
+    difficulty: "graph",
+    title: "DFS Iterative (ใช้ Stack)",
+    desc: "DFS แบบไม่เรียกซ้ำ ใช้ stack เก็บโหนดที่จะเยี่ยม",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">dfsIter</span>(graph, s):
+<span class="ln">2</span>    visited = <span class="kw">new</span> <span class="fn">set</span>()
+<span class="ln">3</span>    stack = <span class="kw">new</span> <span class="fn">stack</span>()
+<span class="ln">4</span>    stack.<span class="fn">push</span>(s)
+<span class="ln">5</span>    <span class="kw">while</span> stack <span class="kw">is not empty</span>:
+<span class="ln">6</span>        u = stack.<span class="fn">pop</span>()
+<span class="ln">7</span>        <span class="kw">if</span> u <span class="kw">not in</span> visited:
+<span class="ln">8</span>            visited.<span class="fn">add</span>(u)
+<span class="ln">9</span>            <span class="kw">for</span> v <span class="kw">in</span> graph[u]:
+<span class="ln">10</span>                stack.<span class="fn">push</span>(v)`,
+    lines: [
+      { no: 1, code: "function dfsIter(graph, s):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "visited = new set()", reasoning: "ชุดโหนดที่เยี่ยมแล้ว", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "stack = new stack()", reasoning: "สร้าง stack", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "stack.push(s)", reasoning: "เริ่มต้นใส่ s", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "while stack is not empty:", reasoning: "โหนดอาจถูก push หลายครั้ง → ≤ 2E รอบ", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 6, code: "u = stack.pop()", reasoning: "pop O(1)", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 7, code: "if u not in visited:", reasoning: "ตรวจก่อนประมวลผล", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 8, code: "visited.add(u)", reasoning: "ทำเครื่องหมาย O(1)", complexity: "O(V)", tag: "c-linear" },
+      { no: 9, code: "for v in graph[u]:", reasoning: "วนเพื่อนบ้าน", complexity: "O(E)", tag: "c-linear" },
+      { no: 10, code: "stack.push(v)", reasoning: "push O(1) ต่อ edge", complexity: "O(E)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(V + E)", tag: "c-linear", note: "Linear — อาจ push ซ้ำแต่ pop ทำงาน ≤ 2E ครั้ง ยังอยู่ใน O(V+E)" }
+  },
+
+  {
+    id: "g4",
+    difficulty: "graph",
+    title: "Detect Cycle in Directed Graph (ตรวจวัฏจักร)",
+    desc: "ตรวจหา cycle ในกราฟมีทิศทางด้วย DFS + สถานะ 3 แบบ",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">hasCycle</span>(graph, V):
+<span class="ln">2</span>    state = <span class="kw">new</span> <span class="fn">array</span>(V) <span class="cm">// 0=unvisited, 1=in-stack, 2=done</span>
+<span class="ln">3</span>    <span class="kw">for</span> u = <span class="num">0</span> <span class="kw">to</span> V<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">if</span> state[u] == <span class="num">0</span>:
+<span class="ln">5</span>            <span class="kw">if</span> <span class="fn">dfsCycle</span>(graph, u, state): <span class="kw">return</span> <span class="kw">true</span>
+<span class="ln">6</span>    <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">7</span>
+<span class="ln">8</span><span class="kw">function</span> <span class="fn">dfsCycle</span>(graph, u, state):
+<span class="ln">9</span>    state[u] = <span class="num">1</span>
+<span class="ln">10</span>    <span class="kw">for</span> v <span class="kw">in</span> graph[u]:
+<span class="ln">11</span>        <span class="kw">if</span> state[v] == <span class="num">1</span>: <span class="kw">return</span> <span class="kw">true</span>
+<span class="ln">12</span>        <span class="kw">if</span> state[v] == <span class="num">0</span> <span class="kw">and</span> <span class="fn">dfsCycle</span>(graph, v, state): <span class="kw">return</span> <span class="kw">true</span>
+<span class="ln">13</span>    state[u] = <span class="num">2</span>
+<span class="ln">14</span>    <span class="kw">return</span> <span class="kw">false</span>`,
+    lines: [
+      { no: 1, code: "function hasCycle(graph, V):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "state = new array(V)", reasoning: "สร้างอาร์เรย์สถานะ", complexity: "O(V)", tag: "c-linear" },
+      { no: 3, code: "for u = 0 to V-1:", reasoning: "ลูปทุกโหนด", complexity: "O(V)", tag: "c-linear" },
+      { no: 4, code: "if state[u] == 0:", reasoning: "เริ่ม DFS เฉพาะที่ยังไม่เยี่ยม", complexity: "O(V)", tag: "c-linear" },
+      { no: 5, code: "if dfsCycle(graph, u, state): return true", reasoning: "เจอ cycle → คืน true", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 6, code: "return false", reasoning: "ไม่เจอ cycle", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "function dfsCycle(graph, u, state):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "state[u] = 1", reasoning: "ทำเครื่องหมายว่ากำลังประมวลผล", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "for v in graph[u]:", reasoning: "วนเพื่อนบ้าน → รวมทุก edge", complexity: "O(E)", tag: "c-linear" },
+      { no: 11, code: "if state[v] == 1: return true", reasoning: "เจอ back edge → cycle!", complexity: "O(E)", tag: "c-linear" },
+      { no: 12, code: "if state[v] == 0 and dfsCycle(...):", reasoning: "เรียกซ้ำเฉพาะที่ยังไม่เยี่ยม", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 13, code: "state[u] = 2", reasoning: "ทำเครื่องหมายว่าประมวลผลเสร็จ", complexity: "O(1)", tag: "c-constant" },
+      { no: 14, code: "return false", reasoning: "ไม่เจอ cycle ในกิ่งนี้", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(V + E)", tag: "c-linear", note: "Linear — DFS 1 รอบ แต่ละโหนด/edge ทำงาน 1 ครั้ง" }
+  },
+
+  {
+    id: "g5",
+    difficulty: "graph",
+    title: "Topological Sort (เรียงทอพอโลยี)",
+    desc: "เรียงโหนดในกราฟมีทิศทางไม่มี cycle ให้เส้นเชื่อมไปทางขวาเสมอ (DFS-based)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">topoSort</span>(graph, V):
+<span class="ln">2</span>    visited = <span class="kw">new</span> <span class="fn">set</span>()
+<span class="ln">3</span>    result = <span class="kw">new</span> <span class="fn">stack</span>()
+<span class="ln">4</span>    <span class="kw">for</span> u = <span class="num">0</span> <span class="kw">to</span> V<span class="op">-</span><span class="num">1</span>:
+<span class="ln">5</span>        <span class="kw">if</span> u <span class="kw">not in</span> visited:
+<span class="ln">6</span>            <span class="fn">topoVisit</span>(graph, u, visited, result)
+<span class="ln">7</span>    <span class="kw">return</span> <span class="fn">reverse</span>(result)
+<span class="ln">8</span>
+<span class="ln">9</span><span class="kw">function</span> <span class="fn">topoVisit</span>(graph, u, visited, result):
+<span class="ln">10</span>    visited.<span class="fn">add</span>(u)
+<span class="ln">11</span>    <span class="kw">for</span> v <span class="kw">in</span> graph[u]:
+<span class="ln">12</span>        <span class="kw">if</span> v <span class="kw">not in</span> visited:
+<span class="ln">13</span>            <span class="fn">topoVisit</span>(graph, v, visited, result)
+<span class="ln">14</span>    result.<span class="fn">push</span>(u)`,
+    lines: [
+      { no: 1, code: "function topoSort(graph, V):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "visited = new set()", reasoning: "สร้างชุด", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "result = new stack()", reasoning: "สร้าง stack เก็บลำดับ", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "for u = 0 to V-1:", reasoning: "ลูปทุกโหนด", complexity: "O(V)", tag: "c-linear" },
+      { no: 5, code: "if u not in visited:", reasoning: "ตรวจก่อนเริ่ม DFS", complexity: "O(V)", tag: "c-linear" },
+      { no: 6, code: "topoVisit(graph, u, visited, result)", reasoning: "เรียก DFS — แต่ละโหนดเข้าครั้งเดียว", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 7, code: "return reverse(result)", reasoning: "กลับ stack O(V)", complexity: "O(V)", tag: "c-linear" },
+      { no: 9, code: "function topoVisit(...):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "visited.add(u)", reasoning: "ทำเครื่องหมาย", complexity: "O(1)", tag: "c-constant" },
+      { no: 11, code: "for v in graph[u]:", reasoning: "วนเพื่อนบ้าน", complexity: "O(E)", tag: "c-linear" },
+      { no: 12, code: "if v not in visited:", reasoning: "ตรวจ", complexity: "O(E)", tag: "c-linear" },
+      { no: 13, code: "topoVisit(...)", reasoning: "เรียกซ้ำ", complexity: "O(V+E)", tag: "c-linear" },
+      { no: 14, code: "result.push(u)", reasoning: "push หลังประมวลผลลูกหมด (post-order) O(1)", complexity: "O(V)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(V + E)", tag: "c-linear", note: "Linear — ใช้กับกราฟมีทิศทางไม่มี cycle (DAG) เช่น dependency graph" }
+  },
+
+  {
+    id: "g6",
+    difficulty: "graph",
+    title: "Number of Islands (นับเกาะในกริด)",
+    desc: "นับจำนวนเกาะ (กลุ่ม '1' ที่ติดกัน) ในกริดขนาด R×C",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">numIslands</span>(grid):
+<span class="ln">2</span>    R = length(grid), C = length(grid[<span class="num">0</span>])
+<span class="ln">3</span>    count = <span class="num">0</span>
+<span class="ln">4</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> R<span class="op">-</span><span class="num">1</span>:
+<span class="ln">5</span>        <span class="kw">for</span> j = <span class="num">0</span> <span class="kw">to</span> C<span class="op">-</span><span class="num">1</span>:
+<span class="ln">6</span>            <span class="kw">if</span> grid[i][j] == <span class="num">1</span>:
+<span class="ln">7</span>                count = count <span class="op">+</span> <span class="num">1</span>
+<span class="ln">8</span>                <span class="fn">sink</span>(grid, i, j, R, C)
+<span class="ln">9</span>    <span class="kw">return</span> count
+<span class="ln">10</span>
+<span class="ln">11</span><span class="kw">function</span> <span class="fn">sink</span>(grid, i, j, R, C):
+<span class="ln">12</span>    <span class="kw">if</span> i<span class="op">&lt;</span><span class="num">0</span> <span class="kw">or</span> i<span class="op">&gt;=</span>R <span class="kw">or</span> j<span class="op">&lt;</span><span class="num">0</span> <span class="kw">or</span> j<span class="op">&gt;=</span>C <span class="kw">or</span> grid[i][j]!=<span class="num">1</span>: <span class="kw">return</span>
+<span class="ln">13</span>    grid[i][j] = <span class="num">0</span>
+<span class="ln">14</span>    <span class="fn">sink</span>(grid, i<span class="op">+</span><span class="num">1</span>, j, R, C)
+<span class="ln">15</span>    <span class="fn">sink</span>(grid, i<span class="op">-</span><span class="num">1</span>, j, R, C)
+<span class="ln">16</span>    <span class="fn">sink</span>(grid, i, j<span class="op">+</span><span class="num">1</span>, R, C)
+<span class="ln">17</span>    <span class="fn">sink</span>(grid, i, j<span class="op">-</span><span class="num">1</span>, R, C)`,
+    lines: [
+      { no: 1, code: "function numIslands(grid):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "R = length(grid), C = length(grid[0])", reasoning: "ขนาดกริด O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "count = 0", reasoning: "ตัวนับ", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "for i = 0 to R-1:", reasoning: "ลูปแถว R รอบ", complexity: "O(R)", tag: "c-linear" },
+      { no: 5, code: "for j = 0 to C-1:", reasoning: "ลูปคอลัมน์ C รอบ → R×C", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 6, code: "if grid[i][j] == 1:", reasoning: "เจอจุดเกาะใหม่", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 7, code: "count = count + 1", reasoning: "นับเกาะ +1", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "sink(grid, i, j, R, C)", reasoning: "จมเกาะทั้งเกาะ → รวมทุกเซลล์ = R×C", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 9, code: "return count", reasoning: "คืนจำนวนเกาะ", complexity: "O(1)", tag: "c-constant" },
+      { no: 11, code: "function sink(...):", reasoning: "ฟังก์ชันย่อย DFS", complexity: "O(1)", tag: "c-constant" },
+      { no: 12, code: "if out-of-bounds or grid[i][j]!=1: return", reasoning: "base case", complexity: "O(1)", tag: "c-constant" },
+      { no: 13, code: "grid[i][j] = 0", reasoning: "ทำเครื่องหมายว่าเยี่ยมแล้ว", complexity: "O(1)", tag: "c-constant" },
+      { no: 14, code: "sink(grid, i+1, j, R, C)", reasoning: "ลงไปข้างล่าง", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 15, code: "sink(grid, i-1, j, R, C)", reasoning: "ขึ้นข้างบน", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 16, code: "sink(grid, i, j+1, R, C)", reasoning: "ขวา", complexity: "O(R·C)", tag: "c-quadratic" },
+      { no: 17, code: "sink(grid, i, j-1, R, C)", reasoning: "ซ้าย", complexity: "O(R·C)", tag: "c-quadratic" }
+    ],
+    final: { bigO: "O(R · C)", tag: "c-quadratic", note: "แต่ละเซลล์ถูก sink ครั้งเดียว → รวม O(R·C) ถึงแม้มีลูปซ้อน DFS" }
+  },
+
+  /* ===================== HEAP ===================== */
+
+  {
+    id: "p1",
+    difficulty: "heap",
+    title: "Heap Insert (แทรกเข้า heap)",
+    desc: "แทรกค่าเข้า min-heap แล้ว sift-up เพื่อรักษาสมบัติ heap",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">heapInsert</span>(heap, val):
+<span class="ln">2</span>    heap.<span class="fn">append</span>(val)
+<span class="ln">3</span>    i = length(heap) <span class="op">-</span> <span class="num">1</span>
+<span class="ln">4</span>    <span class="kw">while</span> i <span class="op">&gt;</span> <span class="num">0</span> <span class="kw">and</span> heap[parent(i)] <span class="op">&gt;</span> heap[i]:
+<span class="ln">5</span>        <span class="fn">swap</span>(heap[i], heap[parent(i)])
+<span class="ln">6</span>        i = parent(i)`,
+    lines: [
+      { no: 1, code: "function heapInsert(heap, val):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "heap.append(val)", reasoning: "ต่อท้ายอาร์เรย์ O(1) amortized", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "i = length(heap) - 1", reasoning: "ตำแหน่งใหม่", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "while i > 0 and heap[parent(i)] > heap[i]:", reasoning: "sift-up ขึ้นไปทีละชั้น → สูงสุด log n ชั้น", complexity: "O(log n)", tag: "c-log" },
+      { no: 5, code: "swap(heap[i], heap[parent(i)])", reasoning: "สลับกับพ่อ O(1)", complexity: "O(log n)", tag: "c-log" },
+      { no: 6, code: "i = parent(i)", reasoning: "เลื่อนขึ้นชั้น", complexity: "O(log n)", tag: "c-log" }
+    ],
+    final: { bigO: "O(log n)", tag: "c-log", note: "Logarithmic — heap สมดุลมีความสูง log n; sift-up ได้ไม่เกินนั้น" }
+  },
+
+  {
+    id: "p2",
+    difficulty: "heap",
+    title: "Heap Extract-Min (ดึงค่าน้อยสุด)",
+    desc: "ดึงค่าน้อยสุดจาก min-heap แล้ว sift-down เพื่อรักษาสมบัติ heap",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">extractMin</span>(heap):
+<span class="ln">2</span>    min = heap[<span class="num">0</span>]
+<span class="ln">3</span>    heap[<span class="num">0</span>] = heap[length(heap)<span class="op">-</span><span class="num">1</span>]
+<span class="ln">4</span>    heap.<span class="fn">removeLast</span>()
+<span class="ln">5</span>    <span class="fn">siftDown</span>(heap, <span class="num">0</span>)
+<span class="ln">6</span>    <span class="kw">return</span> min
+<span class="ln">7</span>
+<span class="ln">8</span><span class="kw">function</span> <span class="fn">siftDown</span>(heap, i):
+<span class="ln">9</span>    n = length(heap)
+<span class="ln">10</span>    <span class="kw">while</span> <span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">1</span> <span class="op">&lt;</span> n:
+<span class="ln">11</span>        smallest = i
+<span class="ln">12</span>        <span class="kw">if</span> heap[<span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">1</span>] <span class="op">&lt;</span> heap[smallest]: smallest = <span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">1</span>
+<span class="ln">13</span>        <span class="kw">if</span> <span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">2</span> <span class="op">&lt;</span> n <span class="kw">and</span> heap[<span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">2</span>] <span class="op">&lt;</span> heap[smallest]: smallest = <span class="num">2</span><span class="op">*</span>i<span class="op">+</span><span class="num">2</span>
+<span class="ln">14</span>        <span class="kw">if</span> smallest == i: <span class="kw">return</span>
+<span class="ln">15</span>        <span class="fn">swap</span>(heap[i], heap[smallest])
+<span class="ln">16</span>        i = smallest`,
+    lines: [
+      { no: 1, code: "function extractMin(heap):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "min = heap[0]", reasoning: "ค่าน้อยสุดอยู่ที่ราก O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "heap[0] = heap[length(heap)-1]", reasoning: "ย้ายตัวสุดท้ายมาราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "heap.removeLast()", reasoning: "ลบตัวสุดท้าย O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "siftDown(heap, 0)", reasoning: "ค่อย ๆ ลงไป → สูงสุด log n ชั้น", complexity: "O(log n)", tag: "c-log" },
+      { no: 6, code: "return min", reasoning: "คืนค่า", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "function siftDown(heap, i):", reasoning: "ฟังก์ชันย่อย", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "n = length(heap)", reasoning: "ขนาด heap", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "while 2*i+1 < n:", reasoning: "ลูปลงไปทีละชั้น → ≤ log n รอบ", complexity: "O(log n)", tag: "c-log" },
+      { no: 11, code: "smallest = i", reasoning: "ตั้งค่าเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 12, code: "if heap[2*i+1] < heap[smallest]: ...", reasoning: "เปรียบเทียบลูกซ้าย O(1)", complexity: "O(log n)", tag: "c-log" },
+      { no: 13, code: "if 2*i+2 < n and heap[2*i+2] < heap[smallest]: ...", reasoning: "เปรียบเทียบลูกขวา O(1)", complexity: "O(log n)", tag: "c-log" },
+      { no: 14, code: "if smallest == i: return", reasoning: "heap สมดุล → หยุด", complexity: "O(1)", tag: "c-constant" },
+      { no: 15, code: "swap(heap[i], heap[smallest])", reasoning: "สลับกับลูกที่เล็กสุด O(1)", complexity: "O(log n)", tag: "c-log" },
+      { no: 16, code: "i = smallest", reasoning: "เลื่อนลงชั้น", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(log n)", tag: "c-log", note: "Logarithmic — sift-down ลงต้นไม้ binary ที่มีความสูง log n" }
+  },
+
+  {
+    id: "p3",
+    difficulty: "heap",
+    title: "Build Heap (สร้าง heap จากอาร์เรย์)",
+    desc: "สร้าง min-heap จากอาร์เรย์สุ่มโดย sift-down จากกลางถึงราก (Floyd's algorithm)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">buildHeap</span>(arr):
+<span class="ln">2</span>    n = length(arr)
+<span class="ln">3</span>    <span class="kw">for</span> i = n<span class="op">/</span><span class="num">2</span> <span class="op">-</span> <span class="num">1</span> <span class="kw">down to</span> <span class="num">0</span>:
+<span class="ln">4</span>        <span class="fn">siftDown</span>(arr, i, n)`,
+    lines: [
+      { no: 1, code: "function buildHeap(arr):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "n = length(arr)", reasoning: "ขนาดอาร์เรย์", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = n/2 - 1 down to 0:", reasoning: "เริ่มจากโหนดที่ไม่ใช่ leaf → n/2 โหนด", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "siftDown(arr, i, n)", reasoning: "sift-down แต่ละโหนด — โหนดลึกทำงานน้อย → ผลรวม O(n)", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear (ไม่ใช่ O(n log n)!) — โหนดใกล้รากน้อยแต่ทำนาน โหนดใกล้ leaf มากแต่ทำสั้น ผลรวมเป็น O(n)" }
+  },
+
+  {
+    id: "p4",
+    difficulty: "heap",
+    title: "Heap Sort (เรียงลำดับด้วย heap)",
+    desc: "เรียงลำดับโดย build heap แล้ว extract-max ทีละตัว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">heapSort</span>(arr):
+<span class="ln">2</span>    n = length(arr)
+<span class="ln">3</span>    <span class="cm">// 1. สร้าง max-heap</span>
+<span class="ln">4</span>    <span class="kw">for</span> i = n<span class="op">/</span><span class="num">2</span><span class="op">-</span><span class="num">1</span> <span class="kw">down to</span> <span class="num">0</span>:
+<span class="ln">5</span>        <span class="fn">siftDown</span>(arr, i, n)
+<span class="ln">6</span>    <span class="cm">// 2. สลับรากไปท้าย แล้วลดขนาด heap</span>
+<span class="ln">7</span>    <span class="kw">for</span> end = n<span class="op">-</span><span class="num">1</span> <span class="kw">down to</span> <span class="num">1</span>:
+<span class="ln">8</span>        <span class="fn">swap</span>(arr[<span class="num">0</span>], arr[end])
+<span class="ln">9</span>        <span class="fn">siftDown</span>(arr, <span class="num">0</span>, end)`,
+    lines: [
+      { no: 1, code: "function heapSort(arr):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "n = length(arr)", reasoning: "ขนาด", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "// 1. สร้าง max-heap", reasoning: "comment", complexity: "O(1)", tag: "c-constant" },
+      { no: 4, code: "for i = n/2-1 down to 0:", reasoning: "สร้าง heap", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "siftDown(arr, i, n)", reasoning: "sift-down รวม O(n)", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "// 2. สลับรากไปท้าย", reasoning: "comment", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "for end = n-1 down to 1:", reasoning: "วน n−1 รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "swap(arr[0], arr[end])", reasoning: "สลับค่ามากสุดไปท้าย O(1)", complexity: "O(n)", tag: "c-linear" },
+      { no: 9, code: "siftDown(arr, 0, end)", reasoning: "sift-down รากใหม่ O(log n) ต่อรอบ → n log n", complexity: "O(n log n)", tag: "c-nlogn" }
+    ],
+    final: { bigO: "O(n log n)", tag: "c-nlogn", note: "Linearithmic — เหมือน merge sort แต่ทำ in-place; worst case ก็ O(n log n)" }
+  },
+
+  {
+    id: "p5",
+    difficulty: "heap",
+    title: "Kth Largest Element (หาค่าใหญ่ลำดับ k)",
+    desc: "หาค่าที่ใหญ่เป็นลำดับ k ในอาร์เรย์ โดยใช้ min-heap ขนาด k",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">kthLargest</span>(arr, k):
+<span class="ln">2</span>    heap = <span class="cm">[]</span>
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> length(arr)<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="fn">heapInsert</span>(heap, arr[i])
+<span class="ln">5</span>        <span class="kw">if</span> length(heap) <span class="op">&gt;</span> k:
+<span class="ln">6</span>            <span class="fn">extractMin</span>(heap)
+<span class="ln">7</span>    <span class="kw">return</span> heap[<span class="num">0</span>]`,
+    lines: [
+      { no: 1, code: "function kthLargest(arr, k):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "heap = []", reasoning: "สร้าง heap ว่าง", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 0 to length(arr)-1:", reasoning: "วนทุกตัว n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "heapInsert(heap, arr[i])", reasoning: "insert O(log k) เพราะ heap ≤ k+1", complexity: "O(n log k)", tag: "c-nlogn" },
+      { no: 5, code: "if length(heap) > k:", reasoning: "ตรวจขนาด", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "extractMin(heap)", reasoning: "เอาค่าเล็กสุดออก O(log k) ต่อครั้ง", complexity: "O(n log k)", tag: "c-nlogn" },
+      { no: 7, code: "return heap[0]", reasoning: "ค่าน้อยสุดใน heap ขนาด k = ค่าใหญ่ลำดับ k", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n log k)", tag: "c-nlogn", note: "ดีกว่า sort ทั้งอาร์เรย์ O(n log n) เมื่อ k เล็ก; ใช้เมมโมรี่ O(k)" }
+  },
+
+  /* ===================== HASH TABLE ===================== */
+
+  {
+    id: "x1",
+    difficulty: "hash",
+    title: "Hash Table Insert/Search (แทรก/ค้น)",
+    desc: "การแทรกและค้นหาใน hash table (กรณีเฉลี่ย ไม่มี collision มาก)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">hashInsert</span>(table, key, val):
+<span class="ln">2</span>    idx = <span class="fn">hash</span>(key) <span class="op">%</span> table.size
+<span class="ln">3</span>    table[idx] = (key, val)
+<span class="ln">4</span>
+<span class="ln">5</span><span class="kw">function</span> <span class="fn">hashSearch</span>(table, key):
+<span class="ln">6</span>    idx = <span class="fn">hash</span>(key) <span class="op">%</span> table.size
+<span class="ln">7</span>    <span class="kw">if</span> table[idx] <span class="kw">exists</span> <span class="kw">and</span> table[idx].key == key:
+<span class="ln">8</span>        <span class="kw">return</span> table[idx].val
+<span class="ln">9</span>    <span class="kw">return</span> <span class="kw">null</span>`,
+    lines: [
+      { no: 1, code: "function hashInsert(table, key, val):", reasoning: "ประกาศฟังก์ชัน insert", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "idx = hash(key) % table.size", reasoning: "คำนวณ hash O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "table[idx] = (key, val)", reasoning: "เขียนค่า O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 5, code: "function hashSearch(table, key):", reasoning: "ประกาศฟังก์ชัน search", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "idx = hash(key) % table.size", reasoning: "คำนวณ hash O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "if table[idx] exists and table[idx].key == key:", reasoning: "ตรวจ key O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "return table[idx].val", reasoning: "คืนค่า O(1)", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "return null", reasoning: "ไม่เจอ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(1) avg", tag: "c-constant", note: "Constant avg — กรณีเลวร้าย O(n) เมื่อ collision รุนแรง; ใช้ chaining หรือ open addressing เพื่อหลีกเลี่ยง" }
+  },
+
+  {
+    id: "x2",
+    difficulty: "hash",
+    title: "Two Sum with Hash Map (ผลรวมคู่)",
+    desc: "หาคู่ในอาร์เรย์ที่บวกกันได้ target — ใช้ hash map ลดจาก O(n²) เหลือ O(n)",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">twoSumHash</span>(arr, target):
+<span class="ln">2</span>    seen = <span class="kw">new</span> <span class="fn">hashMap</span>()
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> length(arr)<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        complement = target <span class="op">-</span> arr[i]
+<span class="ln">5</span>        <span class="kw">if</span> seen.<span class="fn">contains</span>(complement):
+<span class="ln">6</span>            <span class="kw">return</span> (seen[complement], i)
+<span class="ln">7</span>        seen[arr[i]] = i
+<span class="ln">8</span>    <span class="kw">return</span> <span class="op">-</span><span class="num">1</span>`,
+    lines: [
+      { no: 1, code: "function twoSumHash(arr, target):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "seen = new hashMap()", reasoning: "สร้าง hash map", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 0 to length(arr)-1:", reasoning: "ลูป n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "complement = target - arr[i]", reasoning: "คำนวณค่าคู่ O(1)", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "if seen.contains(complement):", reasoning: "ค้นใน hash map O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "return (seen[complement], i)", reasoning: "คืนคู่ที่หา", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "seen[arr[i]] = i", reasoning: "บันทึก O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "return -1", reasoning: "ไม่เจอคู่", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear — แลกเวลากับเมมโมรี่ O(n) ดีกว่า brute-force O(n²) มาก" }
+  },
+
+  {
+    id: "x3",
+    difficulty: "hash",
+    title: "Frequency Count (นับความถี่)",
+    desc: "นับจำนวนครั้งที่แต่ละค่าปรากฏในอาร์เรย์",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">countFreq</span>(arr):
+<span class="ln">2</span>    freq = <span class="kw">new</span> <span class="fn">hashMap</span>()
+<span class="ln">3</span>    <span class="kw">for</span> i = <span class="num">0</span> <span class="kw">to</span> length(arr)<span class="op">-</span><span class="num">1</span>:
+<span class="ln">4</span>        <span class="kw">if</span> freq.<span class="fn">contains</span>(arr[i]):
+<span class="ln">5</span>            freq[arr[i]] = freq[arr[i]] <span class="op">+</span> <span class="num">1</span>
+<span class="ln">6</span>        <span class="kw">else</span>:
+<span class="ln">7</span>            freq[arr[i]] = <span class="num">1</span>
+<span class="ln">8</span>    <span class="kw">return</span> freq`,
+    lines: [
+      { no: 1, code: "function countFreq(arr):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "freq = new hashMap()", reasoning: "สร้าง hash map", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for i = 0 to length(arr)-1:", reasoning: "ลูป n รอบ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "if freq.contains(arr[i]):", reasoning: "ตรวจ O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "freq[arr[i]] = freq[arr[i]] + 1", reasoning: "เพิ่มค่า O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "else:", reasoning: "กรณียังไม่มี key", complexity: "O(n)", tag: "c-linear" },
+      { no: 7, code: "freq[arr[i]] = 1", reasoning: "ตั้งค่าเริ่มต้น O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "return freq", reasoning: "คืน hash map", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear — ใช้เมมโมรี่ O(k) โดย k = จำนวนค่าที่ไม่ซ้ำ" }
+  },
+
+  {
+    id: "x4",
+    difficulty: "hash",
+    title: "Group Anagrams (จัดกลุ่มอักษรคำคล้ายกัน)",
+    desc: "จัดกลุ่มคำที่เป็น anagram (มีตัวอักษรเหมือนกัน) โดย sort แต่ละคำเป็น key",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">groupAnagrams</span>(words):
+<span class="ln">2</span>    groups = <span class="kw">new</span> <span class="fn">hashMap</span>()
+<span class="ln">3</span>    <span class="kw">for</span> w <span class="kw">in</span> words:
+<span class="ln">4</span>        key = <span class="fn">sort</span>(w)
+<span class="ln">5</span>        <span class="kw">if</span> <span class="kw">not</span> groups.<span class="fn">contains</span>(key):
+<span class="ln">6</span>            groups[key] = <span class="cm">[]</span>
+<span class="ln">7</span>        groups[key].<span class="fn">append</span>(w)
+<span class="ln">8</span>    <span class="kw">return</span> <span class="fn">values</span>(groups)`,
+    lines: [
+      { no: 1, code: "function groupAnagrams(words):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "groups = new hashMap()", reasoning: "สร้าง hash map", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for w in words:", reasoning: "ลูป n คำ", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "key = sort(w)", reasoning: "sort สตริงยาว k → O(k log k) ต่อคำ", complexity: "O(n·k log k)", tag: "c-nlogn" },
+      { no: 5, code: "if not groups.contains(key):", reasoning: "ตรวจ key O(k) เพื่อ hash O(1)", complexity: "O(n·k)", tag: "c-linear" },
+      { no: 6, code: "groups[key] = []", reasoning: "สร้าง list ใหม่", complexity: "O(n)", tag: "c-linear" },
+      { no: 7, code: "groups[key].append(w)", reasoning: "ต่อ list O(1)", complexity: "O(n)", tag: "c-linear" },
+      { no: 8, code: "return values(groups)", reasoning: "คืนกลุ่มทั้งหมด", complexity: "O(n)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(n · k log k)", tag: "c-nlogn", note: "n คำ × คำละ k ตัวอักษร — sort key เป็นตัวกำหนด" }
+  },
+
+  {
+    id: "x5",
+    difficulty: "hash",
+    title: "First Unique Character (หาอักขระแรกที่ไม่ซ้ำ)",
+    desc: "หาตัวอักษรตัวแรกในสตริงที่ปรากฏเพียงครั้งเดียว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">firstUnique</span>(s):
+<span class="ln">2</span>    freq = <span class="kw">new</span> <span class="fn">hashMap</span>()
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> s:
+<span class="ln">4</span>        freq[c] = freq[c] <span class="op">+</span> <span class="num">1</span>
+<span class="ln">5</span>    <span class="kw">for</span> c <span class="kw">in</span> s:
+<span class="ln">6</span>        <span class="kw">if</span> freq[c] == <span class="num">1</span>:
+<span class="ln">7</span>            <span class="kw">return</span> c
+<span class="ln">8</span>    <span class="kw">return</span> <span class="op">-</span><span class="num">1</span>`,
+    lines: [
+      { no: 1, code: "function firstUnique(s):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "freq = new hashMap()", reasoning: "สร้าง hash map", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in s:", reasoning: "ลูปตัวอักษร n ตัว", complexity: "O(n)", tag: "c-linear" },
+      { no: 4, code: "freq[c] = freq[c] + 1", reasoning: "นับความถี่ O(1) avg", complexity: "O(n)", tag: "c-linear" },
+      { no: 5, code: "for c in s:", reasoning: "ลูปอีกรอบเพื่อหาตัวแรก", complexity: "O(n)", tag: "c-linear" },
+      { no: 6, code: "if freq[c] == 1:", reasoning: "ตรวจว่าปรากฏ 1 ครั้ง O(1)", complexity: "O(n)", tag: "c-linear" },
+      { no: 7, code: "return c", reasoning: "คืนอักขระแรกที่ไม่ซ้ำ", complexity: "O(1)", tag: "c-constant" },
+      { no: 8, code: "return -1", reasoning: "ไม่มีตัวไม่ซ้ำ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(n)", tag: "c-linear", note: "Linear — 2 รอบ; ใช้เมมโมรี่ O(1) ถ้า alphabet จำกัด (เช่น a-z)" }
+  },
+
+  /* ===================== TRIE ===================== */
+
+  {
+    id: "t1",
+    difficulty: "trie",
+    title: "Trie Insert (แทรกคำเข้า Trie)",
+    desc: "แทรกคำความยาว m เข้าใน trie — แต่ละโหนดแทนตัวอักษรหนึ่งตัว",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">trieInsert</span>(root, word):
+<span class="ln">2</span>    node = root
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> word:
+<span class="ln">4</span>        <span class="kw">if</span> node.children[c] == <span class="kw">null</span>:
+<span class="ln">5</span>            node.children[c] = <span class="kw">new</span> <span class="fn">TrieNode</span>()
+<span class="ln">6</span>        node = node.children[c]
+<span class="ln">7</span>    node.isEnd = <span class="kw">true</span>`,
+    lines: [
+      { no: 1, code: "function trieInsert(root, word):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "node = root", reasoning: "เริ่มที่ราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in word:", reasoning: "วนตามตัวอักษร m ตัว", complexity: "O(m)", tag: "c-linear" },
+      { no: 4, code: "if node.children[c] == null:", reasoning: "ตรวจว่ามีลูกหรือยัง O(1)", complexity: "O(m)", tag: "c-linear" },
+      { no: 5, code: "node.children[c] = new TrieNode()", reasoning: "สร้างโหนดใหม่ O(1)", complexity: "O(m)", tag: "c-linear" },
+      { no: 6, code: "node = node.children[c]", reasoning: "เลื่อนลงไปตัวถัดไป O(1)", complexity: "O(m)", tag: "c-linear" },
+      { no: 7, code: "node.isEnd = true", reasoning: "ทำเครื่องหมายว่าเป็นจุดสิ้นสุดคำ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(m)", tag: "c-linear", note: "Linear in word length — m = ความยาวคำ; ไม่ขึ้นกับจำนวนคำทั้งหมด" }
+  },
+
+  {
+    id: "t2",
+    difficulty: "trie",
+    title: "Trie Search (ค้นคำใน Trie)",
+    desc: "ค้นหาคำเต็มใน trie — ต้องเจอตั้งแต่ตัวแรกถึงตัวสุดท้าย และเป็น end-of-word",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">trieSearch</span>(root, word):
+<span class="ln">2</span>    node = root
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> word:
+<span class="ln">4</span>        <span class="kw">if</span> node.children[c] == <span class="kw">null</span>:
+<span class="ln">5</span>            <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">6</span>        node = node.children[c]
+<span class="ln">7</span>    <span class="kw">return</span> node.isEnd`,
+    lines: [
+      { no: 1, code: "function trieSearch(root, word):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "node = root", reasoning: "เริ่มที่ราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in word:", reasoning: "วนตามตัวอักษร m ตัว", complexity: "O(m)", tag: "c-linear" },
+      { no: 4, code: "if node.children[c] == null:", reasoning: "ตัวอักษรไม่มี → ไม่พบ", complexity: "O(m)", tag: "c-linear" },
+      { no: 5, code: "return false", reasoning: "คืน false ทันที", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "node = node.children[c]", reasoning: "เลื่อนลง", complexity: "O(m)", tag: "c-linear" },
+      { no: 7, code: "return node.isEnd", reasoning: "คืนว่าเป็น end-of-word หรือไม่", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(m)", tag: "c-linear", note: "Linear — เร็วกว่า hash map เมื่อต้องการ prefix matching; ใช้เมมโมรี่มากกว่า" }
+  },
+
+  {
+    id: "t3",
+    difficulty: "trie",
+    title: "Trie startsWith (ค้น prefix)",
+    desc: "ตรวจว่ามีคำใดใน trie ที่ขึ้นต้นด้วย prefix ที่กำหนดหรือไม่",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">startsWith</span>(root, prefix):
+<span class="ln">2</span>    node = root
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> prefix:
+<span class="ln">4</span>        <span class="kw">if</span> node.children[c] == <span class="kw">null</span>:
+<span class="ln">5</span>            <span class="kw">return</span> <span class="kw">false</span>
+<span class="ln">6</span>        node = node.children[c]
+<span class="ln">7</span>    <span class="kw">return</span> <span class="kw">true</span>`,
+    lines: [
+      { no: 1, code: "function startsWith(root, prefix):", reasoning: "ประกาศฟังก์ชัน", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "node = root", reasoning: "เริ่มที่ราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in prefix:", reasoning: "วนตามตัวอักษร p ตัว (p = ความยาว prefix)", complexity: "O(p)", tag: "c-linear" },
+      { no: 4, code: "if node.children[c] == null:", reasoning: "ไม่มีโหนดลูก → prefix ไม่มี", complexity: "O(p)", tag: "c-linear" },
+      { no: 5, code: "return false", reasoning: "คืน false ทันที", complexity: "O(1)", tag: "c-constant" },
+      { no: 6, code: "node = node.children[c]", reasoning: "เลื่อนลง", complexity: "O(p)", tag: "c-linear" },
+      { no: 7, code: "return true", reasoning: "ผ่านครบทุกตัว → มีคำที่ขึ้นต้นด้วย prefix", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(p)", tag: "c-linear", note: "Linear — เหมือน search แต่ไม่ต้องตรวจ isEnd; นี่คือจุดเด่นของ trie" }
+  },
+
+  {
+    id: "t4",
+    difficulty: "trie",
+    title: "Count Words with Prefix (นับคำที่ขึ้นต้นด้วย prefix)",
+    desc: "นับจำนวนคำใน trie ที่ขึ้นต้นด้วย prefix ที่กำหนด",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">countWords</span>(root, prefix):
+<span class="ln">2</span>    node = root
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> prefix:
+<span class="ln">4</span>        <span class="kw">if</span> node.children[c] == <span class="kw">null</span>: <span class="kw">return</span> <span class="num">0</span>
+<span class="ln">5</span>        node = node.children[c]
+<span class="ln">6</span>    <span class="kw">return</span> <span class="fn">dfsCount</span>(node)
+<span class="ln">7</span>
+<span class="ln">8</span><span class="kw">function</span> <span class="fn">dfsCount</span>(node):
+<span class="ln">9</span>    count = <span class="num">0</span>
+<span class="ln">10</span>    <span class="kw">if</span> node.isEnd: count = <span class="num">1</span>
+<span class="ln">11</span>    <span class="kw">for</span> c <span class="kw">in</span> node.children:
+<span class="ln">12</span>        count <span class="op">+=</span> <span class="fn">dfsCount</span>(node.children[c])
+<span class="ln">13</span>    <span class="kw">return</span> count`,
+    lines: [
+      { no: 1, code: "function countWords(root, prefix):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "node = root", reasoning: "เริ่มที่ราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in prefix:", reasoning: "หาท้าย prefix O(p)", complexity: "O(p)", tag: "c-linear" },
+      { no: 4, code: "if node.children[c] == null: return 0", reasoning: "prefix ไม่มี → 0 คำ", complexity: "O(p)", tag: "c-linear" },
+      { no: 5, code: "node = node.children[c]", reasoning: "เลื่อนลง", complexity: "O(p)", tag: "c-linear" },
+      { no: 6, code: "return dfsCount(node)", reasoning: "นับจากจุดนี้ลงไป", complexity: "O(N)", tag: "c-linear" },
+      { no: 8, code: "function dfsCount(node):", reasoning: "ฟังก์ชันย่อย DFS", complexity: "O(1)", tag: "c-constant" },
+      { no: 9, code: "count = 0", reasoning: "ตัวนับ", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "if node.isEnd: count = 1", reasoning: "ถ้าเป็นจุดสิ้นสุดคำ → นับ 1", complexity: "O(N)", tag: "c-linear" },
+      { no: 11, code: "for c in node.children:", reasoning: "วนทุกลูก → เยี่ยมทุกโหนดใน subtree", complexity: "O(N)", tag: "c-linear" },
+      { no: 12, code: "count += dfsCount(node.children[c])", reasoning: "เรียกซ้ำ", complexity: "O(N)", tag: "c-linear" },
+      { no: 13, code: "return count", reasoning: "คืนจำนวนคำ", complexity: "O(1)", tag: "c-constant" }
+    ],
+    final: { bigO: "O(p + N)", tag: "c-linear", note: "p = ความยาว prefix, N = จำนวนโหนดใน subtree ที่ตรง prefix; ใช้ count ในแต่ละโหนดจะเหลือ O(p)" }
+  },
+
+  {
+    id: "t5",
+    difficulty: "trie",
+    title: "Auto-Complete (เติมคำอัตโนมัติ)",
+    desc: "ค้นหาคำแนะนำทั้งหมดที่ขึ้นต้นด้วย prefix จาก trie",
+    code:
+`<span class="ln">1</span><span class="kw">function</span> <span class="fn">autoComplete</span>(root, prefix):
+<span class="ln">2</span>    node = root
+<span class="ln">3</span>    <span class="kw">for</span> c <span class="kw">in</span> prefix:
+<span class="ln">4</span>        <span class="kw">if</span> node.children[c] == <span class="kw">null</span>: <span class="kw">return</span> <span class="cm">[]</span>
+<span class="ln">5</span>        node = node.children[c]
+<span class="ln">6</span>    results = <span class="cm">[]</span>
+<span class="ln">7</span>    <span class="fn">collect</span>(node, prefix, results)
+<span class="ln">8</span>    <span class="kw">return</span> results
+<span class="ln">9</span>
+<span class="ln">10</span><span class="kw">function</span> <span class="fn">collect</span>(node, word, results):
+<span class="ln">11</span>    <span class="kw">if</span> node.isEnd: results.<span class="fn">append</span>(word)
+<span class="ln">12</span>    <span class="kw">for</span> c <span class="kw">in</span> node.children:
+<span class="ln">13</span>        <span class="fn">collect</span>(node.children[c], word <span class="op">+</span> c, results)`,
+    lines: [
+      { no: 1, code: "function autoComplete(root, prefix):", reasoning: "จุดเริ่มต้น", complexity: "O(1)", tag: "c-constant" },
+      { no: 2, code: "node = root", reasoning: "เริ่มที่ราก", complexity: "O(1)", tag: "c-constant" },
+      { no: 3, code: "for c in prefix:", reasoning: "เดินตาม prefix", complexity: "O(p)", tag: "c-linear" },
+      { no: 4, code: "if node.children[c] == null: return []", reasoning: "prefix ไม่มี → คืนว่าง", complexity: "O(p)", tag: "c-linear" },
+      { no: 5, code: "node = node.children[c]", reasoning: "เลื่อนลง", complexity: "O(p)", tag: "c-linear" },
+      { no: 6, code: "results = []", reasoning: "เก็บผลลัพธ์", complexity: "O(1)", tag: "c-constant" },
+      { no: 7, code: "collect(node, prefix, results)", reasoning: "เก็บคำทั้งหมดใต้จุดนี้", complexity: "O(N)", tag: "c-linear" },
+      { no: 8, code: "return results", reasoning: "คืนคำแนะนำ", complexity: "O(1)", tag: "c-constant" },
+      { no: 10, code: "function collect(node, word, results):", reasoning: "ฟังก์ชันย่อย DFS", complexity: "O(1)", tag: "c-constant" },
+      { no: 11, code: "if node.isEnd: results.append(word)", reasoning: "เจอคำ → เพิ่มในผลลัพธ์ O(L) ต่อคำ", complexity: "O(N)", tag: "c-linear" },
+      { no: 12, code: "for c in node.children:", reasoning: "วนทุกลูก", complexity: "O(N)", tag: "c-linear" },
+      { no: 13, code: "collect(node.children[c], word + c, results)", reasoning: "ต่อสตริงแล้วเรียกซ้ำ", complexity: "O(N)", tag: "c-linear" }
+    ],
+    final: { bigO: "O(p + N)", tag: "c-linear", note: "p = ความยาว prefix, N = โหนดใน subtree; ถ้าจำกัดจำนวนคำแนะนำ k จะเหลือ O(p + k·L)" }
+  }
+
+];
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function renderProblem(p) {
+  const linesHTML = p.lines.map(l => `
+    <tr>
+      <td class="line-no">${l.no}</td>
+      <td class="code-snippet">${l.code}</td>
+      <td class="reasoning">${l.reasoning}</td>
+      <td><span class="complexity-tag ${l.tag}">${l.complexity}</span></td>
+    </tr>
+  `).join("");
+
+  const recurrenceHTML = p.recurrence
+    ? `<div class="recurrence">${p.recurrence}</div>`
+    : "";
+
+  // Difficulty label map
+  const diffLabel = {
+    easy: "ง่าย", hard: "ยาก", complex: "ซับซ้อน",
+    graph: "Graph", heap: "Heap", hash: "Hash", trie: "Trie"
+  }[p.difficulty] || p.difficulty;
+
+  // Optional category pill (ถ้ามี category แยกจาก difficulty)
+  const catLabel = p.category
+    ? `<span class="category-pill ${p.category}">${p.category.toUpperCase()}</span>`
+    : "";
+
+  return `
+  <div class="problem-card" data-id="${p.id}">
+    <div class="problem-header">
+      <div class="problem-title">
+        <span class="problem-num">${p.id.slice(1)}</span>
+        ${p.title}
+      </div>
+      <div class="pill-group">
+        <span class="difficulty-pill ${p.difficulty}">${diffLabel}</span>
+        ${catLabel}
+      </div>
+    </div>
+    <p class="problem-desc">${p.desc}</p>
+    <pre class="code-block">${p.code}</pre>
+
+    <button class="reveal-btn" onclick="toggleSolution(this)">
+      <span class="arrow">▶</span>
+      <span class="btn-text">แสดงเฉลย</span>
+    </button>
+
+    <div class="solution">
+      <div class="solution-inner">
+        <div class="solution-title">การวิเคราะห์ทีละบรรทัด</div>
+        ${recurrenceHTML}
+        <table class="analysis-table">
+          <thead>
+            <tr>
+              <th>บรรทัด</th>
+              <th>โค้ด</th>
+              <th>คำอธิบาย</th>
+              <th>ความซับซ้อน</th>
+            </tr>
+          </thead>
+          <tbody>${linesHTML}</tbody>
+        </table>
+        <div class="final-answer">
+          <div class="label">
+            คำตอบสุดท้าย
+            <small>${p.final.note}</small>
+          </div>
+          <div class="big-o complexity-tag ${p.final.tag}" style="font-size:1.4rem; padding:8px 20px;">
+            ${p.final.bigO}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleSolution(btn) {
+  const solution = btn.nextElementSibling;
+  const isOpen = solution.classList.toggle("open");
+  btn.classList.toggle("expanded", isOpen);
+  btn.querySelector(".btn-text").textContent = isOpen ? "ซ่อนเฉลย" : "แสดงเฉลย";
+}
+
+/* Render lists */
+function fillList(diffKey, listId, cntId) {
+  const items = PROBLEMS.filter(p => p.difficulty === diffKey);
+  document.getElementById(listId).innerHTML = items.map(renderProblem).join("");
+  document.getElementById(cntId).textContent = items.length;
+}
+fillList("easy",    "list-easy",    "cnt-easy");
+fillList("hard",    "list-hard",    "cnt-hard");
+fillList("complex", "list-complex", "cnt-complex");
+fillList("graph",   "list-graph",   "cnt-graph");
+fillList("heap",    "list-heap",    "cnt-heap");
+fillList("hash",    "list-hash",    "cnt-hash");
+fillList("trie",    "list-trie",    "cnt-trie");
+
+/* Tab switching */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".problem-list").forEach(l => l.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("list-" + btn.dataset.tab).classList.add("active");
+  });
+});
+</script>
+</body>
+</html>
