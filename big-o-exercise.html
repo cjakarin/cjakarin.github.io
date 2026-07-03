@@ -297,6 +297,86 @@
     .method-steps li { font-size: 0.82rem; padding-left: 38px; }
   }
 
+
+  /* Proof problem styling */
+  .proof-fn-box {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 14px;
+    border-left: 4px solid var(--c-constant);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .proof-fn-box .fn-label {
+    font-weight: 700; color: #065f46; font-size: 0.95rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .proof-fn-box .fn-expr {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 1.1rem; font-weight: 700; color: var(--text);
+  }
+  .proof-fn-box .fn-arrow { color: var(--text-muted); font-size: 1.2rem; }
+  .proof-fn-box .fn-target {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    background: var(--accent); color: #fff;
+    padding: 4px 14px; border-radius: 8px; font-size: 1rem;
+  }
+
+  .proof-def {
+    background: #fffbeb; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 14px;
+    border-left: 3px solid #f59e0b; font-size: 0.88rem;
+    color: #78350f;
+  }
+  .proof-def strong { color: #92400e; }
+
+  .proof-steps {
+    counter-reset: pstep; list-style: none; padding-left: 0;
+  }
+  .proof-steps li {
+    position: relative; padding: 10px 14px 10px 50px;
+    margin-bottom: 8px; background: #f0fdf4;
+    border-radius: 8px; border-left: 3px solid var(--c-constant);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.88rem; color: var(--text);
+    counter-increment: pstep;
+    line-height: 1.7;
+  }
+  .proof-steps li::before {
+    content: counter(pstep);
+    position: absolute; left: 12px; top: 12px;
+    width: 26px; height: 26px;
+    background: var(--c-constant); color: #fff;
+    border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .proof-result {
+    background: #fef3c7; border-radius: 10px;
+    padding: 14px 18px; margin-top: 8px;
+    border-left: 3px solid #f59e0b;
+    font-family: monospace; font-size: 0.92rem;
+  }
+  .proof-result .result-row {
+    display: flex; gap: 12px; padding: 4px 0;
+    border-bottom: 1px dashed #fde68a;
+  }
+  .proof-result .result-row:last-child { border-bottom: none; }
+  .proof-result .result-label {
+    min-width: 80px; font-weight: 700; color: #78350f;
+  }
+  .proof-result .result-value { color: var(--text); }
+
+  .level-pill {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 12px; font-size: 0.78rem;
+    font-weight: 600; margin-left: 8px;
+  }
+  .level-pill.l-easy { background: #d1fae5; color: #065f46; }
+  .level-pill.l-medium { background: #fef3c7; color: #92400e; }
+  .level-pill.l-hard { background: #fee2e2; color: #991b1b; }
+
+
 </style>
 </head>
 <body>
@@ -304,19 +384,21 @@
 
   <header>
     <h1>📘 แบบฝึกหัดวิเคราะห์ Big O</h1>
-    <p>รวม 90 ข้อ • 3 หมวด: <strong>ง่าย (30)</strong> · <strong>ท้าทาย (30)</strong> · <strong>Recursive (30)</strong> — หมวด Recursive แสดงการวิเคราะห์ทั้ง <strong>Iteration Method (วิธีแทนค่าซ้ำ)</strong> และ <strong>Master Theorem</strong></p>
+    <p>รวม 105 ข้อ • 4 หมวด: <strong>ง่าย (30)</strong> · <strong>ท้าทาย (30)</strong> · <strong>Recursive (30)</strong> · <strong>พิสูจน์ Big O (15)</strong> — หมวด Recursive แสดง Iteration Method + Master Theorem · หมวดพิสูจน์ใช้นิยาม Big O หาค่า c และ n₀ ทีละขั้น</p>
   </header>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="easy">🟢 ง่าย <span class="badge-count" id="cnt-easy">0</span></button>
     <button class="tab-btn" data-tab="challenging">🔴 ท้าทาย <span class="badge-count" id="cnt-challenging">0</span></button>
     <button class="tab-btn" data-tab="recursive">🔁 Recursive <span class="badge-count" id="cnt-recursive">0</span></button>
+    <button class="tab-btn" data-tab="proof">📐 พิสูจน์ Big O <span class="badge-count" id="cnt-proof">0</span></button>
   </div>
 
 
   <div class="problem-list active" id="list-easy"></div>
   <div class="problem-list" id="list-challenging"></div>
   <div class="problem-list" id="list-recursive"></div>
+  <div class="problem-list" id="list-proof"></div>
 
 
   <footer>
@@ -326,10 +408,11 @@
 
 <script>
 /* =========================================================
-   DATA: 90 problems across 3 categories
+   DATA: 105 problems across 4 categories
    - Easy (30): line-by-line analysis
    - Challenging (30): line-by-line analysis
    - Recursive (30): iteration method + master theorem
+   - Proof (15): Big O definition proof (find c, n0 step-by-step)
    ========================================================= */
 const PROBLEMS = [
   {
@@ -4243,10 +4326,405 @@ const PROBLEMS = [
       "note": "ลดขนาดเป็นรากที่ 2 ทุกขั้น → เร็วกว่า binary search ที่ลดครึ่ง → Double Log"
     }
   }
+  ,
+  {
+    "id": "p1",
+    "difficulty": "proof",
+    "level": "ง่าย",
+    "title": "พิสูจน์ f(n) = 3n + 5 เป็น O(n)",
+    "desc": "จงพิสูจน์ว่า f(n) = 3n + 5 เป็น O(n) โดยใช้นิยาม Big O หาค่าคงที่ c และ n₀",
+    "function": "f(n) = 3n + 5",
+    "target": "O(n)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ 3n + 5 ≤ c·n  สำหรับทุก n ≥ n₀",
+      "พิจารณาเงื่อนไข n ≥ 1: เราทราบว่า 5 ≤ 5n (เพราะ n ≥ 1)",
+      "แทนค่า: 3n + 5 ≤ 3n + 5n = 8n",
+      "เลือก c = 8 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  3(1) + 5 = 8 ≤ 8(1) = 8  ✓",
+      "ตรวจสอบที่ n = 10: 3(10) + 5 = 35 ≤ 8(10) = 80  ✓",
+      "สรุป: f(n) = 3n + 5 เป็น O(n) เมื่อ c = 8, n₀ = 1"
+    ],
+    "result": {
+      "c": "8",
+      "n0": "1",
+      "bigO": "O(n)",
+      "tag": "c-linear",
+      "note": "เทอมคงที่ 5 ถูกดูดซับเข้ากับเทอม n สำหรับ n ≥ 1"
+    }
+  },
+  {
+    "id": "p2",
+    "difficulty": "proof",
+    "level": "ง่าย",
+    "title": "พิสูจน์ f(n) = 5n + 7 เป็น O(n)",
+    "desc": "จงพิสูจน์ว่า f(n) = 5n + 7 เป็น O(n) โดยใช้นิยาม Big O",
+    "function": "f(n) = 5n + 7",
+    "target": "O(n)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ 5n + 7 ≤ c·n  สำหรับทุก n ≥ n₀",
+      "พิจารณา n ≥ 1: เราทราบว่า 7 ≤ 7n",
+      "แทนค่า: 5n + 7 ≤ 5n + 7n = 12n",
+      "เลือก c = 12 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  5(1) + 7 = 12 ≤ 12(1) = 12  ✓",
+      "ตรวจสอบที่ n = 100: 5(100) + 7 = 507 ≤ 12(100) = 1200  ✓",
+      "สรุป: f(n) = 5n + 7 เป็น O(n) เมื่อ c = 12, n₀ = 1"
+    ],
+    "result": {
+      "c": "12",
+      "n0": "1",
+      "bigO": "O(n)",
+      "tag": "c-linear",
+      "note": "ค่าคงที่ถูกดูดซับเข้ากับเทอมเชิงเส้น"
+    }
+  },
+  {
+    "id": "p3",
+    "difficulty": "proof",
+    "level": "ง่าย",
+    "title": "พิสูจน์ f(n) = 4n - 2 เป็น O(n)",
+    "desc": "จงพิสูจน์ว่า f(n) = 4n - 2 เป็น O(n) — กรณีที่มีเทอมติดลบ",
+    "function": "f(n) = 4n - 2",
+    "target": "O(n)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ |4n - 2| ≤ c·n  สำหรับทุก n ≥ n₀",
+      "สำหรับ n ≥ 1: 4n - 2 ≥ 0 ดังนั้น |4n - 2| = 4n - 2",
+      "และ 4n - 2 ≤ 4n (เพราะลบค่าบวกออก)",
+      "ดังนั้น |4n - 2| ≤ 4n ≤ 4·n",
+      "เลือก c = 4 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  |4(1) - 2| = 2 ≤ 4(1) = 4  ✓",
+      "สรุป: f(n) = 4n - 2 เป็น O(n) เมื่อ c = 4, n₀ = 1"
+    ],
+    "result": {
+      "c": "4",
+      "n0": "1",
+      "bigO": "O(n)",
+      "tag": "c-linear",
+      "note": "กรณีเทอมติดลบ สามารถตัดทิ้งได้เลยเพราะลดค่า f(n) ลง"
+    }
+  },
+  {
+    "id": "p4",
+    "difficulty": "proof",
+    "level": "ง่าย",
+    "title": "พิสูจน์ f(n) = 2n² + 3n เป็น O(n²)",
+    "desc": "จงพิสูจน์ว่า f(n) = 2n² + 3n เป็น O(n²) โดยใช้นิยาม Big O",
+    "function": "f(n) = 2n² + 3n",
+    "target": "O(n²)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ 2n² + 3n ≤ c·n²  สำหรับทุก n ≥ n₀",
+      "พิจารณา n ≥ 1: เราทราบว่า n ≤ n² (ยกกำลังแล้วใหญ่ขึ้น)",
+      "ดังนั้น 3n ≤ 3n²",
+      "แทนค่า: 2n² + 3n ≤ 2n² + 3n² = 5n²",
+      "เลือก c = 5 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  2(1) + 3(1) = 5 ≤ 5(1) = 5  ✓",
+      "ตรวจสอบที่ n = 10: 2(100) + 3(10) = 230 ≤ 5(100) = 500  ✓",
+      "สรุป: f(n) = 2n² + 3n เป็น O(n²) เมื่อ c = 5, n₀ = 1"
+    ],
+    "result": {
+      "c": "5",
+      "n0": "1",
+      "bigO": "O(n²)",
+      "tag": "c-quadratic",
+      "note": "เทอมเชิงเส้น 3n ถูกดูดซับด้วย n² เมื่อ n ≥ 1"
+    }
+  },
+  {
+    "id": "p5",
+    "difficulty": "proof",
+    "level": "ง่าย",
+    "title": "พิสูจน์ f(n) = n² + 100n เป็น O(n²)",
+    "desc": "จงพิสูจน์ว่า f(n) = n² + 100n เป็น O(n²) — ต้องเลือก n₀ ให้ใหญ่พอ",
+    "function": "f(n) = n² + 100n",
+    "target": "O(n²)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ n² + 100n ≤ c·n²  สำหรับทุก n ≥ n₀",
+      "เราต้องการให้ 100n ≤ n²  ซึ่งเป็นจริงเมื่อ n ≥ 100",
+      "เลือก n₀ = 100 แล้วสำหรับ n ≥ 100: 100n ≤ n²",
+      "แทนค่า: n² + 100n ≤ n² + n² = 2n²",
+      "เลือก c = 2 และ n₀ = 100",
+      "ตรวจสอบที่ n = 100: 10000 + 10000 = 20000 ≤ 2(10000) = 20000  ✓",
+      "ตรวจสอบที่ n = 200: 40000 + 20000 = 60000 ≤ 2(40000) = 80000  ✓",
+      "สรุป: f(n) = n² + 100n เป็น O(n²) เมื่อ c = 2, n₀ = 100"
+    ],
+    "result": {
+      "c": "2",
+      "n0": "100",
+      "bigO": "O(n²)",
+      "tag": "c-quadratic",
+      "note": "ต้องเลือก n₀ = 100 เพื่อให้ 100n ไม่เกิน n²"
+    }
+  },
+  {
+    "id": "p6",
+    "difficulty": "proof",
+    "level": "ปานกลาง",
+    "title": "พิสูจน์ f(n) = n² + 3n + 1 เป็น O(n²)",
+    "desc": "จงพิสูจน์ว่าพหุนาม 3 เทอมเป็น O(n²) — เทคนิคดูดซับเทอมรอง",
+    "function": "f(n) = n² + 3n + 1",
+    "target": "O(n²)",
+    "steps": [
+      "ตามนิยาม: ต้องหา c &gt; 0 และ n₀ ≥ 1 ที่ทำให้ n² + 3n + 1 ≤ c·n²",
+      "สำหรับ n ≥ 1: ทุกเทอมที่มีกำลังต่ำกว่า 2 จะถูกบีบให้เท่ากับ n²",
+      "บีบ: 3n ≤ 3n² (เพราะ n ≤ n² เมื่อ n ≥ 1)",
+      "บีบ: 1 ≤ n² (เพราะ n ≥ 1)",
+      "รวม: n² + 3n + 1 ≤ n² + 3n² + n² = 5n²",
+      "เลือก c = 5 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  1 + 3 + 1 = 5 ≤ 5(1) = 5  ✓",
+      "ตรวจสอบที่ n = 5:  25 + 15 + 1 = 41 ≤ 5(25) = 125  ✓",
+      "สรุป: f(n) = n² + 3n + 1 เป็น O(n²) เมื่อ c = 5, n₀ = 1"
+    ],
+    "result": {
+      "c": "5",
+      "n0": "1",
+      "bigO": "O(n²)",
+      "tag": "c-quadratic",
+      "note": "พหุนามดีกรี k เสมอเป็น O(n^k) — บีบเทอมรองทั้งหมด"
+    }
+  },
+  {
+    "id": "p7",
+    "difficulty": "proof",
+    "level": "ปานกลาง",
+    "title": "พิสูจน์ f(n) = 7n² - 2n + 3 เป็น O(n²)",
+    "desc": "จงพิสูจน์พหุนามที่มีเทอมติดลบ — ตัดเทอมติดลบทิ้งได้",
+    "function": "f(n) = 7n² - 2n + 3",
+    "target": "O(n²)",
+    "steps": [
+      "ตามนิยาม: |7n² - 2n + 3| ≤ c·n²  สำหรับทุก n ≥ n₀",
+      "สำหรับ n ≥ 1: -2n ≤ 0 ดังนั้นตัดทิ้งได้: 7n² - 2n + 3 ≤ 7n² + 3",
+      "และ 3 ≤ 3n² (เพราะ n ≥ 1)",
+      "ดังนั้น 7n² + 3 ≤ 7n² + 3n² = 10n²",
+      "เลือก c = 10 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  7 - 2 + 3 = 8 ≤ 10(1) = 10  ✓",
+      "ตรวจสอบที่ n = 10: 700 - 20 + 3 = 683 ≤ 10(100) = 1000  ✓",
+      "สรุป: f(n) = 7n² - 2n + 3 เป็น O(n²) เมื่อ c = 10, n₀ = 1"
+    ],
+    "result": {
+      "c": "10",
+      "n0": "1",
+      "bigO": "O(n²)",
+      "tag": "c-quadratic",
+      "note": "เทอมติดลบช่วยลดค่า จึงตัดทิ้งได้เสมอ"
+    }
+  },
+  {
+    "id": "p8",
+    "difficulty": "proof",
+    "level": "ปานกลาง",
+    "title": "พิสูจน์ f(n) = 2n³ + 5n² เป็น O(n³)",
+    "desc": "จงพิสูจน์พหุนามดีกรี 3 — บีบเทอม n² ให้เป็น n³",
+    "function": "f(n) = 2n³ + 5n²",
+    "target": "O(n³)",
+    "steps": [
+      "ตามนิยาม: 2n³ + 5n² ≤ c·n³  สำหรับทุก n ≥ n₀",
+      "สำหรับ n ≥ 1: n² ≤ n³ (ยกกำลังแล้วใหญ่ขึ้น)",
+      "ดังนั้น 5n² ≤ 5n³",
+      "แทนค่า: 2n³ + 5n² ≤ 2n³ + 5n³ = 7n³",
+      "เลือก c = 7 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  2 + 5 = 7 ≤ 7(1) = 7  ✓",
+      "ตรวจสอบที่ n = 10: 2000 + 500 = 2500 ≤ 7(1000) = 7000  ✓",
+      "สรุป: f(n) = 2n³ + 5n² เป็น O(n³) เมื่อ c = 7, n₀ = 1"
+    ],
+    "result": {
+      "c": "7",
+      "n0": "1",
+      "bigO": "O(n³)",
+      "tag": "c-cubic",
+      "note": "พหุนามดีกรี k → O(n^k) เสมอ"
+    }
+  },
+  {
+    "id": "p9",
+    "difficulty": "proof",
+    "level": "ปานกลาง",
+    "title": "พิสูจน์ f(n) = 3√n + 5 เป็น O(√n)",
+    "desc": "จงพิสูจน์ฟังก์ชันราก — บีบค่าคงที่เข้ากับ √n",
+    "function": "f(n) = 3√n + 5",
+    "target": "O(√n)",
+    "steps": [
+      "ตามนิยาม: 3√n + 5 ≤ c·√n  สำหรับทุก n ≥ n₀",
+      "สำหรับ n ≥ 1: √n ≥ 1 ดังนั้น 5 ≤ 5√n",
+      "แทนค่า: 3√n + 5 ≤ 3√n + 5√n = 8√n",
+      "เลือก c = 8 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  3(1) + 5 = 8 ≤ 8(1) = 8  ✓",
+      "ตรวจสอบที่ n = 25: 3(5) + 5 = 20 ≤ 8(5) = 40  ✓",
+      "สรุป: f(n) = 3√n + 5 เป็น O(√n) เมื่อ c = 8, n₀ = 1"
+    ],
+    "result": {
+      "c": "8",
+      "n0": "1",
+      "bigO": "O(√n)",
+      "tag": "c-sqrt",
+      "note": "เทคนิคเดียวกับเชิงเส้น แต่ใช้ √n เป็นหน่วยฐาน"
+    }
+  },
+  {
+    "id": "p10",
+    "difficulty": "proof",
+    "level": "ปานกลาง",
+    "title": "พิสูจน์ f(n) = 5n + log₂(n) เป็น O(n)",
+    "desc": "จงพิสูจน์ผลรวมของเชิงเส้นและ log — บีบ log เข้ากับ n",
+    "function": "f(n) = 5n + log₂(n)",
+    "target": "O(n)",
+    "steps": [
+      "ตามนิยาม: 5n + log₂(n) ≤ c·n  สำหรับทุก n ≥ n₀",
+      "สำหรับ n ≥ 1: ทราบว่า log₂(n) ≤ n (log เติบโตช้ากว่าเชิงเส้น)",
+      "พิสูจน์ log₂(n) ≤ n: เมื่อ n = 1, log₂(1) = 0 ≤ 1; เมื่อ n = 2, log₂(2) = 1 ≤ 2; และ log₂ โตช้ากว่า n",
+      "แทนค่า: 5n + log₂(n) ≤ 5n + n = 6n",
+      "เลือก c = 6 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  5 + 0 = 5 ≤ 6  ✓",
+      "ตรวจสอบที่ n = 8:  40 + 3 = 43 ≤ 48  ✓",
+      "สรุป: f(n) = 5n + log₂(n) เป็น O(n) เมื่อ c = 6, n₀ = 1"
+    ],
+    "result": {
+      "c": "6",
+      "n0": "1",
+      "bigO": "O(n)",
+      "tag": "c-linear",
+      "note": "log(n) โตช้ากว่า n เสมอ จึงดูดซับได้"
+    }
+  },
+  {
+    "id": "p11",
+    "difficulty": "proof",
+    "level": "ยาก",
+    "title": "พิสูจน์ f(n) = 3n·log₂(n) + n เป็น O(n·log n)",
+    "desc": "จงพิสูจน์ผลรวมของ n log n กับ n — ต้องใช้ n₀ ≥ 2",
+    "function": "f(n) = 3n·log₂(n) + n",
+    "target": "O(n log n)",
+    "steps": [
+      "ตามนิยาม: 3n·log₂(n) + n ≤ c·n·log₂(n)  สำหรับทุก n ≥ n₀",
+      "ต้องการให้ n ≤ n·log₂(n)  ซึ่งเท่ากับต้องการ 1 ≤ log₂(n)",
+      "log₂(n) ≥ 1 เมื่อ n ≥ 2  ดังนั้นเลือก n₀ = 2",
+      "สำหรับ n ≥ 2: n ≤ n·log₂(n)",
+      "แทนค่า: 3n·log₂(n) + n ≤ 3n·log₂(n) + n·log₂(n) = 4n·log₂(n)",
+      "เลือก c = 4 และ n₀ = 2",
+      "ตรวจสอบที่ n = 2:  3(2)(1) + 2 = 8 ≤ 4(2)(1) = 8  ✓",
+      "ตรวจสอบที่ n = 4:  3(4)(2) + 4 = 28 ≤ 4(4)(2) = 32  ✓",
+      "สรุป: f(n) = 3n·log₂(n) + n เป็น O(n log n) เมื่อ c = 4, n₀ = 2"
+    ],
+    "result": {
+      "c": "4",
+      "n0": "2",
+      "bigO": "O(n log n)",
+      "tag": "c-nlogn",
+      "note": "ต้องเลือก n₀ ≥ 2 เพื่อให้ log₂(n) ≥ 1"
+    }
+  },
+  {
+    "id": "p12",
+    "difficulty": "proof",
+    "level": "ยาก",
+    "title": "พิสูจน์ f(n) = 2n² + 3n·log₂(n) เป็น O(n²)",
+    "desc": "จงพิสูจน์ฟังก์ชันผสม — บีบทั้ง log และ n log n เข้ากับ n²",
+    "function": "f(n) = 2n² + 3n·log₂(n)",
+    "target": "O(n²)",
+    "steps": [
+      "ตามนิยาม: 2n² + 3n·log₂(n) ≤ c·n²  สำหรับทุก n ≥ n₀",
+      "ต้องการให้ 3n·log₂(n) ≤ 3n²  เท่ากับต้องการ log₂(n) ≤ n",
+      "สำหรับ n ≥ 1: log₂(n) ≤ n (พิสูจน์แล้วในข้อ p10)",
+      "ดังนั้น 3n·log₂(n) ≤ 3n·n = 3n²",
+      "แทนค่า: 2n² + 3n·log₂(n) ≤ 2n² + 3n² = 5n²",
+      "เลือก c = 5 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  2 + 0 = 2 ≤ 5  ✓",
+      "ตรวจสอบที่ n = 4:  32 + 24 = 56 ≤ 5(16) = 80  ✓",
+      "สรุป: f(n) = 2n² + 3n·log₂(n) เป็น O(n²) เมื่อ c = 5, n₀ = 1"
+    ],
+    "result": {
+      "c": "5",
+      "n0": "1",
+      "bigO": "O(n²)",
+      "tag": "c-quadratic",
+      "note": "เทอมที่โตช้ากว่าเสมอถูกดูดซับด้วยเทอมที่โตเร็วกว่า"
+    }
+  },
+  {
+    "id": "p13",
+    "difficulty": "proof",
+    "level": "ยาก",
+    "title": "พิสูจน์ f(n) = 2^(n+1) เป็น O(2ⁿ)",
+    "desc": "จงพิสูจน์ฟังก์ชันเอกซ์โพเนนเชียล — ใช้สมบัติกฎยกกำลัง",
+    "function": "f(n) = 2^(n+1)",
+    "target": "O(2ⁿ)",
+    "steps": [
+      "ตามนิยาม: 2^(n+1) ≤ c·2ⁿ  สำหรับทุก n ≥ n₀",
+      "ใช้กฎยกกำลัง: 2^(n+1) = 2ⁿ · 2¹ = 2 · 2ⁿ",
+      "ดังนั้น 2^(n+1) = 2 · 2ⁿ",
+      "เทียบกับ c·2ⁿ: เลือก c = 2 แล้ว 2 · 2ⁿ ≤ 2 · 2ⁿ เป็นจริงเสมอ",
+      "เลือก c = 2 และ n₀ = 1 (หรือ n₀ = 0 ก็ได้)",
+      "ตรวจสอบที่ n = 1:  2² = 4 ≤ 2 · 2 = 4  ✓",
+      "ตรวจสอบที่ n = 5:  2⁶ = 64 ≤ 2 · 32 = 64  ✓",
+      "สรุป: f(n) = 2^(n+1) เป็น O(2ⁿ) เมื่อ c = 2, n₀ = 1"
+    ],
+    "result": {
+      "c": "2",
+      "n0": "1",
+      "bigO": "O(2ⁿ)",
+      "tag": "c-exp",
+      "note": "2^(n+k) = 2^k · 2ⁿ → ดูดซับ 2^k เข้ากับ c"
+    }
+  },
+  {
+    "id": "p14",
+    "difficulty": "proof",
+    "level": "ยาก",
+    "title": "พิสูจน์ f(n) = n! เป็น O(nⁿ)",
+    "desc": "จงพิสูจน์แฟกทอเรียล — เปรียบเทียบผลคูณทีละเทอม",
+    "function": "f(n) = n! = n · (n-1) · (n-2) · ... · 2 · 1",
+    "target": "O(nⁿ)",
+    "steps": [
+      "ตามนิยาม: n! ≤ c·nⁿ  สำหรับทุก n ≥ n₀",
+      "เขียน n! ออกมา: n! = n · (n-1) · (n-2) · ... · 2 · 1",
+      "สังเกตว่าทุกเทอมในผลคูณมีค่า ≤ n",
+      "เช่น n ≤ n, (n-1) ≤ n, (n-2) ≤ n, ..., 2 ≤ n, 1 ≤ n",
+      "ดังนั้น n! ≤ n · n · n · ... · n (ทั้งหมด n ตัว) = nⁿ",
+      "เลือก c = 1 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  1! = 1 ≤ 1¹ = 1  ✓",
+      "ตรวจสอบที่ n = 3:  3! = 6 ≤ 3³ = 27  ✓",
+      "ตรวจสอบที่ n = 5:  5! = 120 ≤ 5⁵ = 3125  ✓",
+      "สรุป: f(n) = n! เป็น O(nⁿ) เมื่อ c = 1, n₀ = 1"
+    ],
+    "result": {
+      "c": "1",
+      "n0": "1",
+      "bigO": "O(nⁿ)",
+      "tag": "c-factorial",
+      "note": "n! ≤ n⁩ เสมอ เพราะทุกเทอม ≤ n — ขอบเขตบนแบบง่าย ๆ"
+    }
+  },
+  {
+    "id": "p15",
+    "difficulty": "proof",
+    "level": "ยาก",
+    "title": "พิสูจน์ f(n) = log₂(n!) เป็น O(n·log n)",
+    "desc": "จงพิสูจน์ log ของแฟกทอเรียล — ใช้สมบัติ log ของผลคูณ",
+    "function": "f(n) = log₂(n!)",
+    "target": "O(n log n)",
+    "steps": [
+      "ตามนิยาม: log₂(n!) ≤ c·n·log₂(n)  สำหรับทุก n ≥ n₀",
+      "ใช้สมบัติ log ของผลคูณ: log₂(n!) = log₂(n · (n-1) · ... · 1)",
+      "ดังนั้น log₂(n!) = log₂(n) + log₂(n-1) + ... + log₂(1)",
+      "มีทั้งหมด n เทอม และทุกเทอม ≤ log₂(n) (เพราะ argument ≤ n)",
+      "ดังนั้น log₂(n!) ≤ log₂(n) + log₂(n) + ... + log₂(n) = n · log₂(n)",
+      "เลือก c = 1 และ n₀ = 1",
+      "ตรวจสอบที่ n = 1:  log₂(1!) = 0 ≤ 1 · 0 = 0  ✓",
+      "ตรวจสอบที่ n = 4:  log₂(24) ≈ 4.58 ≤ 4 · 2 = 8  ✓",
+      "ตรวจสอบที่ n = 10: log₂(3628800) ≈ 21.79 ≤ 10 · log₂(10) ≈ 33.22  ✓",
+      "สรุป: f(n) = log₂(n!) เป็น O(n log n) เมื่อ c = 1, n₀ = 1"
+    ],
+    "result": {
+      "c": "1",
+      "n0": "1",
+      "bigO": "O(n log n)",
+      "tag": "c-nlogn",
+      "note": "นี่คือพื้นฐานของขอบเขตล่างของ Comparison Sort — Ω(n log n)"
+    }
+  }
+
 ];
 
 const diffLabel = {
-    easy: "ง่าย", challenging: "ท้าทาย", recursive: "Recursive"
+    easy: "ง่าย", challenging: "ท้าทาย", recursive: "Recursive", proof: "พิสูจน์"
   };
 
 
@@ -4314,6 +4792,86 @@ function renderLinesProblem(p) {
           </div>
           <div class="big-o complexity-tag ${p.final.tag}" style="font-size:1.4rem; padding:8px 20px;">
             ${p.final.bigO}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+
+/* Render proof problem (Big O definition proof) */
+function renderProofProblem(p) {
+  const stepsHTML = p.steps.map(s => `<li>${s}</li>`).join("");
+  const levelClass = p.level === "ง่าย" ? "l-easy"
+                   : p.level === "ปานกลาง" ? "l-medium"
+                   : "l-hard";
+
+  return `
+  <div class="problem-card" data-id="${p.id}">
+    <div class="problem-header">
+      <div class="problem-title">
+        <span class="problem-num">${p.id.replace(/[^0-9]/g, '')}</span>
+        ${p.title}
+        <span class="level-pill ${levelClass}">${p.level}</span>
+      </div>
+      <div class="pill-group">
+        <span class="difficulty-pill ${p.difficulty}">พิสูจน์</span>
+      </div>
+    </div>
+    <p class="problem-desc">${p.desc}</p>
+
+    <div class="proof-fn-box">
+      <span class="fn-label">ฟังก์ชัน:</span>
+      <span class="fn-expr">${p.function}</span>
+      <span class="fn-arrow">→ พิสูจน์ว่าเป็น</span>
+      <span class="fn-target">${p.target}</span>
+    </div>
+
+    <button class="reveal-btn" onclick="toggleSolution(this)">
+      <span class="arrow">▶</span>
+      <span class="btn-text">แสดงเฉลย</span>
+    </button>
+
+    <div class="solution">
+      <div class="solution-inner">
+        <div class="solution-title">การพิสูจน์โดยใช้นิยาม Big O</div>
+
+        <div class="proof-def">
+          <strong>📌 นิยาม:</strong> f(n) เป็น O(g(n)) ถ้ามีค่าคงที่ c &gt; 0 และ n₀ ≥ 1 ที่ทำให้
+          <strong>|f(n)| ≤ c · |g(n)|</strong> สำหรับทุก n ≥ n₀
+        </div>
+
+        <ol class="proof-steps">
+          ${stepsHTML}
+        </ol>
+
+        <div class="proof-result">
+          <div class="result-row">
+            <span class="result-label">ค่า c:</span>
+            <span class="result-value"><strong>${p.result.c}</strong></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">ค่า n₀:</span>
+            <span class="result-value"><strong>${p.result.n0}</strong></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">สรุป:</span>
+            <span class="result-value">f(n) เป็น <strong>${p.result.bigO}</strong></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">หมายเหตุ:</span>
+            <span class="result-value">${p.result.note}</span>
+          </div>
+        </div>
+
+        <div class="final-answer">
+          <div class="label">
+            ผลการพิสูจน์
+            <small>หาค่า c และ n₀ ได้สำเร็จ</small>
+          </div>
+          <div class="big-o complexity-tag ${p.result.tag}" style="font-size:1.4rem; padding:8px 20px;">
+            ${p.result.bigO}
           </div>
         </div>
       </div>
@@ -4425,6 +4983,9 @@ function renderProblem(p) {
   if (p.difficulty === "recursive") {
     return renderRecursiveProblem(p);
   }
+  if (p.difficulty === "proof") {
+    return renderProofProblem(p);
+  }
   return renderLinesProblem(p);
 }
 
@@ -4456,6 +5017,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 fillList("easy", "list-easy", "cnt-easy");
 fillList("challenging", "list-challenging", "cnt-challenging");
 fillList("recursive", "list-recursive", "cnt-recursive");
+fillList("proof", "list-proof", "cnt-proof");
 </script>
 </body>
 </html>
