@@ -11,12 +11,12 @@
 const JOHNSON_GRAPH = {
   nodes: ['A', 'B', 'C', 'D', 'E'],
   edges: [
-    [0, 1, 4],   // A → B: 4
-    [0, 2, 2],   // A → C: 2
+[0, 1, 4],   // A → B: 4
+[0, 2, 2],   // A → C: 2
     [1, 2, -1],  // B → C: -1 (negative!)
-    [1, 3, 5],   // B → D: 5
-    [2, 4, 3],   // C → E: 3
-    [3, 4, 2],   // D → E: 2
+[1, 3, 5],   // B → D: 5
+[2, 4, 3],   // C → E: 3
+[3, 4, 2],   // D → E: 2
     [4, 1, -2],  // E → B: -2 (negative!)
   ],
   directed: true,
@@ -42,8 +42,7 @@ function johnsonSteps() {
 
   // ===== Phase 0: Show initial graph =====
   steps.push(johnsonBase('init',
-    `เริ่ม Johnson's Algorithm — ${J_N} nodes, ${JOHNSON_GRAPH.edges.length} directed edges (มี negative edges แต่ไม่มี negative cycle)`,
-    [1, 2], {
+    `เริ่ม Johnson's Algorithm — ${J_N} nodes, ${JOHNSON_GRAPH.edges.length} directed edges (มี negative edges แต่ไม่มี negative cycle)`, [], {
       h: Array.from({ length: J_N }, () => null),
       reweightedEdges: null,
       algoPhase: 'initial',
@@ -58,8 +57,7 @@ function johnsonSteps() {
   // ===== Phase 1: Add virtual source S + Bellman-Ford =====
   // S = index J_N (virtual), connected to all nodes with weight 0
   steps.push(johnsonBase('add-source',
-    `เฟส 1: เพิ่ม virtual source S เชื่อมทุก node ด้วย edge weight=0`,
-    [3, 4, 5], {
+    `เฟส 1: เพิ่ม virtual source S เชื่อมทุก node ด้วย edge weight=0`, [], {
       h: Array.from({ length: J_N }, () => J_INF),
       reweightedEdges: null,
       algoPhase: 'bellman',
@@ -84,8 +82,7 @@ function johnsonSteps() {
   for (let iter = 1; iter <= J_N; iter++) {
     let anyUpdate = false;
     steps.push(johnsonBase('bellman-iter',
-      `เฟส 1 — Bellman-Ford รอบที่ ${iter}/${J_N}: วน relax ทุก edge`,
-      [6, 7, 8], {
+      `เฟส 1 — Bellman-Ford รอบที่ ${iter}/${J_N}: วน relax ทุก edge`, [], {
         h: bellmanDist.slice(0, J_N),
         reweightedEdges: null,
         algoPhase: 'bellman',
@@ -106,8 +103,7 @@ function johnsonSteps() {
         const uLabel = u === J_N ? 'S' : JOHNSON_GRAPH.nodes[u];
         const vLabel = v === J_N ? 'S' : JOHNSON_GRAPH.nodes[v];
         steps.push(johnsonBase('bellman-relax',
-          `relax ${uLabel}→${vLabel} (w=${w})${isVirtual ? ' [virtual]' : ''}: ${bellmanDist[u]} + ${w} = ${bellmanDist[v]} < ${oldDist === J_INF ? '∞' : oldDist} → อัปเดต h(${vLabel}) = ${bellmanDist[v]}`,
-          [9, 10, 11], {
+          `relax ${uLabel}→${vLabel} (w=${w})${isVirtual ? ' [virtual]' : ''}: ${bellmanDist[u]} + ${w} = ${bellmanDist[v]} < ${oldDist === J_INF ? '∞' : oldDist} → อัปเดต h(${vLabel}) = ${bellmanDist[v]}`, [], {
             h: bellmanDist.slice(0, J_N),
             reweightedEdges: null,
             algoPhase: 'bellman',
@@ -151,8 +147,7 @@ function johnsonSteps() {
 
   if (hasNegCycle) {
     steps.push(johnsonBase('neg-cycle',
-      `⚠ พบ negative cycle! ไม่สามารถหา shortest path ได้`,
-      [12, 13], {
+      `⚠ พบ negative cycle! ไม่สามารถหา shortest path ได้`, [], {
         h: bellmanDist.slice(0, J_N),
         reweightedEdges: null,
         algoPhase: 'bellman',
@@ -183,8 +178,7 @@ function johnsonSteps() {
 
   // ===== Phase 2: Reweight edges =====
   steps.push(johnsonBase('reweight-start',
-    `เฟส 2: Reweight edges — w'(u,v) = w(u,v) + h(u) - h(v)  ทำให้ทุก weight ≥ 0`,
-    [14, 15, 16], {
+    `เฟส 2: Reweight edges — w'(u,v) = w(u,v) + h(u) - h(v)  ทำให้ทุก weight ≥ 0`, [], {
       h: h.slice(),
       reweightedEdges: null,
       algoPhase: 'reweight',
@@ -201,8 +195,7 @@ function johnsonSteps() {
     const newW = w + h[u] - h[v];
     reweightedEdges.push({ u, v, w: newW, origW: w });
     steps.push(johnsonBase('reweight-edge',
-      `w'(${JOHNSON_GRAPH.nodes[u]},${JOHNSON_GRAPH.nodes[v]}) = ${w} + h(${JOHNSON_GRAPH.nodes[u]})=${h[u]} - h(${JOHNSON_GRAPH.nodes[v]})=${h[v]} = ${newW} ${newW >= 0 ? '✓ (≥ 0)' : '✗ (< 0!)'}`,
-      [17, 18], {
+      `w'(${JOHNSON_GRAPH.nodes[u]},${JOHNSON_GRAPH.nodes[v]}) = ${w} + h(${JOHNSON_GRAPH.nodes[u]})=${h[u]} - h(${JOHNSON_GRAPH.nodes[v]})=${h[v]} = ${newW} ${newW >= 0 ? '✓ (≥ 0)' : '✗ (< 0!)'}`, [], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
         algoPhase: 'reweight',
@@ -235,8 +228,7 @@ function johnsonSteps() {
   const finalDist = Array.from({ length: J_N }, () => Array.from({ length: J_N }, () => J_INF));
 
   steps.push(johnsonBase('dijkstra-start',
-    `เฟส 3: รัน Dijkstra จากทุก node (${J_N} ครั้ง) ด้วย reweighted edges`,
-    [19, 20], {
+    `เฟส 3: รัน Dijkstra จากทุก node (${J_N} ครั้ง) ด้วย reweighted edges`, [], {
       h: h.slice(),
       reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
       algoPhase: 'dijkstra',
@@ -255,8 +247,7 @@ function johnsonSteps() {
     distPrime[src] = 0;
 
     steps.push(johnsonBase('dijkstra-from',
-      `Dijkstra จาก ${JOHNSON_GRAPH.nodes[src]} — ใช้ reweighted edges (ที่ไม่ติดลบ)`,
-      [21, 22, 23], {
+      `Dijkstra จาก ${JOHNSON_GRAPH.nodes[src]} — ใช้ reweighted edges (ที่ไม่ติดลบ)`, [], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
         algoPhase: 'dijkstra',
@@ -279,8 +270,7 @@ function johnsonSteps() {
       visited.add(u);
 
       steps.push(johnsonBase('dijkstra-pick',
-        `เลือก ${JOHNSON_GRAPH.nodes[u]} (dist'=${distPrime[u]}) — น้อยสุดใน unvisited → mark visited`,
-        [24, 25, 26, 27], {
+        `เลือก ${JOHNSON_GRAPH.nodes[u]} (dist'=${distPrime[u]}) — น้อยสุดใน unvisited → mark visited`, [], {
           h: h.slice(),
           reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
           algoPhase: 'dijkstra',
@@ -301,8 +291,7 @@ function johnsonSteps() {
           const oldD = distPrime[to];
           distPrime[to] = distPrime[u] + w;
           steps.push(johnsonBase('dijkstra-relax',
-            `relax ${JOHNSON_GRAPH.nodes[u]}→${JOHNSON_GRAPH.nodes[to]} (w'=${w}): ${distPrime[u]} + ${w} = ${distPrime[to]} < ${oldD === J_INF ? '∞' : oldD} → อัปเดต dist'[${JOHNSON_GRAPH.nodes[to]}] = ${distPrime[to]}`,
-            [28, 29, 30], {
+            `relax ${JOHNSON_GRAPH.nodes[u]}→${JOHNSON_GRAPH.nodes[to]} (w'=${w}): ${distPrime[u]} + ${w} = ${distPrime[to]} < ${oldD === J_INF ? '∞' : oldD} → อัปเดต dist'[${JOHNSON_GRAPH.nodes[to]}] = ${distPrime[to]}`, [], {
               h: h.slice(),
               reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
               algoPhase: 'dijkstra',
@@ -328,8 +317,7 @@ function johnsonSteps() {
     }
 
     steps.push(johnsonBase('dijkstra-adjust',
-      `ปรับกลับสำหรับ source ${JOHNSON_GRAPH.nodes[src]}: dist(${JOHNSON_GRAPH.nodes[src]},v) = dist'(v) - h(${JOHNSON_GRAPH.nodes[src]}) + h(v)\n${JOHNSON_GRAPH.nodes.map((n, i) => `  dist(${JOHNSON_GRAPH.nodes[src]},${n}) = ${distPrime[i] === J_INF ? '∞' : distPrime[i]} - ${h[src]} + ${h[i]} = ${finalDist[src][i] === J_INF ? '∞' : finalDist[src][i]}`).join('\n')}`,
-      [31, 32], {
+      `ปรับกลับสำหรับ source ${JOHNSON_GRAPH.nodes[src]}: dist(${JOHNSON_GRAPH.nodes[src]},v) = dist'(v) - h(${JOHNSON_GRAPH.nodes[src]}) + h(v)\n${JOHNSON_GRAPH.nodes.map((n, i) => `  dist(${JOHNSON_GRAPH.nodes[src]},${n}) = ${distPrime[i] === J_INF ? '∞' : distPrime[i]} - ${h[src]} + ${h[i]} = ${finalDist[src][i] === J_INF ? '∞' : finalDist[src][i]}`).join('\n')}`, [], {
         h: h.slice(),
         reweightedEdges: reweightedEdges.map((e) => ({ ...e })),
         algoPhase: 'dijkstra',

@@ -97,12 +97,12 @@
       if (step) {
         window.GRAPH.render(handles.vizArea, handles.vizMeta, step, GRAPH);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, step.codeLines || [], step.operation, step);
       } else {
         const initialStep = window.GRAPH.bellmanFordInitial(GRAPH, parseInt(sourceInput, 10) || 0);
         window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, GRAPH);
         window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BELLMAN_FORD.bellmanFord, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

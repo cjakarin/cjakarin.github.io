@@ -13,12 +13,12 @@
 const TARJAN_GRAPH = {
   nodes: ['A', 'B', 'C', 'D', 'E'],
   edges: [
-    [0, 1],  // A → B
-    [1, 2],  // B → C
-    [2, 0],  // C → A
-    [2, 3],  // C → D
-    [3, 4],  // D → E
-    [4, 3],  // E → D
+[0, 1, 1],   // A → B
+[1, 2, 1],   // B → C
+[2, 0, 1],   // C → A
+[2, 3, 1],   // C → D
+[3, 4, 1],   // D → E
+[4, 3, 1],   // E → D
   ],
   directed: true,
 };
@@ -62,24 +62,21 @@ function tarjanSteps() {
     onStack[v] = true;
 
     steps.push(tarjanBase('visit',
-      `strongconnect(${TARJAN_GRAPH.nodes[v]}) — idx[${TARJAN_GRAPH.nodes[v]}]=low[${TARJAN_GRAPH.nodes[v]}]=${idx[v]}, push ลง stack`,
-      [13, 14],
+      `strongconnect(${TARJAN_GRAPH.nodes[v]}) — idx[${TARJAN_GRAPH.nodes[v]}]=low[${TARJAN_GRAPH.nodes[v]}]=${idx[v]}, push ลง stack`, [],
       sccState({ current: v, path: path.slice(), highlightEdge: null }),
       `idx[${TARJAN_GRAPH.nodes[v]}] = low[${TARJAN_GRAPH.nodes[v]}] = ${idx[v]}\nstack = [${stack.map((i) => TARJAN_GRAPH.nodes[i]).join(', ')}]`,
       `visit ${TARJAN_GRAPH.nodes[v]}`));
 
     for (const w of adj[v]) {
       steps.push(tarjanBase('edge',
-        `ตรวจ edge ${TARJAN_GRAPH.nodes[v]} → ${TARJAN_GRAPH.nodes[w]}`,
-        [15],
+        `ตรวจ edge ${TARJAN_GRAPH.nodes[v]} → ${TARJAN_GRAPH.nodes[w]}`, [],
         sccState({ current: v, neighbor: w, path: path.slice(), highlightEdge: [v, w] }),
         undefined,
         `edge ${TARJAN_GRAPH.nodes[v]}→${TARJAN_GRAPH.nodes[w]}`));
 
       if (idx[w] === -1) {
         steps.push(tarjanBase('recurse',
-          `${TARJAN_GRAPH.nodes[w]} ยังไม่ถูกเยี่ยม (idx=-1) → recurse strongconnect(${TARJAN_GRAPH.nodes[w]})`,
-          [16],
+          `${TARJAN_GRAPH.nodes[w]} ยังไม่ถูกเยี่ยม (idx=-1) → recurse strongconnect(${TARJAN_GRAPH.nodes[w]})`, [],
           sccState({ current: v, neighbor: w, path: [...path, v].slice(), highlightEdge: [v, w] }),
           undefined,
           `recurse → ${TARJAN_GRAPH.nodes[w]}`));
@@ -89,8 +86,7 @@ function tarjanSteps() {
         low[v] = Math.min(low[v], low[w]);
         const updated = low[v] !== oldLow;
         steps.push(tarjanBase('low-update',
-          `กลับจาก ${TARJAN_GRAPH.nodes[w]}: low[${TARJAN_GRAPH.nodes[v]}] = min(${oldLow}, low[${TARJAN_GRAPH.nodes[w]}]=${low[w]}) = ${low[v]}${updated ? ' (ลดลง)' : ''}`,
-          [16],
+          `กลับจาก ${TARJAN_GRAPH.nodes[w]}: low[${TARJAN_GRAPH.nodes[v]}] = min(${oldLow}, low[${TARJAN_GRAPH.nodes[w]}]=${low[w]}) = ${low[v]}${updated ? ' (ลดลง)' : ''}`, [],
           sccState({ current: v, neighbor: w, path: path.slice(), highlightEdge: [v, w] }),
           updated ? `low[${TARJAN_GRAPH.nodes[v]}] = ${low[v]}` : undefined,
           `low[${TARJAN_GRAPH.nodes[v]}] = ${low[v]}`));
@@ -100,15 +96,13 @@ function tarjanSteps() {
         low[v] = Math.min(low[v], idx[w]);
         const updated = low[v] !== oldLow;
         steps.push(tarjanBase('back-edge',
-          `${TARJAN_GRAPH.nodes[w]} ถูกเยี่ยมแล้วและอยู่บน stack → back/cross edge: low[${TARJAN_GRAPH.nodes[v]}] = min(${oldLow}, idx[${TARJAN_GRAPH.nodes[w]}]=${idx[w]}) = ${low[v]}${updated ? ' (ลดลง)' : ''}`,
-          [17],
+          `${TARJAN_GRAPH.nodes[w]} ถูกเยี่ยมแล้วและอยู่บน stack → back/cross edge: low[${TARJAN_GRAPH.nodes[v]}] = min(${oldLow}, idx[${TARJAN_GRAPH.nodes[w]}]=${idx[w]}) = ${low[v]}${updated ? ' (ลดลง)' : ''}`, [],
           sccState({ current: v, neighbor: w, path: path.slice(), highlightEdge: [v, w] }),
           updated ? `low[${TARJAN_GRAPH.nodes[v]}] = ${low[v]}` : undefined,
           `back-edge → ${TARJAN_GRAPH.nodes[w]}`));
       } else {
         steps.push(tarjanBase('cross-skip',
-          `${TARJAN_GRAPH.nodes[w]} ถูกเยี่ยมแล้ว แต่ไม่อยู่บน stack → อยู่ใน SCC อื่นแล้ว ข้าม`,
-          [17],
+          `${TARJAN_GRAPH.nodes[w]} ถูกเยี่ยมแล้ว แต่ไม่อยู่บน stack → อยู่ใน SCC อื่นแล้ว ข้าม`, [],
           sccState({ current: v, neighbor: w, path: path.slice(), highlightEdge: [v, w] }),
           undefined,
           `skip ${TARJAN_GRAPH.nodes[w]}`));
@@ -117,8 +111,7 @@ function tarjanSteps() {
 
     // Check if v is root of an SCC
     steps.push(tarjanBase('root-check',
-      `ตรวจ root: low[${TARJAN_GRAPH.nodes[v]}]=${low[v]} ${low[v] === idx[v] ? '==' : '≠'} idx[${TARJAN_GRAPH.nodes[v]}]=${idx[v]}${low[v] === idx[v] ? ' → v เป็น root ของ SCC, pop' : ' → ไม่ใช่ root กลับขึ้น'}`,
-      [19],
+      `ตรวจ root: low[${TARJAN_GRAPH.nodes[v]}]=${low[v]} ${low[v] === idx[v] ? '==' : '≠'} idx[${TARJAN_GRAPH.nodes[v]}]=${idx[v]}${low[v] === idx[v] ? ' → v เป็น root ของ SCC, pop' : ' → ไม่ใช่ root กลับขึ้น'}`, [],
       sccState({ current: v, path: path.slice(), highlightEdge: null }),
       undefined,
       `root-check ${TARJAN_GRAPH.nodes[v]}`));
@@ -132,8 +125,7 @@ function tarjanSteps() {
         onStack[w] = false;
         scc.push(w);
         steps.push(tarjanBase('pop',
-          `pop ${TARJAN_GRAPH.nodes[w]} ออกจาก stack — อยู่ใน SCC ที่มี root ${TARJAN_GRAPH.nodes[v]}`,
-          [21],
+          `pop ${TARJAN_GRAPH.nodes[w]} ออกจาก stack — อยู่ใน SCC ที่มี root ${TARJAN_GRAPH.nodes[v]}`, [],
           sccState({ current: v, popping: w, path: path.slice(), highlightEdge: null, pendingScc: { nodes: scc.slice(), color } }),
           undefined,
           `pop ${TARJAN_GRAPH.nodes[w]}`));
@@ -141,8 +133,7 @@ function tarjanSteps() {
       sccs.push({ nodes: scc, color });
 
       steps.push(tarjanBase('scc-found',
-        `พบ SCC #${sccs.length}: { ${scc.map((i) => TARJAN_GRAPH.nodes[i]).join(', ')} }`,
-        [22],
+        `พบ SCC #${sccs.length}: { ${scc.map((i) => TARJAN_GRAPH.nodes[i]).join(', ')} }`, [],
         sccState({ current: v, path: path.slice(), highlightEdge: null }),
         `SCC #${sccs.length} = { ${scc.map((i) => TARJAN_GRAPH.nodes[i]).join(', ')} }`,
         `SCC #${sccs.length} พบ`));
@@ -151,8 +142,7 @@ function tarjanSteps() {
 
   // ===== Init phase =====
   steps.push(tarjanBase('init',
-    `เริ่ม Tarjan's SCC — ${T_N} nodes, ${TARJAN_GRAPH.edges.length} directed edges. ทุก idx = -1 (ยังไม่เยี่ยม)`,
-    [1, 2, 3, 4, 6, 7, 8, 9, 10],
+    `เริ่ม Tarjan's SCC — ${T_N} nodes, ${TARJAN_GRAPH.edges.length} directed edges. ทุก idx = -1 (ยังไม่เยี่ยม)`, [],
     sccState({ current: -1, path: [], highlightEdge: null }),
     `Graph:\n${TARJAN_GRAPH.edges.map(([u, v]) => `${TARJAN_GRAPH.nodes[u]} → ${TARJAN_GRAPH.nodes[v]}`).join('\n')}\n\nจะ DFS จากทุก node ที่ยังไม่เยี่ยม ใช้ low-link + stack เพื่อหา SCC`,
     'เริ่มต้น'));
@@ -161,8 +151,7 @@ function tarjanSteps() {
   for (let v = 0; v < T_N; v++) {
     if (idx[v] === -1) {
       steps.push(tarjanBase('start-dfs',
-        `เริ่ม DFS ใหม่จาก ${TARJAN_GRAPH.nodes[v]} (ยังไม่ถูกเยี่ยม)`,
-        [12],
+        `เริ่ม DFS ใหม่จาก ${TARJAN_GRAPH.nodes[v]} (ยังไม่ถูกเยี่ยม)`, [],
         sccState({ current: v, path: [], highlightEdge: null }),
         undefined,
         `เริ่ม DFS จาก ${TARJAN_GRAPH.nodes[v]}`));

@@ -23,13 +23,13 @@ function saPush(arr, top, value) {
   const newNode = { id: newId, value };
 
   steps.push(saBase('push', arr, top,
-    `เริ่ม push(${value}) — ตรวจ overflow`, [1],
+    `เริ่ม push(${value}) — ตรวจ overflow`, [],
     top >= 0 ? { [arr[top].id]: 'top' } : {},
     { temp: null }));
 
   if (top >= 99) {
     steps.push(saBase('push', arr, top,
-      `top >= MAX-1 → Stack Overflow!`, [1, 2],
+      `top >= MAX-1 → Stack Overflow!`, [],
       { [arr[top].id]: 'overflow' },
       {}, `Stack Overflow — push ล้มเหลว`, 'Overflow'));
     return steps;
@@ -43,7 +43,7 @@ function saPush(arr, top, value) {
   const newArr = [...arr, newNode];
   const newTop = top + 1;
   steps.push(saBase('push', newArr, newTop,
-    `arr[top] = ${value}`, [4],
+    `arr[top] = ${value}`, [],
     { [newId]: 'new' },
     { temp: null }, undefined, 'เขียนค่า'));
 
@@ -59,13 +59,13 @@ function saPop(arr, top) {
   const steps = [];
 
   steps.push(saBase('pop', arr, top,
-    `เริ่ม pop() — ตรวจ underflow`, [1],
+    `เริ่ม pop() — ตรวจ underflow`, [],
     top >= 0 ? { [arr[top].id]: 'top' } : {},
     { temp: null }));
 
   if (top < 0) {
     steps.push(saBase('pop', arr, top,
-      `top < 0 → Stack Underflow!`, [1, 2],
+      `top < 0 → Stack Underflow!`, [],
       {}, { temp: null }, `Stack Underflow — pop ล้มเหลว`, 'Underflow'));
     return steps;
   }
@@ -77,7 +77,7 @@ function saPop(arr, top) {
     { temp: top }, undefined, 'อ่านค่า'));
 
   steps.push(saBase('pop', arr, top,
-    `top-- (จาก ${top} เป็น ${top - 1})`, [4],
+    `top-- (จาก ${top} เป็น ${top - 1})`, [],
     { [target.id]: 'removing' },
     { temp: top }, undefined, 'ลด top'));
 
@@ -94,20 +94,20 @@ function saPeek(arr, top) {
   const steps = [];
 
   steps.push(saBase('peek', arr, top,
-    `เริ่ม peek() — ตรวจ underflow`, [1],
+    `เริ่ม peek() — ตรวจ underflow`, [],
     top >= 0 ? { [arr[top].id]: 'top' } : {},
     { temp: null }));
 
   if (top < 0) {
     steps.push(saBase('peek', arr, top,
-      `top < 0 → Stack Underflow!`, [1, 2],
+      `top < 0 → Stack Underflow!`, [],
       {}, {}, `Stack Underflow — สแต็กว่าง`, 'Underflow'));
     return steps;
   }
 
   const target = arr[top];
   steps.push(saBase('peek', arr, top,
-    `คืน arr[top] = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าบนสุด)`, [4],
+    `คืน arr[top] = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าบนสุด)`, [],
     { [target.id]: 'peeked' },
     {}, `peek() → ${target.value}`, 'เสร็จสิ้น'));
 
@@ -204,17 +204,17 @@ function spPush(arr, value) {
   const newNode = { id: newId, value };
 
   steps.push(spBase('push', arr,
-    `เริ่ม push(${value})`, [1],
+    `เริ่ม push(${value})`, [],
     arr.length > 0 ? { [arr[arr.length - 1].id]: 'top' } : {},
     { topId: arr.length > 0 ? arr[arr.length - 1].id : null }));
 
   steps.push(spBase('push', arr,
-    `Node* newNode = new Node(${value})`, [1],
+    `Node* newNode = new Node(${value})`, [],
     { [newId]: 'new' },
     { topId: arr.length > 0 ? arr[arr.length - 1].id : null, newId }, undefined, 'สร้าง Node'));
 
   steps.push(spBase('push', arr,
-    `newNode->next = top — ชี้ next ของ newNode ไปยัง top เดิม`, [2],
+    `newNode->next = top — ชี้ next ของ newNode ไปยัง top เดิม`, [],
     {
       [newId]: 'new',
       ...(arr.length > 0 ? { [arr[arr.length - 1].id]: 'target' } : {}),
@@ -223,7 +223,7 @@ function spPush(arr, value) {
 
   const newArr = [newNode, ...arr];
   steps.push(spBase('push', newArr,
-    `top = newNode — ย้าย top มาชี้ newNode`, [3],
+    `top = newNode — ย้าย top มาชี้ newNode`, [],
     { [newId]: 'found' },
     { topId: newId },
     `push(${value}) → สำเร็จ  สแต็กมี ${newArr.length} สมาชิก`, 'เสร็จสิ้น'));
@@ -235,31 +235,31 @@ function spPop(arr) {
   const steps = [];
 
   steps.push(spBase('pop', arr,
-    `เริ่ม pop() — ตรวจ underflow (top == nullptr?)`, [1],
+    `เริ่ม pop() — ตรวจ underflow (top == nullptr?)`, [],
     arr.length > 0 ? { [arr[0].id]: 'top' } : {},
     { topId: arr.length > 0 ? arr[0].id : null }));
 
   if (arr.length === 0) {
     steps.push(spBase('pop', arr,
-      `top == nullptr → Stack Underflow!`, [1, 2, 3],
+      `top == nullptr → Stack Underflow!`, [],
       {}, { topId: null }, `Stack Underflow — pop ล้มเหลว`, 'Underflow'));
     return steps;
   }
 
   const target = arr[0];
   steps.push(spBase('pop', arr,
-    `temp = top; val = temp->data = ${target.value}`, [4, 5],
+    `temp = top; val = temp->data = ${target.value}`, [],
     { [target.id]: 'peeked' },
     { topId: target.id, tempId: target.id }, undefined, 'อ่านค่า'));
 
   steps.push(spBase('pop', arr,
-    `top = top->next — ย้าย top ไป Node ถัดไป`, [6],
+    `top = top->next — ย้าย top ไป Node ถัดไป`, [],
     { [target.id]: 'removing' },
     { topId: arr[1]?.id || null, tempId: target.id }, undefined, 'ย้าย top'));
 
   const newArr = arr.slice(1);
   steps.push(spBase('pop', newArr,
-    `delete temp — ลบ ${target.value} สำเร็จ`, [7, 8],
+    `delete temp — ลบ ${target.value} สำเร็จ`, [],
     newArr.length > 0 ? { [newArr[0].id]: 'top' } : {},
     { topId: newArr[0]?.id || null },
     `pop() → คืนค่า ${target.value} (เหลือ ${newArr.length} สมาชิก)`, 'เสร็จสิ้น'));
@@ -271,20 +271,20 @@ function spPeek(arr) {
   const steps = [];
 
   steps.push(spBase('peek', arr,
-    `เริ่ม peek() — ตรวจ empty`, [1],
+    `เริ่ม peek() — ตรวจ empty`, [],
     arr.length > 0 ? { [arr[0].id]: 'top' } : {},
     { topId: arr.length > 0 ? arr[0].id : null }));
 
   if (arr.length === 0) {
     steps.push(spBase('peek', arr,
-      `top == nullptr → Stack is empty`, [1, 2, 3],
+      `top == nullptr → Stack is empty`, [],
       {}, { topId: null }, `Stack Underflow — สแต็กว่าง`, 'Underflow'));
     return steps;
   }
 
   const target = arr[0];
   steps.push(spBase('peek', arr,
-    `คืน top->data = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าบนสุด)`, [4],
+    `คืน top->data = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าบนสุด)`, [],
     { [target.id]: 'peeked' },
     { topId: target.id }, `peek() → ${target.value}`, 'เสร็จสิ้น'));
 

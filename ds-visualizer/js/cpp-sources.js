@@ -22,12 +22,12 @@ public:
 
     // แทรก value ที่ตำแหน่งแรกของ array
     void insertAtHead(int value) {
-        if (size >= MAX) return;            // 1 ตรวจ full
-        for (int i = size; i > 0; i--) {    // 2 เลื่อนทุกตัวไปทางขวา
-            arr[i] = arr[i - 1];            // 3
+        if (size >= MAX) return;            // ตรวจ full
+        for (int i = size; i > 0; i--) {    // เลื่อนทุกตัวไปทางขวา
+            arr[i] = arr[i - 1];            
         }
-        arr[0] = value;                     // 4 ใส่ value ที่ index 0
-        size++;                             // 5 เพิ่ม size
+        arr[0] = value;                     // ใส่ value ที่ index 0
+        size++;                             // เพิ่ม size
     }
 };`,
   },
@@ -48,9 +48,9 @@ public:
 
     // แทรก value ที่ท้าย array
     void insertAtTail(int value) {
-        if (size >= MAX) return;   // 1 ตรวจ full
-        arr[size] = value;         // 2 ใส่ที่ตำแหน่ง size
-        size++;                    // 3 เพิ่ม size
+        if (size >= MAX) return;   // ตรวจ full
+        arr[size] = value;         // ใส่ที่ตำแหน่ง size
+        size++;                    // เพิ่ม size
     }
 };`,
   },
@@ -71,12 +71,12 @@ public:
 
     // แทรก value ที่ตำแหน่ง pos (0-indexed)
     void insertAt(int value, int pos) {
-        if (size >= MAX || pos < 0 || pos > size) return;  // 1 ตรวบขอบเขต
-        for (int i = size; i > pos; i--) {                 // 2 เลื่อนขวา
-            arr[i] = arr[i - 1];                           // 3
+        if (size >= MAX || pos < 0 || pos > size) return;  // ตรวบขอบเขต
+        for (int i = size; i > pos; i--) {                 // เลื่อนขวา
+            arr[i] = arr[i - 1];                           
         }
-        arr[pos] = value;                                  // 4 ใส่ value
-        size++;                                            // 5 ลด size
+        arr[pos] = value;                                  // ใส่ value
+        size++;                                            // เพิ่ม size
     }
 };`,
   },
@@ -97,11 +97,11 @@ public:
 
     // ลบ element ที่ตำแหน่ง pos
     void deleteAt(int pos) {
-        if (pos < 0 || pos >= size) return;          // 1 ตรวจขอบเขต
-        for (int i = pos; i < size - 1; i++) {       // 2 เลื่อนซ้าย
-            arr[i] = arr[i + 1];                     // 3
+        if (pos < 0 || pos >= size) return;          // ตรวจขอบเขต
+        for (int i = pos; i < size - 1; i++) {       // เลื่อนซ้าย
+            arr[i] = arr[i + 1];                     
         }
-        size--;                                      // 4 ลด size
+        size--;                                      // ลด size
     }
 };`,
   },
@@ -122,12 +122,12 @@ public:
 
     // ค้นหา value — คืน index แรกที่พบ หรือ -1
     int search(int value) {
-        for (int i = 0; i < size; i++) {     // 1 วนทุก index
-            if (arr[i] == value) {           // 2 ตรงค่า?
-                return i;                    // 3 คืน index
+        for (int i = 0; i < size; i++) {     // วนทุก index
+            if (arr[i] == value) {           // ตรงค่า?
+                return i;                    // คืน index
             }
         }
-        return -1;                           // 4 ไม่พบ
+        return -1;                           // ไม่พบ
     }
 };`,
   },
@@ -148,10 +148,10 @@ public:
 
     // พิมพ์ทุก element
     void traverse() {
-        for (int i = 0; i < size; i++) {       // 1 วน 0..size-1
-            cout << arr[i] << " -> ";          // 2 พิมพ์แต่ละตัว
+        for (int i = 0; i < size; i++) {       // วน 0..size-1
+            cout << arr[i] << " -> ";          // พิมพ์แต่ละตัว
         }
-        cout << "NULL" << endl;                // 3 ปิดท้าย
+        cout << "NULL" << endl;                // ปิดท้าย
     }
 };`,
   },
@@ -180,9 +180,9 @@ public:
 
     // แทรก Node ใหม่ที่หัวของลิสต์
     void insertAtHead(int value) {
-        Node* newNode = new Node(value);   // 1 สร้าง Node ใหม่
-        newNode->next = head;              // 2 ชี้ next ไปยัง head เดิม
-        head = newNode;                    // 3 ย้าย head มาชี้ newNode
+        Node* newNode = new Node(value);   // สร้าง Node ใหม่
+        newNode->next = head;              // ชี้ next ไปยัง head เดิม
+        head = newNode;                    // ย้าย head มาชี้ newNode
     }
 };`,
   },
@@ -206,16 +206,16 @@ public:
 
     // แทรก Node ใหม่ที่ท้ายลิสต์
     void insertAtTail(int value) {
-        Node* newNode = new Node(value);   // 1
-        if (head == nullptr) {             // 2 ลิสต์ว่าง?
-            head = newNode;                // 3
-            return;                        // 4
+        Node* newNode = new Node(value);   
+        if (head == nullptr) {             // ลิสต์ว่าง?
+            head = newNode;                
+            return;                        
         }
-        Node* current = head;              // 5
-        while (current->next != nullptr) { // 6 เดินไปท้าย
-            current = current->next;       // 7
+        Node* current = head;              
+        while (current->next != nullptr) { // เดินไปท้าย
+            current = current->next;       
         }
-        current->next = newNode;           // 8 โยงเข้า newNode
+        current->next = newNode;           // โยงเข้า newNode
     }
 };`,
   },
@@ -239,15 +239,15 @@ public:
 
     // แทรกที่ตำแหน่ง pos (0-indexed)
     void insertAtPosition(int value, int pos) {
-        if (pos == 0) { insertAtHead(value); return; }   // 1
-        Node* newNode = new Node(value);                 // 2
-        Node* current = head;                            // 3
-        for (int i = 0; i < pos - 1 && current; i++) {   // 4
-            current = current->next;                     // 5
+        if (pos == 0) { insertAtHead(value); return; }   
+        Node* newNode = new Node(value);                 
+        Node* current = head;                            
+        for (int i = 0; i < pos - 1 && current; i++) {   
+            current = current->next;                     
         }
-        if (!current) return;                            // 6
-        newNode->next = current->next;                   // 7
-        current->next = newNode;                         // 8
+        if (!current) return;                            
+        newNode->next = current->next;                   
+        current->next = newNode;                         
     }
 };`,
   },
@@ -271,21 +271,21 @@ public:
 
     // ลบ Node ที่ตำแหน่ง pos
     void deleteAt(int pos) {
-        if (head == nullptr || pos < 0) return;       // 1
-        if (pos == 0) {                                // 2 ลบที่หัว
-            Node* temp = head;                         // 3
-            head = head->next;                         // 4
-            delete temp;                               // 5
-            return;                                    // 6
+        if (head == nullptr || pos < 0) return;       
+        if (pos == 0) {                                // ลบที่หัว
+            Node* temp = head;                         
+            head = head->next;                         
+            delete temp;                               
+            return;                                    
         }
-        Node* prev = head;                             // 7
-        for (int i = 0; i < pos - 1 && prev->next; i++) { // 8
-            prev = prev->next;                         // 9
+        Node* prev = head;                             
+        for (int i = 0; i < pos - 1 && prev->next; i++) { 
+            prev = prev->next;                         
         }
-        if (!prev->next) return;                       // 10
-        Node* temp = prev->next;                       // 11
-        prev->next = temp->next;                       // 12
-        delete temp;                                   // 13
+        if (!prev->next) return;                       
+        Node* temp = prev->next;                       
+        prev->next = temp->next;                       
+        delete temp;                                   
     }
 };`,
   },
@@ -308,15 +308,15 @@ public:
     LinkedList() : head(nullptr) {}
 
     int search(int value) {
-        Node* current = head;                 // 1
-        int index = 0;                        // 2
-        while (current != nullptr) {          // 3
-            if (current->data == value)       // 4
-                return index;                 // 5
-            current = current->next;          // 6
-            index++;                          // 7
+        Node* current = head;                 
+        int index = 0;                        
+        while (current != nullptr) {          
+            if (current->data == value)       
+                return index;                 
+            current = current->next;          
+            index++;                          
         }
-        return -1;                            // 8
+        return -1;                            
     }
 };`,
   },
@@ -339,12 +339,12 @@ public:
     LinkedList() : head(nullptr) {}
 
     void traverse() {
-        Node* current = head;             // 1
-        while (current != nullptr) {      // 2
-            cout << current->data << " -> "; // 3
-            current = current->next;      // 4
+        Node* current = head;             
+        while (current != nullptr) {      
+            cout << current->data << " -> "; 
+            current = current->next;      
         }
-        cout << "NULL" << endl;           // 5
+        cout << "NULL" << endl;           
     }
 };`,
   },
@@ -370,11 +370,11 @@ public:
 
     // เพิ่มค่าลงบนสุดของสแต็ก
     void push(int value) {
-        if (top >= MAX - 1) {            // 1 ตรวจ overflow
-            cout << "Stack Overflow\\n";  // 2
-            return;                       // 3
+        if (top >= MAX - 1) {            // ตรวจ overflow
+            cout << "Stack Overflow\\n";  
+            return;                       
         }
-        arr[++top] = value;               // 4 เพิ่ม top แล้วเก็บค่า
+        arr[++top] = value;               // เพิ่ม top แล้วเก็บค่า
     }
 };`,
   },
@@ -395,11 +395,11 @@ public:
 
     // เอาค่าบนสุดออก
     int pop() {
-        if (top < 0) {                          // 1 ตรวจ underflow
-            cout << "Stack Underflow\\n";        // 2
-            return -1;                          // 3
+        if (top < 0) {                          // ตรวจ underflow
+            cout << "Stack Underflow\\n";        
+            return -1;                          
         }
-        return arr[top--];                      // 4 คืนค่าที่ top แล้วลด top
+        return arr[top--];                      // คืนค่าที่ top แล้วลด top
     }
 };`,
   },
@@ -420,11 +420,11 @@ public:
 
     // ดูค่าบนสุดโดยไม่ลบ
     int peek() {
-        if (top < 0) {                    // 1 ตรวจ underflow
-            cout << "Stack is empty\\n";   // 2
-            return -1;                    // 3
+        if (top < 0) {                    // ตรวจ underflow
+            cout << "Stack is empty\\n";   
+            return -1;                    
         }
-        return arr[top];                  // 4 คืนค่าที่ top
+        return arr[top];                  // คืนค่าที่ top
     }
 };`,
   },
@@ -453,9 +453,9 @@ public:
 
     // เพิ่ม Node ใหม่ที่ด้านบน
     void push(int value) {
-        Node* newNode = new Node(value);   // 1 สร้าง Node ใหม่
-        newNode->next = top;               // 2 ชี้ next ไปยัง top เดิม
-        top = newNode;                     // 3 ย้าย top มาชี้ newNode
+        Node* newNode = new Node(value);   // สร้าง Node ใหม่
+        newNode->next = top;               // ชี้ next ไปยัง top เดิม
+        top = newNode;                     // ย้าย top มาชี้ newNode
     }
 };`,
   },
@@ -479,15 +479,15 @@ public:
 
     // เอา Node บนสุดออก
     int pop() {
-        if (top == nullptr) {              // 1 ตรวจ underflow
-            cout << "Stack Underflow\\n";   // 2
-            return -1;                     // 3
+        if (top == nullptr) {              // ตรวจ underflow
+            cout << "Stack Underflow\\n";   
+            return -1;                     
         }
-        Node* temp = top;                  // 4 เก็บ reference
-        int val = temp->data;              // 5 อ่านค่า
-        top = top->next;                   // 6 ย้าย top ลง
-        delete temp;                       // 7 คืนหน่วยความจำ
-        return val;                        // 8
+        Node* temp = top;                  // เก็บ reference
+        int val = temp->data;              // อ่านค่า
+        top = top->next;                   // ย้าย top ลง
+        delete temp;                       // คืนหน่วยความจำ
+        return val;                        
     }
 };`,
   },
@@ -511,11 +511,11 @@ public:
 
     // ดูค่าบนสุดโดยไม่ลบ
     int peek() {
-        if (top == nullptr) {              // 1 ตรวจ empty
-            cout << "Stack is empty\\n";    // 2
-            return -1;                     // 3
+        if (top == nullptr) {              // ตรวจ empty
+            cout << "Stack is empty\\n";    
+            return -1;                     
         }
-        return top->data;                  // 4 คืนค่าที่ top
+        return top->data;                  // คืนค่าที่ top
     }
 };`,
   },
@@ -542,11 +542,11 @@ public:
 
     // เพิ่มค่าที่ท้ายคิว (rear)
     void enqueue(int value) {
-        if (rear >= MAX - 1) {            // 1 ตรวจ overflow
-            cout << "Queue Overflow\\n";   // 2
-            return;                       // 3
+        if (rear >= MAX - 1) {            // ตรวจ overflow
+            cout << "Queue Overflow\\n";   
+            return;                       
         }
-        arr[++rear] = value;              // 4 เพิ่ม rear แล้วเก็บค่า
+        arr[++rear] = value;              // เพิ่ม rear แล้วเก็บค่า
     }
 };`,
   },
@@ -568,11 +568,11 @@ public:
 
     // เอาค่าหน้าสุดออก
     int dequeue() {
-        if (front > rear) {                       // 1 ตรวจ underflow
-            cout << "Queue Underflow\\n";          // 2
-            return -1;                            // 3
+        if (front > rear) {                       // ตรวจ underflow
+            cout << "Queue Underflow\\n";          
+            return -1;                            
         }
-        return arr[front++];                      // 4 คืนค่าที่ front แล้วเพิ่ม front
+        return arr[front++];                      // คืนค่าที่ front แล้วเพิ่ม front
     }
 };`,
   },
@@ -594,11 +594,11 @@ public:
 
     // ดูค่าหน้าสุดโดยไม่ลบ
     int frontElement() {
-        if (front > rear) {                 // 1 ตรวจ underflow
-            cout << "Queue is empty\\n";     // 2
-            return -1;                      // 3
+        if (front > rear) {                 // ตรวจ underflow
+            cout << "Queue is empty\\n";     
+            return -1;                      
         }
-        return arr[front];                  // 4 คืนค่าที่ front
+        return arr[front];                  // คืนค่าที่ front
     }
 };`,
   },
@@ -628,13 +628,13 @@ public:
 
     // เพิ่ม Node ใหม่ที่ท้ายคิว
     void enqueue(int value) {
-        Node* newNode = new Node(value);          // 1 สร้าง Node
-        if (rear == nullptr) {                    // 2 คิวว่าง?
-            front = rear = newNode;               // 3 front และ rear ชี้ที่เดียวกัน
-            return;                               // 4
+        Node* newNode = new Node(value);          // สร้าง Node
+        if (rear == nullptr) {                    // คิวว่าง?
+            front = rear = newNode;               // front และ rear ชี้ที่เดียวกัน
+            return;                               
         }
-        rear->next = newNode;                     // 5 โยง rear เดิมเข้า newNode
-        rear = newNode;                           // 6 ย้าย rear ไป newNode
+        rear->next = newNode;                     // โยง rear เดิมเข้า newNode
+        rear = newNode;                           // ย้าย rear ไป newNode
     }
 };`,
   },
@@ -659,17 +659,17 @@ public:
 
     // เอา Node หน้าสุดออก
     int dequeue() {
-        if (front == nullptr) {              // 1 ตรวจ underflow
-            cout << "Queue Underflow\\n";     // 2
-            return -1;                       // 3
+        if (front == nullptr) {              // ตรวจ underflow
+            cout << "Queue Underflow\\n";     
+            return -1;                       
         }
-        Node* temp = front;                  // 4 เก็บ reference
-        int val = temp->data;                // 5 อ่านค่า
-        front = front->next;                 // 6 ย้าย front ไป Node ถัดไป
-        if (front == nullptr)                // 7 ถ้า front กลายเป็น nullptr
-            rear = nullptr;                  // 8 ให้ rear เป็น nullptr ด้วย
-        delete temp;                         // 9 คืนหน่วยความจำ
-        return val;                          // 10
+        Node* temp = front;                  // เก็บ reference
+        int val = temp->data;                // อ่านค่า
+        front = front->next;                 // ย้าย front ไป Node ถัดไป
+        if (front == nullptr)                // ถ้า front กลายเป็น nullptr
+            rear = nullptr;                  // ให้ rear เป็น nullptr ด้วย
+        delete temp;                         // คืนหน่วยความจำ
+        return val;                          
     }
 };`,
   },
@@ -694,11 +694,11 @@ public:
 
     // ดูค่าหน้าสุดโดยไม่ลบ
     int frontElement() {
-        if (front == nullptr) {              // 1 ตรวจ empty
-            cout << "Queue is empty\\n";      // 2
-            return -1;                       // 3
+        if (front == nullptr) {              // ตรวจ empty
+            cout << "Queue is empty\\n";      
+            return -1;                       
         }
-        return front->data;                  // 4 คืนค่าที่ front
+        return front->data;                  // คืนค่าที่ front
     }
 };`,
   },
@@ -725,23 +725,23 @@ struct Node {
 class HashTableChaining {
 private:
     Node* table[SIZE];
-    int hash(int key) { return key % SIZE; }       // 0
+    int hash(int key) { return key % SIZE; }       
 public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
     void insert(int key, int value) {
-        int idx = hash(key);                  // 1 คำนวณ hash
-        Node* cur = table[idx];               // 2 เริ่มที่ head ของ chain
-        while (cur != nullptr) {              // 3 วนตรวจ chain
-            if (cur->key == key) {            // 4 พบ key ซ้ำ?
-                cur->value = value;           // 5 อัปเดต value
-                return;                       // 6
+        int idx = hash(key);                  // คำนวณ hash
+        Node* cur = table[idx];               // เริ่มที่ head ของ chain
+        while (cur != nullptr) {              // วนตรวจ chain
+            if (cur->key == key) {            // พบ key ซ้ำ?
+                cur->value = value;           // อัปเดต value
+                return;                       
             }
-            cur = cur->next;                  // 7 ไป node ถัดไป
+            cur = cur->next;                  // ไป node ถัดไป
         }
-        Node* node = new Node(key, value);    // 8 สร้าง node ใหม่
-        node->next = table[idx];              // 9 โยงเข้า head เดิม
-        table[idx] = node;                    // 10 ย้าย head
+        Node* node = new Node(key, value);    // สร้าง node ใหม่
+        node->next = table[idx];              // โยงเข้า head เดิม
+        table[idx] = node;                    // ย้าย head
     }
 };`,
   },
@@ -763,16 +763,16 @@ public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
     bool search(int key, int& outValue) {
-        int idx = hash(key);                  // 1 คำนวณ hash
-        Node* cur = table[idx];               // 2 เริ่มที่ head ของ chain
-        while (cur != nullptr) {              // 3 วนตรวจ
-            if (cur->key == key) {            // 4 พบ?
-                outValue = cur->value;        // 5 เก็บ value
-                return true;                  // 6 คืน true
+        int idx = hash(key);                  // คำนวณ hash
+        Node* cur = table[idx];               // เริ่มที่ head ของ chain
+        while (cur != nullptr) {              // วนตรวจ
+            if (cur->key == key) {            // พบ?
+                outValue = cur->value;        // เก็บ value
+                return true;                  // คืน true
             }
-            cur = cur->next;                  // 7 ไปถัดไป
+            cur = cur->next;                  // ไปถัดไป
         }
-        return false;                         // 8 ไม่พบ
+        return false;                         // ไม่พบ
     }
 };`,
   },
@@ -794,18 +794,18 @@ public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
     void remove(int key) {
-        int idx = hash(key);                  // 1 คำนวณ hash
-        Node* cur = table[idx];               // 2 เริ่มที่ head
-        Node* prev = nullptr;                 // 3 prev = nullptr
-        while (cur != nullptr) {              // 4 วนตรวจ
-            if (cur->key == key) {            // 5 พบ?
-                if (prev) prev->next = cur->next; // 6 โยงข้าม cur
-                else table[idx] = cur->next;  // 7 ลบที่ head
-                delete cur;                   // 8 คืนหน่วยความจำ
-                return;                       // 9
+        int idx = hash(key);                  // คำนวณ hash
+        Node* cur = table[idx];               // เริ่มที่ head
+        Node* prev = nullptr;                 // prev = nullptr
+        while (cur != nullptr) {              // วนตรวจ
+            if (cur->key == key) {            // พบ?
+                if (prev) prev->next = cur->next; // โยงข้าม cur
+                else table[idx] = cur->next;  // ลบที่ head
+                delete cur;                   // คืนหน่วยความจำ
+                return;                       
             }
-            prev = cur;                       // 10 เลื่อน prev
-            cur = cur->next;                  // 11 เลื่อน cur
+            prev = cur;                       // เลื่อน prev
+            cur = cur->next;                  // เลื่อน cur
         }
     }
 };`,
@@ -834,21 +834,21 @@ public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     void insert(int key, int value) {
-        int h = hash(key);                    // 1 คำนวณ hash
-        for (int i = 0; i < SIZE; i++) {      // 2 ลอง probe
-            int idx = (h + i) % SIZE;         // 3 linear: (h+i) % SIZE
-            if (!used[idx]) {                 // 4 ช่องว่าง?
-                keys[idx] = key;              // 5 เก็บ key
-                values[idx] = value;          // 6 เก็บ value
-                used[idx] = true;             // 7 ทำเครื่องหมาย
-                return;                       // 8 สำเร็จ
+        int h = hash(key);                    // คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // ลอง probe
+            int idx = (h + i) % SIZE;         // linear: (h+i) % SIZE
+            if (!used[idx]) {                 // ช่องว่าง?
+                keys[idx] = key;              // เก็บ key
+                values[idx] = value;          // เก็บ value
+                used[idx] = true;             // ทำเครื่องหมาย
+                return;                       // สำเร็จ
             }
-            if (keys[idx] == key) {           // 9 key ซ้ำ?
-                values[idx] = value;          // 10 อัปเดต
-                return;                       // 11
+            if (keys[idx] == key) {           // key ซ้ำ?
+                values[idx] = value;          // อัปเดต
+                return;                       
             }
         }
-        cout << "Table Full\\n";              // 12 เต็ม
+        cout << "Table Full\\n";              // เต็ม
     }
 };`,
   },
@@ -868,16 +868,16 @@ public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     bool search(int key, int& outValue) {
-        int h = hash(key);                    // 1 คำนวณ hash
-        for (int i = 0; i < SIZE; i++) {      // 2 probe
-            int idx = (h + i) % SIZE;         // 3 (h+i) % SIZE
-            if (!used[idx]) return false;     // 4 ช่องว่าง → ไม่พบ
-            if (keys[idx] == key) {           // 5 พบ key?
-                outValue = values[idx];       // 6 เก็บ value
-                return true;                  // 7 คืน true
+        int h = hash(key);                    // คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // probe
+            int idx = (h + i) % SIZE;         // (h+i) % SIZE
+            if (!used[idx]) return false;     // ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {           // พบ key?
+                outValue = values[idx];       // เก็บ value
+                return true;                  // คืน true
             }
         }
-        return false;                         // 8 probe ครบ → ไม่พบ
+        return false;                         // probe ครบ → ไม่พบ
     }
 };`,
   },
@@ -898,13 +898,13 @@ public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 
     void remove(int key) {
-        int h = hash(key);                    // 1 คำนวณ hash
-        for (int i = 0; i < SIZE; i++) {      // 2 probe
-            int idx = (h + i) % SIZE;         // 3 (h+i) % SIZE
-            if (!used[idx]) return;           // 4 ช่องว่าง → ไม่พบ
-            if (!deleted[idx] && keys[idx] == key) {  // 5 พบ key?
-                deleted[idx] = true;          // 6 mark เป็น tombstone
-                return;                       // 7 (ไม่ลบจริง เพื่อรักษา probe chain)
+        int h = hash(key);                    // คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {      // probe
+            int idx = (h + i) % SIZE;         // (h+i) % SIZE
+            if (!used[idx]) return;           // ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) {  // พบ key?
+                deleted[idx] = true;          // mark เป็น tombstone
+                return;                       // (ไม่ลบจริง เพื่อรักษา probe chain)
             }
         }
     }
@@ -931,21 +931,21 @@ public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     void insert(int key, int value) {
-        int h = hash(key);                          // 1 คำนวณ hash
-        for (int i = 0; i < SIZE; i++) {            // 2 probe
-            int idx = (h + i * i) % SIZE;           // 3 quadratic: (h+i²) % SIZE
-            if (!used[idx]) {                       // 4 ช่องว่าง?
-                keys[idx] = key;                    // 5
-                values[idx] = value;                // 6
-                used[idx] = true;                   // 7
-                return;                             // 8
+        int h = hash(key);                          // คำนวณ hash
+        for (int i = 0; i < SIZE; i++) {            // probe
+            int idx = (h + i * i) % SIZE;           // quadratic: (h+i²) % SIZE
+            if (!used[idx]) {                       // ช่องว่าง?
+                keys[idx] = key;                    
+                values[idx] = value;                
+                used[idx] = true;                   
+                return;                             
             }
-            if (keys[idx] == key) {                 // 9 key ซ้ำ?
-                values[idx] = value;                // 10
-                return;                             // 11
+            if (keys[idx] == key) {                 // key ซ้ำ?
+                values[idx] = value;                
+                return;                             
             }
         }
-        cout << "Table Full\\n";                    // 12
+        cout << "Table Full\\n";                    
     }
 };`,
   },
@@ -965,16 +965,16 @@ public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     bool search(int key, int& outValue) {
-        int h = hash(key);                          // 1
-        for (int i = 0; i < SIZE; i++) {            // 2
-            int idx = (h + i * i) % SIZE;           // 3 (h+i²) % SIZE
-            if (!used[idx]) return false;           // 4 ช่องว่าง → ไม่พบ
-            if (keys[idx] == key) {                 // 5 พบ?
-                outValue = values[idx];             // 6
-                return true;                        // 7
+        int h = hash(key);                          
+        for (int i = 0; i < SIZE; i++) {            
+            int idx = (h + i * i) % SIZE;           // (h+i²) % SIZE
+            if (!used[idx]) return false;           // ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {                 // พบ?
+                outValue = values[idx];             
+                return true;                        
             }
         }
-        return false;                               // 8
+        return false;                               
     }
 };`,
   },
@@ -995,13 +995,13 @@ public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 
     void remove(int key) {
-        int h = hash(key);                          // 1
-        for (int i = 0; i < SIZE; i++) {            // 2
-            int idx = (h + i * i) % SIZE;           // 3 (h+i²) % SIZE
-            if (!used[idx]) return;                 // 4 ช่องว่าง → ไม่พบ
-            if (!deleted[idx] && keys[idx] == key) { // 5 พบ?
-                deleted[idx] = true;                // 6 mark tombstone
-                return;                             // 7
+        int h = hash(key);                          
+        for (int i = 0; i < SIZE; i++) {            
+            int idx = (h + i * i) % SIZE;           // (h+i²) % SIZE
+            if (!used[idx]) return;                 // ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) { // พบ?
+                deleted[idx] = true;                // mark tombstone
+                return;                             
             }
         }
     }
@@ -1029,22 +1029,22 @@ public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     void insert(int key, int value) {
-        int h = hash1(key);                         // 1 h1
-        int step = hash2(key);                      // 2 h2 (step size)
-        for (int i = 0; i < SIZE; i++) {            // 3 probe
-            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
-            if (!used[idx]) {                       // 5 ช่องว่าง?
-                keys[idx] = key;                    // 6
-                values[idx] = value;                // 7
-                used[idx] = true;                   // 8
-                return;                             // 9
+        int h = hash1(key);                         // h1
+        int step = hash2(key);                      // h2 (step size)
+        for (int i = 0; i < SIZE; i++) {            // probe
+            int idx = (h + i * step) % SIZE;        // (h1 + i·h2) % SIZE
+            if (!used[idx]) {                       // ช่องว่าง?
+                keys[idx] = key;                    
+                values[idx] = value;                
+                used[idx] = true;                   
+                return;                             
             }
-            if (keys[idx] == key) {                 // 10 ซ้ำ?
-                values[idx] = value;                // 11
-                return;                             // 12
+            if (keys[idx] == key) {                 // ซ้ำ?
+                values[idx] = value;                
+                return;                             
             }
         }
-        cout << "Table Full\\n";                    // 13
+        cout << "Table Full\\n";                    
     }
 };`,
   },
@@ -1065,17 +1065,17 @@ public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
     bool search(int key, int& outValue) {
-        int h = hash1(key);                         // 1
-        int step = hash2(key);                      // 2
-        for (int i = 0; i < SIZE; i++) {            // 3
-            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
-            if (!used[idx]) return false;           // 5 ช่องว่าง → ไม่พบ
-            if (keys[idx] == key) {                 // 6 พบ?
-                outValue = values[idx];             // 7
-                return true;                        // 8
+        int h = hash1(key);                         
+        int step = hash2(key);                      
+        for (int i = 0; i < SIZE; i++) {            
+            int idx = (h + i * step) % SIZE;        // (h1 + i·h2) % SIZE
+            if (!used[idx]) return false;           // ช่องว่าง → ไม่พบ
+            if (keys[idx] == key) {                 // พบ?
+                outValue = values[idx];             
+                return true;                        
             }
         }
-        return false;                               // 9
+        return false;                               
     }
 };`,
   },
@@ -1097,14 +1097,14 @@ public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 
     void remove(int key) {
-        int h = hash1(key);                         // 1
-        int step = hash2(key);                      // 2
-        for (int i = 0; i < SIZE; i++) {            // 3
-            int idx = (h + i * step) % SIZE;        // 4 (h1 + i·h2) % SIZE
-            if (!used[idx]) return;                 // 5 ช่องว่าง → ไม่พบ
-            if (!deleted[idx] && keys[idx] == key) { // 6 พบ?
-                deleted[idx] = true;                // 7 mark tombstone
-                return;                             // 8
+        int h = hash1(key);                         
+        int step = hash2(key);                      
+        for (int i = 0; i < SIZE; i++) {            
+            int idx = (h + i * step) % SIZE;        // (h1 + i·h2) % SIZE
+            if (!used[idx]) return;                 // ช่องว่าง → ไม่พบ
+            if (!deleted[idx] && keys[idx] == key) { // พบ?
+                deleted[idx] = true;                // mark tombstone
+                return;                             
             }
         }
     }
@@ -1132,12 +1132,12 @@ public:
     MinHeap() : size(0) {}
 
     void insert(int value) {
-        if (size >= MAX) return;             // 1 เช็ค full
-        arr[size] = value;                   // 2 ใส่ท้าย array
-        int i = size++;                      // 3 size++
-        while (i > 0 && arr[i] < arr[parent(i)]) {  // 4 heapify-up
-            swap(arr[i], arr[parent(i)]);    // 5 สลับกับ parent
-            i = parent(i);                   // 6 ขยับ i ขึ้น
+        if (size >= MAX) return;             // เช็ค full
+        arr[size] = value;                   // ใส่ท้าย array
+        int i = size++;                      // size++
+        while (i > 0 && arr[i] < arr[parent(i)]) {  // heapify-up
+            swap(arr[i], arr[parent(i)]);    // สลับกับ parent
+            i = parent(i);                   // ขยับ i ขึ้น
         }
     }
 };`,
@@ -1160,20 +1160,20 @@ public:
     MinHeap() : size(0) {}
 
     int extractMin() {
-        if (size == 0) return -1;            // 1 underflow
-        int min = arr[0];                    // 2 เก็บ root (min)
-        arr[0] = arr[--size];                // 3 ย้าย last → root
+        if (size == 0) return -1;            // underflow
+        int min = arr[0];                    // เก็บ root (min)
+        arr[0] = arr[--size];                // ย้าย last → root
         int i = 0;
-        while (true) {                       // 4 heapify-down
-            int l = left(i), r = right(i);   // 5
-            int smallest = i;                // 6
-            if (l < size && arr[l] < arr[smallest]) smallest = l;  // 7
-            if (r < size && arr[r] < arr[smallest]) smallest = r;  // 8
-            if (smallest == i) break;        // 9 หยุดถ้าเรียงแล้ว
-            swap(arr[i], arr[smallest]);     // 10 สลับลง
-            i = smallest;                    // 11
+        while (true) {                       // heapify-down
+            int l = left(i), r = right(i);   
+            int smallest = i;                
+            if (l < size && arr[l] < arr[smallest]) smallest = l;  
+            if (r < size && arr[r] < arr[smallest]) smallest = r;  
+            if (smallest == i) break;        // หยุดถ้าเรียงแล้ว
+            swap(arr[i], arr[smallest]);     // สลับลง
+            i = smallest;                    
         }
-        return min;                          // 12 คืน min
+        return min;                          // คืน min
     }
 };`,
   },
@@ -1193,19 +1193,19 @@ int parent[N];
 
 // find แบบ path compression — O(α(N)) ~ O(1)
 int find(int x) {
-    if (parent[x] != x) {                   // 1 ถ้าไม่ใช่ root
-        parent[x] = find(parent[x]);        // 2 path compression
+    if (parent[x] != x) {                   // ถ้าไม่ใช่ root
+        parent[x] = find(parent[x]);        // path compression
     }
-    return parent[x];                       // 3 คืน root
+    return parent[x];                       // คืน root
 }
 
 // แบบ iterative:
 // int find(int x) {
-//     while (parent[x] != x) {              // 1 ไล่ขึ้น parent
-//         parent[x] = parent[parent[x]];   // 2 path halving
-//         x = parent[x];                   // 3
+//     while (parent[x] != x) {              // ไล่ขึ้น parent
+//         parent[x] = parent[parent[x]];   // path halving
+//         x = parent[x];                   
 //     }
-//     return x;                            // 4 คืน root
+//     return x;                            // คืน root
 // }`,
   },
   union_: {
@@ -1224,18 +1224,18 @@ int find(int x) {
 
 // union by rank — ต้ไม้ที่สั้นกว่าไปอยู่ใต้ต้นไม้ที่สูงกว่า
 bool unite(int x, int y) {
-    int rx = find(x);                       // 1 root ของ x
-    int ry = find(y);                       // 2 root ของ y
-    if (rx == ry) return false;             // 3 อยู่ใน set เดียวกัน
-    if (rnk[rx] < rnk[ry]) {                // 4 rank เล็ก → ไปใต้ใหญ่
-        parent[rx] = ry;                    // 5
-    } else if (rnk[rx] > rnk[ry]) {         // 6
-        parent[ry] = rx;                    // 7
-    } else {                                // 8 เท่ากัน
-        parent[ry] = rx;                    // 9 เลือกฝั่งนึง
-        rnk[rx]++;                          // 10 bump rank
+    int rx = find(x);                       // root ของ x
+    int ry = find(y);                       // root ของ y
+    if (rx == ry) return false;             // อยู่ใน set เดียวกัน
+    if (rnk[rx] < rnk[ry]) {                // rank เล็ก → ไปใต้ใหญ่
+        parent[rx] = ry;                    
+    } else if (rnk[rx] > rnk[ry]) {         
+        parent[ry] = rx;                    
+    } else {                                // เท่ากัน
+        parent[ry] = rx;                    // เลือกฝั่งนึง
+        rnk[rx]++;                          // bump rank
     }
-    return true;                            // 11 รวมสำเร็จ
+    return true;                            // รวมสำเร็จ
 }`,
   },
 };
@@ -1257,28 +1257,28 @@ int dist[N];
 bool visited[N];
 
 void dijkstra(int source) {
-    for (int i = 0; i < N; i++) {            // 1 init
-        dist[i] = INT_MAX;                   // 2
-        visited[i] = false;                  // 3
+    for (int i = 0; i < N; i++) {            // init
+        dist[i] = INT_MAX;                   
+        visited[i] = false;                  
     }
-    dist[source] = 0;                        // 4
+    dist[source] = 0;                        
 
-    for (int cnt = 0; cnt < N; cnt++) {      // 5 ทำ N รอบ
+    for (int cnt = 0; cnt < N; cnt++) {      // ทำ N รอบ
         // หา unvisited ที่ dist น้อยสุด
-        int u = -1, minD = INT_MAX;          // 6
-        for (int i = 0; i < N; i++) {        // 7
-            if (!visited[i] && dist[i] < minD) {  // 8
-                minD = dist[i]; u = i;       // 9
+        int u = -1, minD = INT_MAX;          
+        for (int i = 0; i < N; i++) {        
+            if (!visited[i] && dist[i] < minD) {  
+                minD = dist[i]; u = i;       
             }
         }
-        if (u == -1) break;                  // 10 ไม่มีที่ไปต่อ
-        visited[u] = true;                   // 11 mark visited
+        if (u == -1) break;                  // ไม่มีที่ไปต่อ
+        visited[u] = true;                   // mark visited
 
         // relax ทุก edge จาก u
-        for (auto& [v, w] : adj[u]) {        // 12 วน neighbors
-            if (visited[v]) continue;        // 13 ข้าม visited
-            if (dist[u] + w < dist[v]) {     // 14 พบทางสั้นกว่า?
-                dist[v] = dist[u] + w;       // 15 อัปเดต dist
+        for (auto& [v, w] : adj[u]) {        // วน neighbors
+            if (visited[v]) continue;        // ข้าม visited
+            if (dist[u] + w < dist[v]) {     // พบทางสั้นกว่า?
+                dist[v] = dist[u] + w;       // อัปเดต dist
             }
         }
     }
@@ -1390,19 +1390,19 @@ bool visited[N];
 
 // BFS ใช้ queue (FIFO) — เยี่ยมเป็นชั้น ๆ (level by level)
 void bfs(int source) {
-    queue<int> q;                          // 1 สร้าง queue
-    q.push(source);                        // 2 enqueue source
-    visited[source] = true;                // 3 mark visited
+    queue<int> q;                          // สร้าง queue
+    q.push(source);                        // enqueue source
+    visited[source] = true;                // mark visited
 
-    while (!q.empty()) {                   // 4 ลูปจนกว่า queue ว่าง
-        int u = q.front();                 // 5 ดูตัวหน้า queue
-        q.pop();                           // 6 dequeue
-        cout << u << " ";                  // 7 ประมวลผล u
+    while (!q.empty()) {                   // ลูปจนกว่า queue ว่าง
+        int u = q.front();                 // ดูตัวหน้า queue
+        q.pop();                           // dequeue
+        cout << u << " ";                  // ประมวลผล u
 
-        for (int v : adj[u]) {             // 8 วนเพื่อนบ้านทุกตัว
-            if (!visited[v]) {             // 9 ถ้ายังไม่ visited
-                visited[v] = true;         // 10 mark visited
-                q.push(v);                 // 11 enqueue
+        for (int v : adj[u]) {             // วนเพื่อนบ้านทุกตัว
+            if (!visited[v]) {             // ถ้ายังไม่ visited
+                visited[v] = true;         // mark visited
+                q.push(v);                 // enqueue
             }
         }
     }
@@ -1421,22 +1421,22 @@ bool visited[N];
 
 // DFS แบบ iterative ใช้ stack (LIFO) — ดำลึงเป็น branch
 void dfs(int source) {
-    vector<int> st;                        // 1 สร้าง stack
-    st.push_back(source);                  // 2 push source
+    vector<int> st;                        // สร้าง stack
+    st.push_back(source);                  // push source
 
-    while (!st.empty()) {                  // 3 ลูปจนกว่า stack ว่าง
-        int u = st.back();                 // 4 ดูตัวบนสุด
-        st.pop_back();                     // 5 pop
+    while (!st.empty()) {                  // ลูปจนกว่า stack ว่าง
+        int u = st.back();                 // ดูตัวบนสุด
+        st.pop_back();                     // pop
 
-        if (visited[u]) continue;          // 6 ถ้า visited แล้ว ข้าม
-        visited[u] = true;                 // 7 mark visited
-        cout << u << " ";                  // 8 ประมวลผล u
+        if (visited[u]) continue;          // ถ้า visited แล้ว ข้าม
+        visited[u] = true;                 // mark visited
+        cout << u << " ";                  // ประมวลผล u
 
         // push เพื่อนบ้าน (ย้อนลำดับเพื่อให้เยี่ยมเล็กก่อน)
-        for (int i = adj[u].size() - 1; i >= 0; i--) {  // 9
-            int v = adj[u][i];             // 10
-            if (!visited[v]) {             // 11
-                st.push_back(v);           // 12 push
+        for (int i = adj[u].size() - 1; i >= 0; i--) {  
+            int v = adj[u][i];             
+            if (!visited[v]) {             
+                st.push_back(v);           // push
             }
         }
     }
@@ -1444,10 +1444,10 @@ void dfs(int source) {
 
 // แบบ recursive (กระชับกว่า แต่ใช้ call stack):
 // void dfs(int u) {
-//     visited[u] = true;                   // 1 mark visited
-//     cout << u << " ";                    // 2 ประมวลผล
-//     for (int v : adj[u]) {               // 3 วนเพื่อนบ้าน
-//         if (!visited[v]) dfs(v);         // 4 recurse
+//     visited[u] = true;                   // mark visited
+//     cout << u << " ";                    // ประมวลผล
+//     for (int v : adj[u]) {               // วนเพื่อนบ้าน
+//         if (!visited[v]) dfs(v);         // recurse
 //     }
 // }`,
   },
@@ -1471,24 +1471,24 @@ int inDegree[N];
 // Topological Sort แบบ Kahn — ใช้ queue + ลด in-degree
 vector<int> topologicalSort(int n) {
     queue<int> q;
-    for (int i = 0; i < n; i++) {            // 1 หา in-degree ของทุก node
-        if (inDegree[i] == 0) q.push(i);     // 2 ใส่ in-deg=0 ลง queue
+    for (int i = 0; i < n; i++) {            // หา in-degree ของทุก node
+        if (inDegree[i] == 0) q.push(i);     // ใส่ in-deg=0 ลง queue
     }
 
     vector<int> order;
-    while (!q.empty()) {                      // 3 ลูปจนกว่า queue ว่าง
-        int u = q.front(); q.pop();           // 4 dequeue
-        order.push_back(u);                   // 5 เพิ่มเข้า result
+    while (!q.empty()) {                      // ลูปจนกว่า queue ว่าง
+        int u = q.front(); q.pop();           // dequeue
+        order.push_back(u);                   // เพิ่มเข้า result
 
-        for (int v : adj[u]) {                // 6 วนเพื่อนบ้าน
-            if (--inDegree[v] == 0) {         // 7 ลด in-degree, ถ้าเป็น 0
-                q.push(v);                    // 8 enqueue
+        for (int v : adj[u]) {                // วนเพื่อนบ้าน
+            if (--inDegree[v] == 0) {         // ลด in-degree, ถ้าเป็น 0
+                q.push(v);                    // enqueue
             }
         }
     }
 
     // ถ้า order.size() < n → มี cycle (ไม่ใช่ DAG)
-    return order;                             // 9 คืน topological order
+    return order;                             // คืน topological order
 }`,
   },
 };
@@ -1511,27 +1511,27 @@ long long dist[N];
 
 // Bellman-Ford — รองรับ negative weights + ตรวจ negative cycle
 bool bellmanFord(int n, int m, int source) {
-    for (int i = 0; i < n; i++) dist[i] = LLONG_MAX;  // 1 init dist
-    dist[source] = 0;                                  // 2
+    for (int i = 0; i < n; i++) dist[i] = LLONG_MAX;  // init dist
+    dist[source] = 0;                                  
 
     // V-1 iterations (relax ทุก edge)
-    for (int iter = 0; iter < n - 1; iter++) {         // 3 วน V-1 ครั้ง
-        for (int j = 0; j < m; j++) {                  // 4 วนทุก edge
-            if (dist[u[j]] != LLONG_MAX &&             // 5 ถ้า source มีค่า
-                dist[u[j]] + w[j] < dist[v[j]]) {      // 6 พบทางสั้นกว่า?
-                dist[v[j]] = dist[u[j]] + w[j];        // 7 relax
+    for (int iter = 0; iter < n - 1; iter++) {         // วน V-1 ครั้ง
+        for (int j = 0; j < m; j++) {                  // วนทุก edge
+            if (dist[u[j]] != LLONG_MAX &&             // ถ้า source มีค่า
+                dist[u[j]] + w[j] < dist[v[j]]) {      // พบทางสั้นกว่า?
+                dist[v[j]] = dist[u[j]] + w[j];        // relax
             }
         }
     }
 
     // รอบที่ V — ตรวจ negative cycle
-    for (int j = 0; j < m; j++) {                      // 8 วนทุก edge อีกครั้ง
-        if (dist[u[j]] != LLONG_MAX &&                 // 9 ถ้ายัง relax ได้อีก
+    for (int j = 0; j < m; j++) {                      // วนทุก edge อีกครั้ง
+        if (dist[u[j]] != LLONG_MAX &&                 // ถ้ายัง relax ได้อีก
             dist[u[j]] + w[j] < dist[v[j]]) {
-            return false;                              // 10 พบ negative cycle!
+            return false;                              // พบ negative cycle!
         }
     }
-    return true;                                       // 11 ไม่มี cycle, dist ถูกต้อง
+    return true;                                       // ไม่มี cycle, dist ถูกต้อง
 }`,
   },
 };
@@ -1557,45 +1557,45 @@ long long f[N];                 // f(n) = g(n) + h(n)
 // A* ใช้ priority queue เรียงตาม f(n) น้อยสุด
 // หา shortest path จาก source → goal (ใช้ heuristic เร่งการค้น)
 vector<int> aStar(int source, int goal, int n) {
-    for (int i = 0; i < n; i++) {               // 1 init g, f
-        g[i] = LLONG_MAX;                        // 2
-        f[i] = LLONG_MAX;                        // 3
+    for (int i = 0; i < n; i++) {               // init g, f
+        g[i] = LLONG_MAX;                        
+        f[i] = LLONG_MAX;                        
     }
-    g[source] = 0;                               // 4
-    f[source] = h[source];                       // 5 f = g + h
+    g[source] = 0;                               
+    f[source] = h[source];                       // f = g + h
 
     // priority queue: (f, node) เรียง f น้อยสุดก่อน
-    priority_queue<pair<long long,int>,          // 6
+    priority_queue<pair<long long,int>,          
                    vector<pair<long long,int>>,
                    greater<>> pq;
-    pq.push({f[source], source});                // 7 push source
+    pq.push({f[source], source});                // push source
     vector<int> parent(n, -1);
     vector<bool> closed(n, false);
 
-    while (!pq.empty()) {                        // 8
-        auto [fu, u] = pq.top(); pq.pop();       // 9 pop f น้อยสุด
-        if (u == goal) break;                    // 10 ถึง goal → หยุด
-        if (closed[u]) continue;                 // 11 ข้ามถ้า closed แล้ว
-        closed[u] = true;                        // 12 mark closed
+    while (!pq.empty()) {                        
+        auto [fu, u] = pq.top(); pq.pop();       // pop f น้อยสุด
+        if (u == goal) break;                    // ถึง goal → หยุด
+        if (closed[u]) continue;                 // ข้ามถ้า closed แล้ว
+        closed[u] = true;                        // mark closed
 
-        for (auto& [v, w] : adj[u]) {            // 13 วนเพื่อนบ้าน
-            if (closed[v]) continue;             // 14
-            long long tentativeG = g[u] + w;     // 15 คำนวณ g ใหม่
-            if (tentativeG < g[v]) {             // 16 ดีกว่า?
-                parent[v] = u;                   // 17 บันทึก parent
-                g[v] = tentativeG;               // 18 อัปเดต g
-                f[v] = g[v] + h[v];              // 19 อัปเดต f
-                pq.push({f[v], v});              // 20 push ลง pq
+        for (auto& [v, w] : adj[u]) {            // วนเพื่อนบ้าน
+            if (closed[v]) continue;             
+            long long tentativeG = g[u] + w;     // คำนวณ g ใหม่
+            if (tentativeG < g[v]) {             // ดีกว่า?
+                parent[v] = u;                   // บันทึก parent
+                g[v] = tentativeG;               // อัปเดต g
+                f[v] = g[v] + h[v];              // อัปเดต f
+                pq.push({f[v], v});              // push ลง pq
             }
         }
     }
 
     // reconstruct path
     vector<int> path;
-    for (int cur = goal; cur != -1; cur = parent[cur])  // 21 ไล่ parent
+    for (int cur = goal; cur != -1; cur = parent[cur])  // ไล่ parent
         path.push_back(cur);
-    reverse(path.begin(), path.end());          // 22 กลับด้าน
-    return path;                                // 23 คืน path
+    reverse(path.begin(), path.end());          // กลับด้าน
+    return path;                                // คืน path
 }`,
   },
 };
@@ -1755,6 +1755,189 @@ void fixInsert(Node*& root, Node* z) {
   },
 };
 
+// ---------- Binary Search Tree (BST) ----------
+
+const CPP_BST = {
+  insert: {
+    title: 'bstInsert',
+    fileName: 'bst.cpp',
+    code: `#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* left;
+    Node* right;
+    Node(int v) : value(v), left(nullptr), right(nullptr) {}
+};
+
+// Insert ลง BST — O(h) โดย h = height (worst case O(n))
+Node* insert(Node* root, int value) {
+    if (root == nullptr) {                  // ถึงจุดว่าง
+        return new Node(value);             // สร้าง Node ใหม่
+    }
+    if (value < root->value) {              // น้อยกว่า → ลงซ้าย
+        root->left = insert(root->left, value);
+    } else if (value > root->value) {       // มากกว่า → ลงขวา
+        root->right = insert(root->right, value);
+    }
+    // value == root->value → ไม่ insert (ซ้ำ)
+    return root;
+}
+
+// Search — O(h)
+Node* search(Node* root, int value) {
+    if (root == nullptr) return nullptr;    // ไม่พบ
+    if (value == root->value) return root;  // พบ!
+    if (value < root->value)
+        return search(root->left, value);   // ลงซ้าย
+    return search(root->right, value);      // ลงขวา
+}
+
+// In-order traversal → ได้ค่าเรียงจากน้อยไปมาก
+void inorder(Node* root) {
+    if (root == nullptr) return;
+    inorder(root->left);                    // left
+    cout << root->value << " ";             // node
+    inorder(root->right);                   // right
+}`,
+  },
+};
+
+// ---------- B+ Tree ----------
+
+const CPP_BPTREE = {
+  insert: {
+    title: 'bptInsert',
+    fileName: 'bplustree.cpp',
+    code: `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+const int ORDER = 4;  // max children = 4, max keys = 3
+
+struct BPTNode {
+    vector<int> keys;
+    vector<BPTNode*> children;
+    BPTNode* next;       // leaf linked list
+    bool isLeaf;
+    BPTNode(bool leaf) : isLeaf(leaf), next(nullptr) {}
+};
+
+BPTNode* root = nullptr;
+
+// หา leaf node สำหรับ key
+BPTNode* findLeaf(int key) {
+    BPTNode* cur = root;
+    while (!cur->isLeaf) {
+        int i = 0;
+        while (i < cur->keys.size() && key >= cur->keys[i]) i++;
+        cur = cur->children[i];
+    }
+    return cur;
+}
+
+// แทรก key ลง leaf (เรียงลำดับ)
+void insertIntoLeaf(BPTNode* leaf, int key) {
+    auto pos = lower_bound(leaf->keys.begin(), leaf->keys.end(), key);
+    leaf->keys.insert(pos, key);
+}
+
+// แทรก key + rightChild ลง internal node ที่ตำแหน่ง pos
+void insertIntoInternal(BPTNode* node, int key, BPTNode* rightChild) {
+    auto pos = lower_bound(node->keys.begin(), node->keys.end(), key);
+    int idx = pos - node->keys.begin();
+    node->keys.insert(pos, key);
+    node->children.insert(node->children.begin() + idx + 1, rightChild);
+}
+
+// Insert ลง B+ Tree — O(log n)
+// คืนค่า: root ใหม่ (ถ้ามี split root) หรือ root เดิม
+BPTNode* insert(BPTNode* root, int key) {
+    // Case 1: tree ว่าง
+    if (root == nullptr) {
+        root = new BPTNode(true);
+        root->keys.push_back(key);
+        return root;
+    }
+
+    // Case 2: หา leaf และแทรก key
+    BPTNode* leaf = findLeaf(key);
+    insertIntoLeaf(leaf, key);
+
+    // ถ้า leaf ไม่เต็ม → เสร็จแล้ว
+    if (leaf->keys.size() <= ORDER - 1) return root;
+
+    // Case 3: leaf เต็ม → split leaf (copy up)
+    int mid = leaf->keys.size() / 2;
+    BPTNode* newLeaf = new BPTNode(true);
+    newLeaf->keys.assign(leaf->keys.begin() + mid, leaf->keys.end());
+    leaf->keys.erase(leaf->keys.begin() + mid, leaf->keys.end());
+    // linked list
+    newLeaf->next = leaf->next;
+    leaf->next = newLeaf;
+    // copy up key แรกของ newLeaf (B+ Tree: copy, ไม่ move)
+    int copyUpKey = newLeaf->keys[0];
+
+    // Case 4: แทรก copyUpKey ลง parent — วนซ้ำถ้า parent เต็ม
+    BPTNode* leftChild = leaf;
+    BPTNode* rightChild = newLeaf;
+    int upKey = copyUpKey;
+
+    while (true) {
+        // หา parent ของ leftChild
+        // (ใน implementation จริงควรเก็บ parent pointer ไว้
+        //  ที่นี่ใช้การ traverse จาก root เพื่อหา parent)
+        BPTNode* parent = nullptr;
+        BPTNode* cur = root;
+        while (!cur->isLeaf && cur != leftChild) {
+            for (int i = 0; i < cur->children.size(); i++) {
+                if (cur->children[i] == leftChild) { parent = cur; break; }
+            }
+            if (!parent) {
+                int i = 0;
+                while (i < cur->keys.size() && upKey >= cur->keys[i]) i++;
+                cur = cur->children[i];
+            }
+        }
+
+        // Case 4a: leftChild คือ root → สร้าง root ใหม่
+        if (parent == nullptr) {
+            BPTNode* newRoot = new BPTNode(false);
+            newRoot->keys.push_back(upKey);
+            newRoot->children.push_back(leftChild);
+            newRoot->children.push_back(rightChild);
+            return newRoot;
+        }
+
+        // แทรก upKey ลง parent
+        insertIntoInternal(parent, upKey, rightChild);
+
+        // ถ้า parent ไม่เต็ม → เสร็จแล้ว
+        if (parent->keys.size() <= ORDER - 1) return root;
+
+        // Case 4b: parent เต็ม → split internal (move up)
+        int midIdx = parent->keys.size() / 2;
+        int moveUpKey = parent->keys[midIdx];
+        BPTNode* newInternal = new BPTNode(false);
+        // keys: left เก็บ [0..midIdx-1], right เก็บ [midIdx+1..end]
+        // moveUpKey ถูก "ย้าย" ขึ้นไป (ไม่ copy เหมือน leaf)
+        newInternal->keys.assign(parent->keys.begin() + midIdx + 1, parent->keys.end());
+        parent->keys.erase(parent->keys.begin() + midIdx, parent->keys.end());
+        // children: แบ่งครึ่งตาม
+        newInternal->children.assign(parent->children.begin() + midIdx + 1, parent->children.end());
+        parent->children.erase(parent->children.begin() + midIdx + 1, parent->children.end());
+
+        // วนซ้ำ: แทรก moveUpKey ลง grandparent
+        leftChild = parent;
+        rightChild = newInternal;
+        upKey = moveUpKey;
+    }
+}`,
+  },
+};
+
 // ---------- Johnson's Algorithm (All-Pairs Shortest Path with negative edges) ----------
 
 const CPP_JOHNSON = {
@@ -1876,4 +2059,6 @@ window.CPP_SOURCES = {
   AVL: CPP_AVL,
   RB_TREE: CPP_RB_TREE,
   JOHNSON: CPP_JOHNSON,
+  BST: CPP_BST,
+  BPTREE: CPP_BPTREE,
 };

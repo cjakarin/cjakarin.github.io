@@ -97,7 +97,7 @@
       if (step) {
         window.AVL.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, step.codeLines || [], step.operation, step);
       } else {
         // Idle: serialize current root tree into a step object
         const serialized = window.AVL.serialize(root);
@@ -113,7 +113,7 @@
         };
         window.AVL.render(handles.vizArea, handles.vizMeta, idleStep);
         window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.AVL.insert, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

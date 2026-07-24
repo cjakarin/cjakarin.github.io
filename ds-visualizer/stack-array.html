@@ -120,13 +120,13 @@
         window.STACK_ARRAY.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         const cppSource = window.CPP_SOURCES.STACK_ARRAY[step.operation] || window.CPP_SOURCES.STACK_ARRAY.push;
-        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || [], step.operation, step);
       } else {
         window.STACK_ARRAY.render(handles.vizArea, handles.vizMeta, {
           nodes: arr, roles: {}, pointers: { top, temp: null }, codeLines: [], description: '',
         });
         window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.STACK_ARRAY.push, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.STACK_ARRAY.push, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

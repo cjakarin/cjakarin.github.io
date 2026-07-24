@@ -82,8 +82,7 @@ function rbInsert(root, value) {
   const z = rbNode(value, RB_RED);
 
   steps.push(rbStep('insert',
-    `เริ่ม insert(${value})${root ? '' : ' — tree ว่าง จะสร้าง root ใหม่'}`,
-    [24], root, {}, undefined, 'เริ่มต้น'));
+    `เริ่ม insert(${value})${root ? '' : ' — tree ว่าง จะสร้าง root ใหม่'}`, [], root, {}, undefined, 'เริ่มต้น'));
 
   // BST insert (without balancing)
   let parent = null;
@@ -91,14 +90,12 @@ function rbInsert(root, value) {
   while (cur) {
     parent = cur;
     steps.push(rbStep('insert',
-      `BST insert: เปรียบเทียบ ${value} กับ ${cur.value}`,
-      [24], root, { [cur.id]: 'current' }, undefined, `visit ${cur.value}`));
+      `BST insert: เปรียบเทียบ ${value} กับ ${cur.value}`, [], root, { [cur.id]: 'current' }, undefined, `visit ${cur.value}`));
     if (value < cur.value) cur = cur.left;
     else if (value > cur.value) cur = cur.right;
     else {
       steps.push(rbStep('insert',
-        `${value} == ${cur.value} → ไม่ insert (duplicate)`,
-        [25], root, { [cur.id]: 'found' },
+        `${value} == ${cur.value} → ไม่ insert (duplicate)`, [], root, { [cur.id]: 'found' },
         `insert(${value}) → มีอยู่แล้ว (skip)`, 'duplicate'));
       return { steps, root };
     }
@@ -114,8 +111,7 @@ function rbInsert(root, value) {
   }
 
   steps.push(rbStep('insert',
-    `แทรก Node ${value} เป็น RED ที่${parent ? ` ${value < parent.value ? 'left' : 'right'} ของ ${parent.value}` : ' root'}  (RED เพราะจะไม่กระทบ black-height)`,
-    [25, 26], root, { [z.id]: 'new' },
+    `แทรก Node ${value} เป็น RED ที่${parent ? ` ${value < parent.value ? 'left' : 'right'} ของ ${parent.value}` : ' root'}  (RED เพราะจะไม่กระทบ black-height)`, [], root, { [z.id]: 'new' },
     `+ insert ${value} (RED)`, 'BST insert'));
 
   // Step 2: fixInsert — fix RED–RED violations
@@ -133,22 +129,19 @@ function rbInsert(root, value) {
     const uncle = parentIsLeft ? gp.right : gp.left;
 
     steps.push(rbStep('insert',
-      `fixInsert iter ${iter}: z=${zPtr.value} (RED)  parent=${parent_.value} (RED — ผิดกฎ!)  gp=${gp.value}${uncle ? `  uncle=${uncle.value} (${uncle.color})` : '  uncle=NIL (BLACK)'}`,
-      [25, 26], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
+      `fixInsert iter ${iter}: z=${zPtr.value} (RED)  parent=${parent_.value} (RED — ผิดกฎ!)  gp=${gp.value}${uncle ? `  uncle=${uncle.value} (${uncle.color})` : '  uncle=NIL (BLACK)'}`, [], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
       undefined, `fixInsert iter ${iter}`));
 
     if (isRed(uncle)) {
       // Case 1: uncle RED → recolor parent, uncle=BLACK, gp=RED, z=gp
       steps.push(rbStep('insert',
-        `Case 1: uncle ${uncle ? uncle.value : 'NIL'} = RED → recolor: parent→BLACK, uncle→BLACK, gp→RED  แล้วเลื่อน z ขึ้นไปที่ gp`,
-        [29], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev', [uncle.id]: 'current' },
+        `Case 1: uncle ${uncle ? uncle.value : 'NIL'} = RED → recolor: parent→BLACK, uncle→BLACK, gp→RED  แล้วเลื่อน z ขึ้นไปที่ gp`, [], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev', [uncle.id]: 'current' },
         undefined, 'Case 1: recolor'));
       parent_.color = RB_BLACK;
       uncle.color = RB_BLACK;
       gp.color = RB_RED;
       steps.push(rbStep('insert',
-        `หลัง recolor: ${parent_.value}→BLACK, ${uncle.value}→BLACK, ${gp.value}→RED  เลื่อน z ขึ้นไปที่ ${gp.value}`,
-        [29], root, { [gp.id]: 'current', [parent_.id]: 'target', [uncle.id]: 'target' },
+        `หลัง recolor: ${parent_.value}→BLACK, ${uncle.value}→BLACK, ${gp.value}→RED  เลื่อน z ขึ้นไปที่ ${gp.value}`, [], root, { [gp.id]: 'current', [parent_.id]: 'target', [uncle.id]: 'target' },
         undefined, 'หลัง recolor'));
       zPtr = gp;
     } else {
@@ -157,16 +150,14 @@ function rbInsert(root, value) {
         if (zPtr === parent_.right) {
           // Case 2 (left parent, right child): rotateLeft(parent) → now z = parent (becomes left child)
           steps.push(rbStep('insert',
-            `Case 2 (L-R): z=${zPtr.value} เป็น right child ของ parent ${parent_.value} → rotateLeft(${parent_.value}) เพื่อทำให้เป็น Case 3`,
-            [31], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
+            `Case 2 (L-R): z=${zPtr.value} เป็น right child ของ parent ${parent_.value} → rotateLeft(${parent_.value}) เพื่อทำให้เป็น Case 3`, [], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
             undefined, 'Case 2: rotateLeft'));
           zPtr = parent_;
           root = rbRotateLeft(root, zPtr);
         }
         // Case 3 (left-left): recolor parent=BLACK, gp=RED, rotateRight(gp)
         steps.push(rbStep('insert',
-          `Case 3 (L-L): recolor parent ${zPtr.parent.value}→BLACK, gp ${gp.value}→RED  แล้ว rotateRight(${gp.value})`,
-          [32], root, { [zPtr.id]: 'current', [zPtr.parent.id]: 'target', [gp.id]: 'prev' },
+          `Case 3 (L-L): recolor parent ${zPtr.parent.value}→BLACK, gp ${gp.value}→RED  แล้ว rotateRight(${gp.value})`, [], root, { [zPtr.id]: 'current', [zPtr.parent.id]: 'target', [gp.id]: 'prev' },
           undefined, 'Case 3: recolor + rotateRight'));
         zPtr.parent.color = RB_BLACK;
         gp.color = RB_RED;
@@ -180,16 +171,14 @@ function rbInsert(root, value) {
         if (zPtr === parent_.left) {
           // Case 2 mirror (R-L): rotateRight(parent)
           steps.push(rbStep('insert',
-            `Case 2 (R-L): z=${zPtr.value} เป็น left child ของ parent ${parent_.value} → rotateRight(${parent_.value}) เพื่อทำให้เป็น Case 3`,
-            [38], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
+            `Case 2 (R-L): z=${zPtr.value} เป็น left child ของ parent ${parent_.value} → rotateRight(${parent_.value}) เพื่อทำให้เป็น Case 3`, [], root, { [zPtr.id]: 'current', [parent_.id]: 'target', [gp.id]: 'prev' },
             undefined, 'Case 2 mirror: rotateRight'));
           zPtr = parent_;
           root = rbRotateRight(root, zPtr);
         }
         // Case 3 mirror (R-R): recolor parent=BLACK, gp=RED, rotateLeft(gp)
         steps.push(rbStep('insert',
-          `Case 3 (R-R): recolor parent ${zPtr.parent.value}→BLACK, gp ${gp.value}→RED  แล้ว rotateLeft(${gp.value})`,
-          [39], root, { [zPtr.id]: 'current', [zPtr.parent.id]: 'target', [gp.id]: 'prev' },
+          `Case 3 (R-R): recolor parent ${zPtr.parent.value}→BLACK, gp ${gp.value}→RED  แล้ว rotateLeft(${gp.value})`, [], root, { [zPtr.id]: 'current', [zPtr.parent.id]: 'target', [gp.id]: 'prev' },
           undefined, 'Case 3 mirror: recolor + rotateLeft'));
         zPtr.parent.color = RB_BLACK;
         gp.color = RB_RED;
@@ -206,8 +195,7 @@ function rbInsert(root, value) {
   // Step 3: ensure root is BLACK
   if (root.color !== RB_BLACK) {
     steps.push(rbStep('insert',
-      `หลัง fixInsert: ทำให้แน่ใจว่า root ${root.value} เป็น BLACK (กฎข้อ 2)`,
-      [43], root, { [root.id]: 'current' },
+      `หลัง fixInsert: ทำให้แน่ใจว่า root ${root.value} เป็น BLACK (กฎข้อ 2)`, [], root, { [root.id]: 'current' },
       undefined, 'root → BLACK'));
   }
   root.color = RB_BLACK;

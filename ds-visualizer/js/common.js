@@ -232,9 +232,16 @@ function tokenizeCppLine(line) {
   return tokens;
 }
 
-function renderCodePanel(container, source, activeLines = []) {
+function renderCodePanel(container, source, activeLines = [], operation = '', step = null) {
   clearChildren(container);
   const lines = source.code.split('\n');
+
+  // If activeLines is empty, try to highlight the relevant function block
+  // based on the operation name. This gives a visual cue of which part of
+  // the code is currently executing.
+  if ((!activeLines || activeLines.length === 0) && operation) {
+    activeLines = computeActiveLines(lines, operation, step);
+  }
 
   // header
   const header = el('div', { class: 'code-panel-header' });
@@ -259,6 +266,55 @@ function renderCodePanel(container, source, activeLines = []) {
     block.appendChild(lineEl);
   });
   container.appendChild(block);
+}
+
+// Infer the most relevant executable line when an engine does not provide
+// an explicit codeLines mapping. Never highlight the whole file: a broad
+// highlight looks active but teaches the wrong execution point.
+function computeActiveLines(lines, operation, step) {
+  if (!operation) return [];
+  const context = `${step?.description || ''} ${step?.phase || ''}`.toLowerCase();
+  const cues = [
+    { when: /เพิ่ม top|top\+\+/, code: /\+\+top|top\+\+/i },
+    { when: /ลด top|top--/, code: /--top|top--/i },
+    { when: /overflow|เต็ม/, code: /if\s*\(.*(?:max|size\s*>=|top\s*>=)/i },
+    { when: /underflow|ว่าง/, code: /empty|top\s*<|head\s*==\s*nullptr|front\s*==\s*nullptr/i },
+    { when: /ขอบเขต|out of bounds/, code: /pos\s*<|pos\s*>|pos\s*>=/i },
+    { when: /สร้าง|new node|allocate/, code: /\bnew\b|newnode/i },
+    { when: /เลื่อน.*ขวา|shift.*right/, code: /for\s*\(.*--|arr\[i\]\s*=\s*arr\[i\s*-\s*1\]/i },
+    { when: /เลื่อน.*ซ้าย|shift.*left/, code: /for\s*\(.*\+\+|arr\[i\]\s*=\s*arr\[i\s*\+\s*1\]/i },
+    { when: /โยง|ชี้|next/, code: /->next|\bnext\b/i },
+    { when: /swap|สลับ|rotation|หมุน/, code: /swap|rotate/i },
+    { when: /เปรียบเทียบ|ตรงค่า|พบ|compare/, code: /==|find|search/i },
+    { when: /return|คืนค่า|คืน /, code: /\breturn\b/i },
+    { when: /queue|enqueue/, code: /\bpush\b|enqueue/i },
+    { when: /dequeue/, code: /\bpop\b|dequeue/i },
+    { when: /relax|อัปเดต dist|tentative/, code: /dist\[|relax/i },
+  ];
+
+  for (const cue of cues) {
+    if (!cue.when.test(context)) continue;
+    const idx = lines.findIndex((line) => cue.code.test(line));
+    if (idx >= 0) return [idx + 1];
+  }
+
+  const normalizedOp = operation.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const aliases = {
+    inserthead: ['insertathead', 'inserthead'],
+    inserttail: ['insertattail', 'inserttail'],
+    extractmin: ['extractmin'],
+    find: ['find'],
+    union: ['union'],
+    pick: ['astar', 'dijkstra'],
+    update: ['astar', 'bellmanford', 'dijkstra'],
+    done: ['return'],
+  };
+  const names = aliases[normalizedOp] || [normalizedOp];
+  const fnIdx = lines.findIndex((line) => {
+    const normalizedLine = line.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return names.some((name) => name && normalizedLine.includes(name));
+  });
+  return fnIdx >= 0 ? [fnIdx + 1] : [];
 }
 
 // ============ Step Description renderer ============

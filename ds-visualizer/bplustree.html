@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B+ Tree</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/bplustree.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let allValues = [10, 20, 5, 15, 30, 25, 7, 12];
+    let tree = window.BPTREE.buildTree(allValues);
+    let valueInput = '18';
+    let speed = 700;
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'B+ Tree',
+      subtitle: 'Tree สำหรับ database indexing · leaf nodes เก็บ data + linked list · internal nodes เก็บ routing keys · O(log n)',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ insert', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => { allValues = []; tree = { rootId: null, nodeMap: {} }; playback.load([]); renderAll(); },
+        onReset: () => {
+          allValues = [10, 20, 5, 15, 30, 25, 7, 12];
+          tree = window.BPTREE.buildTree(allValues);
+          playback.load([]);
+          renderAll();
+        },
+      },
+      legendItems: [
+        { color: '#10b981', label: 'leaf node', desc: 'เก็บ data keys' },
+        { color: '#5e6677', label: 'internal node', desc: 'routing keys (ไม่เก็บ data)' },
+        { color: '#a855f7', label: 'leaf link', desc: 'linked list เชื่อม leaves' },
+        { color: '#f59e0b', label: 'current', desc: 'กำลังประมวลผล' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      if (allValues.includes(v)) return;
+      // Build fresh tree with current values + new one
+      const newValues = allValues.concat([v]);
+      const newTree = window.BPTREE.buildTree(newValues);
+      // Run insert steps on the OLD tree to get animation
+      const steps = window.BPTREE.insert(tree.rootId, tree.nodeMap, v);
+      allValues = newValues;
+      tree = newTree;
+      playback.load(steps);
+      playback.play();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.BPTREE.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BPTREE.insert, step.codeLines || [], step.operation, step);
+      } else {
+        // Idle — serialize current tree
+        const nodeMap = tree.nodeMap || {};
+        const rootId = tree.rootId;
+        const nodes = [];
+        const edges = [];
+        if (rootId && nodeMap[rootId]) {
+          (function dfs(nodeId, parentId, depth) {
+            const node = nodeMap[nodeId];
+            if (!node) return;
+            nodes.push({ id: node.id, keys: node.keys.slice(), isLeaf: node.isLeaf, depth: depth, next: node.next });
+            if (parentId) edges.push([parentId, node.id]);
+            if (!node.isLeaf && node.children) {
+              node.children.forEach((cid) => dfs(cid, node.id, depth + 1));
+            }
+          })(rootId, null, 0);
+        }
+        const idleStep = { operation: 'init', description: 'B+ Tree พร้อม — กด Insert เพื่อเพิ่ม key', codeLines: [], nodes, edges, roles: {}, highlight: null, phase: 'พร้อม' };
+        window.BPTREE.render(handles.vizArea, handles.vizMeta, idleStep);
+        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BPTREE.insert, [], '');
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

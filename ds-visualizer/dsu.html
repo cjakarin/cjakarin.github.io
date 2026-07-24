@@ -128,13 +128,13 @@
         window.DSU.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         const cppSource = window.CPP_SOURCES.DSU[step.operation === 'find' ? 'find' : 'union_'] || window.CPP_SOURCES.DSU.find;
-        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || [], step.operation, step);
       } else {
         window.DSU.render(handles.vizArea, handles.vizMeta, {
           parent: state.parent, rank: state.rank, roles: {}, pointers: {}, codeLines: [], description: '',
         });
         window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.DSU.find, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.DSU.find, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

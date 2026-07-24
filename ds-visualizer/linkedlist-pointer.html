@@ -161,14 +161,14 @@
         window.LL_POINTER.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         const cppSource = window.CPP_SOURCES.LL_POINTER[step.operation] || window.CPP_SOURCES.LL_POINTER.insertHead;
-        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || [], step.operation, step);
       } else {
         window.LL_POINTER.render(handles.vizArea, handles.vizMeta, {
           nodes, roles: {}, pointers: { head: nodes[0]?.id || null, current: null, prev: null, newNode: null },
           codeLines: [], description: '',
         });
         window.DS.renderDescAndConsole(handles.descBody, null, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.LL_POINTER.insertHead, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.LL_POINTER.insertHead, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

@@ -24,14 +24,14 @@ function dsuFind(parent, rank, x) {
   const path = [];
 
   steps.push(dsuBase('find', parent, rank,
-    `เริ่ม find(${x}) — หา root (representative) ของ set ที่มี ${x}`, [1],
+    `เริ่ม find(${x}) — หา root (representative) ของ set ที่มี ${x}`, [],
     { [`${x}`]: 'current' }, { current: x, root: null, path: [] }, undefined, 'เริ่มต้น'));
 
   let cur = x;
   path.push(cur);
   while (parent[cur] !== cur) {
     steps.push(dsuBase('find', parent, rank,
-      `parent[${cur}] = ${parent[cur]} ≠ ${cur} → ไปขึ้น parent`, [2, 3],
+      `parent[${cur}] = ${parent[cur]} ≠ ${cur} → ไปขึ้น parent`, [],
       { [`${cur}`]: 'current', [`${parent[cur]}`]: 'target' },
       { current: cur, root: null, path: path.slice() }, undefined, 'เดินขึ้น parent'));
     cur = parent[cur];
@@ -39,15 +39,14 @@ function dsuFind(parent, rank, x) {
   }
 
   steps.push(dsuBase('find', parent, rank,
-    `parent[${cur}] = ${cur} → ${cur} คือ root! คืนค่า ${cur}`, [2, 4],
+    `parent[${cur}] = ${cur} → ${cur} คือ root! คืนค่า ${cur}`, [],
     { [`${cur}`]: 'found' }, { current: cur, root: cur, path: path.slice() },
     `find(${x}) → ${cur}`, 'พบ root'));
 
   // Path compression: point all path nodes directly to root
   if (path.length > 2) {
     steps.push(dsuBase('find', parent, rank,
-      `Path compression: ย้ายทุก node ใน path ให้ชี้ตรงไป root ${cur}`,
-      [5, 6, 7],
+      `Path compression: ย้ายทุก node ใน path ให้ชี้ตรงไป root ${cur}`, [],
       { [`${cur}`]: 'found' }, { current: cur, root: cur, path: path.slice() },
       undefined, 'Path compression'));
 
@@ -69,7 +68,7 @@ function dsuUnion(parent, rank, x, y) {
   const steps = [];
 
   steps.push(dsuBase('union', parent, rank,
-    `เริ่ม union(${x}, ${y}) — หา root ของทั้งสอง set ก่อน`, [1],
+    `เริ่ม union(${x}, ${y}) — หา root ของทั้งสอง set ก่อน`, [],
     { [`${x}`]: 'current', [`${y}`]: 'target' },
     { current: x, root: null, path: [] }, undefined, 'เริ้มต้น'));
 
@@ -78,7 +77,7 @@ function dsuUnion(parent, rank, x, y) {
   const pathX = [x];
   while (parent[rx] !== rx) { rx = parent[rx]; pathX.push(rx); }
   steps.push(dsuBase('union', parent, rank,
-    `find(${x}) → root = ${rx}`, [2],
+    `find(${x}) → root = ${rx}`, [],
     { [`${rx}`]: 'found', [`${x}`]: 'current' },
     { current: x, root: rx, path: [] }, undefined, `find(${x})=${rx}`));
 
@@ -87,14 +86,13 @@ function dsuUnion(parent, rank, x, y) {
   const pathY = [y];
   while (parent[ry] !== ry) { ry = parent[ry]; pathY.push(ry); }
   steps.push(dsuBase('union', parent, rank,
-    `find(${y}) → root = ${ry}`, [3],
+    `find(${y}) → root = ${ry}`, [],
     { [`${ry}`]: 'found', [`${y}`]: 'current' },
     { current: y, root: ry, path: [] }, undefined, `find(${y})=${ry}`));
 
   if (rx === ry) {
     steps.push(dsuBase('union', parent, rank,
-      `${rx} === ${ry} → อยู่ใน set เดียวกันอยู่แล้ว → ไม่ต้อง union`,
-      [4, 5],
+      `${rx} === ${ry} → อยู่ใน set เดียวกันอยู่แล้ว → ไม่ต้อง union`, [],
       { [`${rx}`]: 'found' }, { current: null, root: rx, path: [] },
       `union(${x}, ${y}) → อยู่ใน set เดียวกัน (root=${rx})`, 'เหมือนกัน'));
     return steps;
@@ -102,8 +100,7 @@ function dsuUnion(parent, rank, x, y) {
 
   // Union by rank
   steps.push(dsuBase('union', parent, rank,
-    `union by rank: เปรียบเทียบ rank[root_x=${rx}]=${rank[rx]} กับ rank[root_y=${ry}]=${rank[ry]}`,
-    [6, 7, 8, 9],
+    `union by rank: เปรียบเทียบ rank[root_x=${rx}]=${rank[rx]} กับ rank[root_y=${ry}]=${rank[ry]}`, [],
     { [`${rx}`]: 'current', [`${ry}`]: 'target' },
     { current: rx, root: ry, path: [] }, undefined, 'เปรียบเทียบ rank'));
 
@@ -112,23 +109,20 @@ function dsuUnion(parent, rank, x, y) {
 
   if (rank[rx] < rank[ry]) {
     steps.push(dsuBase('union', parent, rank,
-      `rank[${rx}]=${rank[rx]} < rank[${ry}]=${rank[ry]} → ย้าย ${rx} ไปอยู่ใต้ ${ry}`,
-      [8],
+      `rank[${rx}]=${rank[rx]} < rank[${ry}]=${rank[ry]} → ย้าย ${rx} ไปอยู่ใต้ ${ry}`, [],
       { [`${rx}`]: 'target', [`${ry}`]: 'current' },
       { current: rx, root: ry, path: [] }, undefined, 'ย้าย root_x → root_y'));
     newParent[rx] = ry;
   } else if (rank[rx] > rank[ry]) {
     steps.push(dsuBase('union', parent, rank,
-      `rank[${rx}]=${rank[rx]} > rank[${ry}]=${rank[ry]} → ย้าย ${ry} ไปอยู่ใต้ ${rx}`,
-      [9],
+      `rank[${rx}]=${rank[rx]} > rank[${ry}]=${rank[ry]} → ย้าย ${ry} ไปอยู่ใต้ ${rx}`, [],
       { [`${rx}`]: 'current', [`${ry}`]: 'target' },
       { current: ry, root: rx, path: [] }, undefined, 'ย้าย root_y → root_x'));
     newParent[ry] = rx;
   } else {
     // Equal rank — pick rx as new root, increment rank
     steps.push(dsuBase('union', parent, rank,
-      `rank เท่ากัน → ย้าย ${ry} ไปใต้ ${rx}  แล้ว rank[${rx}]++`,
-      [10, 11],
+      `rank เท่ากัน → ย้าย ${ry} ไปใต้ ${rx}  แล้ว rank[${rx}]++`, [],
       { [`${rx}`]: 'current', [`${ry}`]: 'target' },
       { current: ry, root: rx, path: [] }, undefined, 'ย้าย + bump rank'));
     newParent[ry] = rx;

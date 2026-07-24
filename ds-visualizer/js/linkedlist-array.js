@@ -42,12 +42,12 @@ function llArrInsertHead(arr, size, value) {
   const newNode = { id: newId, value };
 
   steps.push(llArrBaseStep('insertHead', arr, size,
-    `เริ่ม insertAtHead(${value}) — ตรวจ size < MAX`, [1], {},
+    `เริ่ม insertAtHead(${value}) — ตรวจ size < MAX`, [], {},
     { current: null }));
 
   if (size >= 100) {
     steps.push(llArrBaseStep('insertHead', arr, size,
-      `size >= MAX → array เต็ม ไม่สามารถ insert ได้`, [1], {},
+      `size >= MAX → array เต็ม ไม่สามารถ insert ได้`, [], {},
       {}, `Array Full — insert ล้มเหลว`, 'Overflow'));
     return steps;
   }
@@ -67,7 +67,7 @@ function llArrInsertHead(arr, size, value) {
     // and the next position (i+1) shows where it'll go.
     const targetId = arr[i].id;
     steps.push(llArrBaseStep('insertHead', arr, size,
-      `เลื่อน arr[${i}] (=${arr[i].value}) ไปยัง arr[${i + 1}]`, [2, 3],
+      `เลื่อน arr[${i}] (=${arr[i].value}) ไปยัง arr[${i + 1}]`, [],
       { [targetId]: 'current' }, { current: i }));
   }
 
@@ -76,7 +76,7 @@ function llArrInsertHead(arr, size, value) {
   const newArr = [newNode, ...arr];
   const newSize = size + 1;
   steps.push(llArrBaseStep('insertHead', newArr, newSize,
-    `กำหนด arr[0] = ${value}  แล้ว size++ (จาก ${size} เป็น ${newSize})`, [4, 5],
+    `กำหนด arr[0] = ${value}  แล้ว size++ (จาก ${size} เป็น ${newSize})`, [],
     { [newId]: 'new' }, { current: 0 },
     `insertAtHead(${value}) → สำเร็จ  ขนาด = ${newSize}`, 'เสร็จสิ้น'));
 
@@ -89,22 +89,22 @@ function llArrInsertTail(arr, size, value) {
   const newNode = { id: newId, value };
 
   steps.push(llArrBaseStep('insertTail', arr, size,
-    `เริ่ม insertAtTail(${value}) — ตรวจ size < MAX`, [1], {}, { current: null }));
+    `เริ่ม insertAtTail(${value}) — ตรวจ size < MAX`, [], {}, { current: null }));
 
   if (size >= 100) {
     steps.push(llArrBaseStep('insertTail', arr, size,
-      `size >= MAX → array เต็ม`, [1], {}, {}, `Array Full — insert ล้มเหลว`, 'Overflow'));
+      `size >= MAX → array เต็ม`, [], {}, {}, `Array Full — insert ล้มเหลว`, 'Overflow'));
     return steps;
   }
 
   steps.push(llArrBaseStep('insertTail', arr, size,
-    `ไม่เต็ม → กำหนด arr[size] = arr[${size}] = ${value}`, [2],
+    `ไม่เต็ม → กำหนด arr[size] = arr[${size}] = ${value}`, [],
     {}, { current: size }));
 
   const newArr = [...arr, newNode];
   const newSize = size + 1;
   steps.push(llArrBaseStep('insertTail', newArr, newSize,
-    `size++ (จาก ${size} เป็น ${newSize}) — insert สำเร็จ`, [3],
+    `size++ (จาก ${size} เป็น ${newSize}) — insert สำเร็จ`, [],
     { [newId]: 'new' }, { current: size },
     `insertAtTail(${value}) → สำเร็จ  ขนาด = ${newSize}`, 'เสร็จสิ้น'));
 
@@ -117,11 +117,11 @@ function llArrInsertAt(arr, size, value, pos) {
   const newNode = { id: newId, value };
 
   steps.push(llArrBaseStep('insertAt', arr, size,
-    `เริ่ม insertAt(${value}, ${pos}) — ตรวจขอบเขต`, [1], {}, { current: null }));
+    `เริ่ม insertAt(${value}, ${pos}) — ตรวจขอบเขต`, [], {}, { current: null }));
 
   if (size >= 100 || pos < 0 || pos > size) {
     steps.push(llArrBaseStep('insertAt', arr, size,
-      `ขอบเขตไม่ถูกต้อง (size=${size}, pos=${pos}) → ยกเลิก`, [1], {}, {},
+      `ขอบเขตไม่ถูกต้อง (size=${size}, pos=${pos}) → ยกเลิก`, [], {}, {},
       `Insert ล้มเหลว — pos ไม่ถูกต้อง`, 'Out of bounds'));
     return steps;
   }
@@ -129,7 +129,7 @@ function llArrInsertAt(arr, size, value, pos) {
   // Shift elements right from pos onwards
   for (let i = size - 1; i >= pos; i--) {
     steps.push(llArrBaseStep('insertAt', arr, size,
-      `เลื่อน arr[${i}] (=${arr[i].value}) ไปยัง arr[${i + 1}]`, [2, 3],
+      `เลื่อน arr[${i}] (=${arr[i].value}) ไปยัง arr[${i + 1}]`, [],
       { [arr[i].id]: 'current' }, { current: i }));
   }
 
@@ -137,7 +137,7 @@ function llArrInsertAt(arr, size, value, pos) {
   const newArr = arr.slice(0, pos).concat([newNode]).concat(arr.slice(pos));
   const newSize = size + 1;
   steps.push(llArrBaseStep('insertAt', newArr, newSize,
-    `กำหนด arr[pos] = arr[${pos}] = ${value}  แล้ว size++`, [4, 5],
+    `กำหนด arr[pos] = arr[${pos}] = ${value}  แล้ว size++`, [],
     { [newId]: 'new' }, { current: pos },
     `insertAt(${value}, ${pos}) → สำเร็จ  ขนาด = ${newSize}`, 'เสร็จสิ้น'));
 
@@ -148,24 +148,24 @@ function llArrDeleteAt(arr, size, pos) {
   const steps = [];
 
   steps.push(llArrBaseStep('deleteAt', arr, size,
-    `เริ่ม deleteAt(${pos}) — ตรวจขอบเขต`, [1], {}, { current: null }));
+    `เริ่ม deleteAt(${pos}) — ตรวจขอบเขต`, [], {}, { current: null }));
 
   if (pos < 0 || pos >= size) {
     steps.push(llArrBaseStep('deleteAt', arr, size,
-      `ขอบเขตไม่ถูกต้อง (size=${size}, pos=${pos}) → ยกเลิก`, [1], {}, {},
+      `ขอบเขตไม่ถูกต้อง (size=${size}, pos=${pos}) → ยกเลิก`, [], {}, {},
       `Delete ล้มเหลว — pos ไม่ถูกต้อง`, 'Out of bounds'));
     return steps;
   }
 
   const target = arr[pos];
   steps.push(llArrBaseStep('deleteAt', arr, size,
-    `ต้องการลบ arr[${pos}] = ${target.value}`, [1],
+    `ต้องการลบ arr[${pos}] = ${target.value}`, [],
     { [target.id]: 'removing' }, { current: pos }));
 
   // Shift left
   for (let i = pos; i < size - 1; i++) {
     steps.push(llArrBaseStep('deleteAt', arr, size,
-      `เลื่อน arr[${i + 1}] (=${arr[i + 1].value}) ไปยัง arr[${i}]`, [2, 3],
+      `เลื่อน arr[${i + 1}] (=${arr[i + 1].value}) ไปยัง arr[${i}]`, [],
       { [arr[i + 1].id]: 'current' }, { current: i }));
   }
 
@@ -173,7 +173,7 @@ function llArrDeleteAt(arr, size, pos) {
   const newArr = arr.slice(0, size - 1);
   const newSize = size - 1;
   steps.push(llArrBaseStep('deleteAt', newArr, newSize,
-    `size-- (จาก ${size} เป็น ${newSize}) — ลบ ${target.value} สำเร็จ`, [4],
+    `size-- (จาก ${size} เป็น ${newSize}) — ลบ ${target.value} สำเร็จ`, [],
     {}, { current: null },
     `deleteAt(${pos}) → ลบ ${target.value} สำเร็จ  ขนาด = ${newSize}`, 'เสร็จสิ้น'));
 
@@ -184,23 +184,23 @@ function llArrSearch(arr, size, value) {
   const steps = [];
 
   steps.push(llArrBaseStep('search', arr, size,
-    `เริ่ม search(${value}) — วน i ตั้งแต่ 0 ถึง ${size - 1}`, [1], {}, { current: 0 }));
+    `เริ่ม search(${value}) — วน i ตั้งแต่ 0 ถึง ${size - 1}`, [], {}, { current: 0 }));
 
   for (let i = 0; i < size; i++) {
     if (arr[i].value === value) {
       steps.push(llArrBaseStep('search', arr, size,
-        `arr[${i}] == ${value} → พบ! คืน index ${i}`, [2, 3],
+        `arr[${i}] == ${value} → พบ! คืน index ${i}`, [],
         { [arr[i].id]: 'found' }, { current: i },
         `search(${value}) → พบที่ index ${i}`, 'พบ'));
       return steps;
     }
     steps.push(llArrBaseStep('search', arr, size,
-      `arr[${i}] = ${arr[i].value} ≠ ${value} → i++`, [2],
+      `arr[${i}] = ${arr[i].value} ≠ ${value} → i++`, [],
       { [arr[i].id]: 'current' }, { current: i }));
   }
 
   steps.push(llArrBaseStep('search', arr, size,
-    `วนครบทุก index แล้ว ไม่พบ ${value} → คืน -1`, [4],
+    `วนครบทุก index แล้ว ไม่พบ ${value} → คืน -1`, [],
     {}, { current: null },
     `search(${value}) → ไม่พบ`, 'ไม่พบ'));
   return steps;
@@ -211,18 +211,18 @@ function llArrTraverse(arr, size) {
   let output = '';
 
   steps.push(llArrBaseStep('traverse', arr, size,
-    `เริ่ม traverse — วน i = 0..${size - 1}`, [1], {}, { current: 0 }));
+    `เริ่ม traverse — วน i = 0..${size - 1}`, [], {}, { current: 0 }));
 
   for (let i = 0; i < size; i++) {
     const newOutput = output + (i > 0 ? ' -> ' : '') + arr[i].value;
     steps.push(llArrBaseStep('traverse', arr, size,
-      `พิมพ์ arr[${i}] = ${arr[i].value}`, [2],
+      `พิมพ์ arr[${i}] = ${arr[i].value}`, [],
       { [arr[i].id]: 'current' }, { current: i }, `Output: ${newOutput}`));
     output = newOutput;
   }
 
   steps.push(llArrBaseStep('traverse', arr, size,
-    `วนจบ — พิมพ์ "NULL" ปิดท้าย`, [3],
+    `วนจบ — พิมพ์ "NULL" ปิดท้าย`, [],
     {}, { current: null }, `Output: ${output} -> NULL`));
   return steps;
 }

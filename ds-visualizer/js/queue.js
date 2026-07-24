@@ -26,13 +26,13 @@ function qaEnqueue(arr, value) {
   const liveRear = arr.length - 1;
 
   steps.push(qaBase('enqueue', arr,
-    `เริ่ม enqueue(${value}) — ตรวจ overflow`, [1],
+    `เริ่ม enqueue(${value}) — ตรวจ overflow`, [],
     liveRear >= 0 ? { [arr[liveRear].id]: 'rear' } : {},
     { front: liveFront, rear: liveRear }));
 
   if (arr.length >= 100) {
     steps.push(qaBase('enqueue', arr,
-      `rear >= MAX-1 → Queue Overflow!`, [1, 2],
+      `rear >= MAX-1 → Queue Overflow!`, [],
       { [arr[liveRear].id]: 'overflow' },
       { front: liveFront, rear: liveRear },
       `Queue Overflow — enqueue ล้มเหลว`, 'Overflow'));
@@ -47,7 +47,7 @@ function qaEnqueue(arr, value) {
 
   const newArr = [...arr, newNode];
   steps.push(qaBase('enqueue', newArr,
-    `arr[rear] = ${value}`, [4],
+    `arr[rear] = ${value}`, [],
     { [newId]: 'new' },
     { front: liveFront, rear: virtualRear, newIdx: virtualRear }, undefined, 'เขียนค่า'));
 
@@ -69,13 +69,13 @@ function qaDequeue(arr) {
   const isEmpty = arr.length === 0;
 
   steps.push(qaBase('dequeue', arr,
-    `เริ่ม dequeue() — ตรวจ underflow (front > rear?)`, [1],
+    `เริ่ม dequeue() — ตรวจ underflow (front > rear?)`, [],
     isEmpty ? {} : (liveFront === liveRear ? { [arr[liveFront].id]: 'both' } : { [arr[liveFront].id]: 'front', [arr[liveRear].id]: 'rear' }),
     { front: liveFront, rear: liveRear }));
 
   if (isEmpty) {
     steps.push(qaBase('dequeue', arr,
-      `front > rear → Queue Underflow!`, [1, 2],
+      `front > rear → Queue Underflow!`, [],
       {}, { front: liveFront, rear: liveRear },
       `Queue Underflow — dequeue ล้มเหลว`, 'Underflow'));
     return steps;
@@ -88,7 +88,7 @@ function qaDequeue(arr) {
     { front: liveFront, rear: liveRear, temp: liveFront }, undefined, 'อ่านค่า'));
 
   steps.push(qaBase('dequeue', arr,
-    `front++ (จาก ${liveFront} เป็น ${liveFront + 1})`, [4],
+    `front++ (จาก ${liveFront} เป็น ${liveFront + 1})`, [],
     { [target.id]: 'removing' },
     { front: liveFront + 1, rear: liveRear, temp: liveFront }, undefined, 'เลื่อน front'));
 
@@ -113,13 +113,13 @@ function qaFront(arr) {
   const isEmpty = arr.length === 0;
 
   steps.push(qaBase('front', arr,
-    `เริ่ม front() — ตรวจ underflow`, [1],
+    `เริ่ม front() — ตรวจ underflow`, [],
     isEmpty ? {} : (liveFront === liveRear ? { [arr[liveFront].id]: 'both' } : { [arr[liveFront].id]: 'front', [arr[liveRear].id]: 'rear' }),
     { front: liveFront, rear: liveRear }));
 
   if (isEmpty) {
     steps.push(qaBase('front', arr,
-      `front > rear → Queue Underflow!`, [1, 2],
+      `front > rear → Queue Underflow!`, [],
       {}, { front: liveFront, rear: liveRear },
       `Queue Underflow — คิวว่าง`, 'Underflow'));
     return steps;
@@ -127,7 +127,7 @@ function qaFront(arr) {
 
   const target = arr[liveFront];
   steps.push(qaBase('front', arr,
-    `คืน arr[front] = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าหน้าสุด)`, [4],
+    `คืน arr[front] = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าหน้าสุด)`, [],
     { [target.id]: 'peeked' },
     { front: liveFront, rear: liveRear },
     `front() → ${target.value}`, 'เสร็จสิ้น'));
@@ -250,25 +250,25 @@ function qpEnqueue(arr, value) {
   const isEmpty = arr.length === 0;
 
   steps.push(qpBase('enqueue', arr,
-    `เริ่ม enqueue(${value})`, [1],
+    `เริ่ม enqueue(${value})`, [],
     arr.length > 0
       ? (arr.length === 1 ? { [arr[0].id]: 'both' } : { [arr[0].id]: 'front', [arr[arr.length - 1].id]: 'rear' })
       : {},
     { frontId: arr[0]?.id || null, rearId: arr[arr.length - 1]?.id || null }));
 
   steps.push(qpBase('enqueue', arr,
-    `Node* newNode = new Node(${value})`, [1],
+    `Node* newNode = new Node(${value})`, [],
     { [newId]: 'new' },
     { frontId: arr[0]?.id || null, rearId: arr[arr.length - 1]?.id || null, newId }, undefined, 'สร้าง Node'));
 
   if (isEmpty) {
     const newArr = [newNode];
     steps.push(qpBase('enqueue', arr,
-      `rear == nullptr → front = rear = newNode`, [2, 3],
+      `rear == nullptr → front = rear = newNode`, [],
       { [newId]: 'new' },
       { frontId: null, rearId: null, newId }, undefined, 'คิวว่าง'));
     steps.push(qpBase('enqueue', newArr,
-      `enqueue สำเร็จ (คิวว่าง → front = rear = newNode)`, [3, 4],
+      `enqueue สำเร็จ (คิวว่าง → front = rear = newNode)`, [],
       { [newId]: 'both' },
       { frontId: newId, rearId: newId },
       `enqueue(${value}) → สำเร็จ  คิวมี 1 สมาชิก`, 'เสร็จสิ้น'));
@@ -277,13 +277,13 @@ function qpEnqueue(arr, value) {
 
   const oldRear = arr[arr.length - 1];
   steps.push(qpBase('enqueue', arr,
-    `rear->next = newNode — โยง rear เดิมเข้า newNode`, [5],
+    `rear->next = newNode — โยง rear เดิมเข้า newNode`, [],
     { [oldRear.id]: 'rear', [newId]: 'new' },
     { frontId: arr[0].id, rearId: oldRear.id, newId }, undefined, 'โยง next'));
 
   const newArr = [...arr, newNode];
   steps.push(qpBase('enqueue', newArr,
-    `rear = newNode — ย้าย rear ไป newNode`, [6],
+    `rear = newNode — ย้าย rear ไป newNode`, [],
     { [arr[0].id]: 'front', [newId]: 'rear' },
     { frontId: arr[0].id, rearId: newId },
     `enqueue(${value}) → สำเร็จ  คิวมี ${newArr.length} สมาชิก`, 'เสร็จสิ้น'));
@@ -296,7 +296,7 @@ function qpDequeue(arr) {
   const isEmpty = arr.length === 0;
 
   steps.push(qpBase('dequeue', arr,
-    `เริ่ม dequeue() — ตรวจ underflow (front == nullptr?)`, [1],
+    `เริ่ม dequeue() — ตรวจ underflow (front == nullptr?)`, [],
     arr.length > 0
       ? (arr.length === 1 ? { [arr[0].id]: 'both' } : { [arr[0].id]: 'front', [arr[arr.length - 1].id]: 'rear' })
       : {},
@@ -304,7 +304,7 @@ function qpDequeue(arr) {
 
   if (isEmpty) {
     steps.push(qpBase('dequeue', arr,
-      `front == nullptr → Queue Underflow!`, [1, 2, 3],
+      `front == nullptr → Queue Underflow!`, [],
       {}, { frontId: null, rearId: null },
       `Queue Underflow — dequeue ล้มเหลว`, 'Underflow'));
     return steps;
@@ -312,7 +312,7 @@ function qpDequeue(arr) {
 
   const target = arr[0];
   steps.push(qpBase('dequeue', arr,
-    `temp = front; val = temp->data = ${target.value}`, [4, 5],
+    `temp = front; val = temp->data = ${target.value}`, [],
     { [target.id]: 'peeked' },
     { frontId: target.id, rearId: arr[arr.length - 1].id, tempId: target.id }, undefined, 'อ่านค่า'));
 
@@ -320,8 +320,7 @@ function qpDequeue(arr) {
   steps.push(qpBase('dequeue', arr,
     nextNode
       ? `front = front->next (ไป ${nextNode.value})`
-      : `front = front->next (nullptr) — คิวเหลือ 1 ตัว`,
-    [6],
+      : `front = front->next (nullptr) — คิวเหลือ 1 ตัว`, [],
     { [target.id]: 'removing' },
     {
       frontId: nextNode?.id || null,
@@ -334,7 +333,7 @@ function qpDequeue(arr) {
   let finalRoles, finalPointers;
   if (newArr.length === 0) {
     steps.push(qpBase('dequeue', arr,
-      `front == nullptr → rear = nullptr (คิวว่าง)`, [7, 8],
+      `front == nullptr → rear = nullptr (คิวว่าง)`, [],
       { [target.id]: 'removing' },
       { frontId: null, rearId: null, tempId: target.id }, undefined, 'คิวว่าง'));
     finalRoles = {};
@@ -348,7 +347,7 @@ function qpDequeue(arr) {
   }
 
   steps.push(qpBase('dequeue', newArr,
-    `delete temp — ลบ ${target.value} สำเร็จ`, [9, 10],
+    `delete temp — ลบ ${target.value} สำเร็จ`, [],
     finalRoles, finalPointers,
     `dequeue() → คืนค่า ${target.value} (เหลือ ${newArr.length} สมาชิก)`, 'เสร็จสิ้น'));
 
@@ -360,7 +359,7 @@ function qpFront(arr) {
   const isEmpty = arr.length === 0;
 
   steps.push(qpBase('front', arr,
-    `เริ่ม front() — ตรวจ empty`, [1],
+    `เริ่ม front() — ตรวจ empty`, [],
     arr.length > 0
       ? (arr.length === 1 ? { [arr[0].id]: 'both' } : { [arr[0].id]: 'front', [arr[arr.length - 1].id]: 'rear' })
       : {},
@@ -368,7 +367,7 @@ function qpFront(arr) {
 
   if (isEmpty) {
     steps.push(qpBase('front', arr,
-      `front == nullptr → Queue is empty`, [1, 2, 3],
+      `front == nullptr → Queue is empty`, [],
       {}, { frontId: null, rearId: null },
       `Queue Underflow — คิวว่าง`, 'Underflow'));
     return steps;
@@ -376,7 +375,7 @@ function qpFront(arr) {
 
   const target = arr[0];
   steps.push(qpBase('front', arr,
-    `คืน front->data = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าหน้าสุด)`, [4],
+    `คืน front->data = ${target.value}  (ไม่ได้ลบ แค่อ่านค่าหน้าสุด)`, [],
     { [target.id]: 'peeked' },
     { frontId: target.id, rearId: arr[arr.length - 1].id },
     `front() → ${target.value}`, 'เสร็จสิ้น'));

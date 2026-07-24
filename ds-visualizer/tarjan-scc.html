@@ -72,13 +72,13 @@
       if (step) {
         window.TARJAN_SCC.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, step.codeLines || [], step.operation, step);
       } else {
         const initialSteps = window.TARJAN_SCC.run();
         const initial = initialSteps[0];
         window.TARJAN_SCC.render(handles.vizArea, handles.vizMeta, initial);
         window.DS.renderDescAndConsole(handles.descBody, initial, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TARJAN_SCC.tarjan, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

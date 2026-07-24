@@ -67,38 +67,32 @@ function avlInsert(root, value) {
   const newId = avlId();
 
   steps.push(avlStep('insert',
-    `เริ่ม insert(${value})${root ? '' : ' — tree ว่าง จะสร้าง root ใหม่'}`,
-    [21], root, {}, undefined, 'เริ่มต้น'));
+    `เริ่ม insert(${value})${root ? '' : ' — tree ว่าง จะสร้าง root ใหม่'}`, [], root, {}, undefined, 'เริ่มต้น'));
 
   function insert(node, v) {
     // Step: visit node (or create new)
     if (!node) {
       const newNode = { id: newId, value: v, left: null, right: null, height: 1 };
       steps.push(avlStep('insert',
-        `node == nullptr → สร้าง Node ใหม่{value=${v}, height=1}  คืนเป็น root ของ subtree นี้`,
-        [22], root || newNode, { [newId]: 'new' },
+        `node == nullptr → สร้าง Node ใหม่{value=${v}, height=1}  คืนเป็น root ของ subtree นี้`, [], root || newNode, { [newId]: 'new' },
         `+ insert ${v} (new leaf)`, 'สร้าง node ใหม่'));
       return newNode;
     }
 
     steps.push(avlStep('insert',
-      `visit node ${node.value} (height=${node.height}) — เปรียบเทียบ ${v} กับ ${node.value}`,
-      [21, 23], root, { [node.id]: 'current' }, undefined, `visit ${node.value}`));
+      `visit node ${node.value} (height=${node.height}) — เปรียบเทียบ ${v} กับ ${node.value}`, [], root, { [node.id]: 'current' }, undefined, `visit ${node.value}`));
 
     if (v < node.value) {
       steps.push(avlStep('insert',
-        `${v} < ${node.value} → recurse ลง left subtree`,
-        [23], root, { [node.id]: 'current' }, undefined, `ไป left`));
+        `${v} < ${node.value} → recurse ลง left subtree`, [], root, { [node.id]: 'current' }, undefined, `ไป left`));
       node.left = insert(node.left, v);
     } else if (v > node.value) {
       steps.push(avlStep('insert',
-        `${v} > ${node.value} → recurse ลง right subtree`,
-        [24], root, { [node.id]: 'current' }, undefined, `ไป right`));
+        `${v} > ${node.value} → recurse ลง right subtree`, [], root, { [node.id]: 'current' }, undefined, `ไป right`));
       node.right = insert(node.right, v);
     } else {
       steps.push(avlStep('insert',
-        `${v} == ${node.value} → ไม่ insert (BST ไม่เก็บ duplicate)`,
-        [25], root, { [node.id]: 'found' },
+        `${v} == ${node.value} → ไม่ insert (BST ไม่เก็บ duplicate)`, [], root, { [node.id]: 'found' },
         `insert(${v}) → มีอยู่แล้ว (skip)`, 'duplicate'));
       return node;
     }
@@ -107,76 +101,64 @@ function avlInsert(root, value) {
     avlUpdateHeight(node);
     const bf = avlBalance(node);
     steps.push(avlStep('insert',
-      `กลับขึ้นที่ ${node.value}: update height = 1 + max(h(left)=${avlHeight(node.left)}, h(right)=${avlHeight(node.right)}) = ${node.height}  · balance = ${bf}`,
-      [26, 27], root, { [node.id]: 'current' }, undefined, `update height ${node.value}`));
+      `กลับขึ้นที่ ${node.value}: update height = 1 + max(h(left)=${avlHeight(node.left)}, h(right)=${avlHeight(node.right)}) = ${node.height}  · balance = ${bf}`, [], root, { [node.id]: 'current' }, undefined, `update height ${node.value}`));
 
     // 4 cases of rotation
     if (bf > 1 && v < node.left.value) {
       // LL: rotateRight
       steps.push(avlStep('insert',
-        `LL Case: balance=${bf} > 1 และ ${v} < ${node.left.value} (inserted ทาง left ของ left) → rotateRight(${node.value})`,
-        [28], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        `LL Case: balance=${bf} > 1 และ ${v} < ${node.left.value} (inserted ทาง left ของ left) → rotateRight(${node.value})`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
         undefined, 'LL → rotateRight'));
       const newRoot = avlRotateRight(node);
       steps.push(avlStep('insert',
-        `หลัง rotateRight: ${node.value} ลงเป็น right child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`,
-        [8, 9, 10, 11, 12], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `หลัง rotateRight: ${node.value} ลงเป็น right child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`, [], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
         `rotateRight(${node.value}) → balance แล้ว`, 'หลัง rotate'));
       return newRoot;
     }
     if (bf < -1 && v > node.right.value) {
       // RR: rotateLeft
       steps.push(avlStep('insert',
-        `RR Case: balance=${bf} < -1 และ ${v} > ${node.right.value} (inserted ทาง right ของ right) → rotateLeft(${node.value})`,
-        [29], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        `RR Case: balance=${bf} < -1 และ ${v} > ${node.right.value} (inserted ทาง right ของ right) → rotateLeft(${node.value})`, [], root, { [node.id]: 'current', [node.right.id]: 'target' },
         undefined, 'RR → rotateLeft'));
       const newRoot = avlRotateLeft(node);
       steps.push(avlStep('insert',
-        `หลัง rotateLeft: ${node.value} ลงเป็น left child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`,
-        [14, 15, 16, 17, 18], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `หลัง rotateLeft: ${node.value} ลงเป็น left child ของ ${newRoot.value}  ต้นไม้ balance แล้ว`, [], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
         `rotateLeft(${node.value}) → balance แล้ว`, 'หลัง rotate'));
       return newRoot;
     }
     if (bf > 1 && v > node.left.value) {
       // LR: rotateLeft(left) then rotateRight
       steps.push(avlStep('insert',
-        `LR Case: balance=${bf} > 1 และ ${v} > ${node.left.value} (inserted ทาง right ของ left) → ต้อง rotate 2 ครั้ง`,
-        [30], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        `LR Case: balance=${bf} > 1 และ ${v} > ${node.left.value} (inserted ทาง right ของ left) → ต้อง rotate 2 ครั้ง`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
         undefined, 'LR → 2 rotations'));
       node.left = avlRotateLeft(node.left);
       steps.push(avlStep('insert',
-        `ขั้นที่ 1: rotateLeft(${node.left === null ? '?' : '?'}) — ทำให้กลายเป็น LL case`,
-        [14, 15, 16, 17, 18], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        `ขั้นที่ 1: rotateLeft(${node.left === null ? '?' : '?'}) — ทำให้กลายเป็น LL case`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
         undefined, 'rotateLeft(left)'));
       const newRoot = avlRotateRight(node);
       steps.push(avlStep('insert',
-        `ขั้นที่ 2: rotateRight(${node.value}) — ต้นไม้ balance แล้ว`,
-        [8, 9, 10, 11, 12, 30], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `ขั้นที่ 2: rotateRight(${node.value}) — ต้นไม้ balance แล้ว`, [], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
         `LR fixed → balance แล้ว`, 'หลัง rotate'));
       return newRoot;
     }
     if (bf < -1 && v < node.right.value) {
       // RL: rotateRight(right) then rotateLeft
       steps.push(avlStep('insert',
-        `RL Case: balance=${bf} < -1 และ ${v} < ${node.right.value} (inserted ทาง left ของ right) → ต้อง rotate 2 ครั้ง`,
-        [31], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        `RL Case: balance=${bf} < -1 และ ${v} < ${node.right.value} (inserted ทาง left ของ right) → ต้อง rotate 2 ครั้ง`, [], root, { [node.id]: 'current', [node.right.id]: 'target' },
         undefined, 'RL → 2 rotations'));
       node.right = avlRotateRight(node.right);
       steps.push(avlStep('insert',
-        `ขั้นที่ 1: rotateRight(right) — ทำให้กลายเป็น RR case`,
-        [8, 9, 10, 11, 12], root, { [node.id]: 'current', [node.right.id]: 'target' },
+        `ขั้นที่ 1: rotateRight(right) — ทำให้กลายเป็น RR case`, [], root, { [node.id]: 'current', [node.right.id]: 'target' },
         undefined, 'rotateRight(right)'));
       const newRoot = avlRotateLeft(node);
       steps.push(avlStep('insert',
-        `ขั้นที่ 2: rotateLeft(${node.value}) — ต้นไม้ balance แล้ว`,
-        [14, 15, 16, 17, 18, 31], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
+        `ขั้นที่ 2: rotateLeft(${node.value}) — ต้นไม้ balance แล้ว`, [], newRoot, { [newRoot.id]: 'found', [node.id]: 'target' },
         `RL fixed → balance แล้ว`, 'หลัง rotate'));
       return newRoot;
     }
 
     steps.push(avlStep('insert',
-      `balance=${bf} ∈ {-1, 0, 1} → ไม่ต้อง rotate  คืน ${node.value} เป็น root ของ subtree`,
-      [32], root, { [node.id]: 'found' }, undefined, `balance OK`));
+      `balance=${bf} ∈ {-1, 0, 1} → ไม่ต้อง rotate  คืน ${node.value} เป็น root ของ subtree`, [], root, { [node.id]: 'found' }, undefined, `balance OK`));
     return node;
   }
 

@@ -5,15 +5,15 @@
 const SAMPLE_GRAPH = {
   nodes: ['A', 'B', 'C', 'D', 'E', 'F'],
   edges: [
-    [0, 1, 4],   // A-B: 4
-    [0, 2, 2],   // A-C: 2
-    [1, 2, 1],   // B-C: 1
-    [1, 3, 5],   // B-D: 5
-    [2, 3, 8],   // C-D: 8
-    [2, 4, 10],  // C-E: 10
-    [3, 4, 2],   // D-E: 2
-    [3, 5, 6],   // D-F: 6
-    [4, 5, 3],   // E-F: 3
+[0, 1, 4],   // A-B: 4
+[0, 2, 2],   // A-C: 2
+[1, 2, 1],   // B-C: 1
+[1, 3, 5],   // B-D: 5
+[2, 3, 8],   // C-D: 8
+[2, 4, 10],   // C-E: 10
+[3, 4, 2],   // D-E: 2
+[3, 5, 6],   // D-F: 6
+[4, 5, 3],   // E-F: 3
   ],
 };
 
@@ -117,8 +117,7 @@ function kruskalInitialState(graph) {
     .join('\n');
 
   return graphBase('init',
-    `กราฟตั้งต้น — ${N} nodes, ${graph.edges.length} edges  เรียง edges ตาม weight น้อยไปมากแล้ว`,
-    [1, 2], {
+    `กราฟตั้งต้น — ${N} nodes, ${graph.edges.length} edges  เรียง edges ตาม weight น้อยไปมากแล้ว`, [], {
       visited: [],
       inQueue: [],
       current: null,
@@ -168,8 +167,7 @@ function dijkstraSteps(graph, source) {
   });
 
   steps.push(graphBase('init',
-    `เริ่ม Dijkstra จาก source = ${graph.nodes[source]} — ตั้ง dist[source] = 0, อื่นๆ = ∞`,
-    [12, 13, 14, 15, 16], baseState(), `dist[${graph.nodes[source]}] = 0`, 'เริ่มต้น'));
+    `เริ่ม Dijkstra จาก source = ${graph.nodes[source]} — ตั้ง dist[source] = 0, อื่นๆ = ∞`, [], baseState(), `dist[${graph.nodes[source]}] = 0`, 'เริ่มต้น'));
 
   while (visited.size < N) {
     // Find unvisited node with min dist
@@ -187,8 +185,7 @@ function dijkstraSteps(graph, source) {
     visited.add(u);
 
     steps.push(graphBase('pick',
-      `เลือก node ${graph.nodes[u]} (dist=${dist[u] === Infinity ? '∞' : dist[u]}) — ค่าน้อยสุดใน unvisited`,
-      [18, 20, 21, 22, 23, 26, 27],
+      `เลือก node ${graph.nodes[u]} (dist=${dist[u] === Infinity ? '∞' : dist[u]}) — ค่าน้อยสุดใน unvisited`, [],
       { ...baseState(), current: u },
       undefined, 'เลือก min'));
 
@@ -197,8 +194,7 @@ function dijkstraSteps(graph, source) {
       if (visited.has(to)) continue;
 
       steps.push(graphBase('relax',
-        `พิจารณา edge ${graph.nodes[u]} → ${graph.nodes[to]} (w=${w})  เทียบ dist[${graph.nodes[to]}]=${dist[to] === Infinity ? '∞' : dist[to]} กับ ${dist[u]} + ${w} = ${dist[u] + w}`,
-        [30, 31, 32],
+        `พิจารณา edge ${graph.nodes[u]} → ${graph.nodes[to]} (w=${w})  เทียบ dist[${graph.nodes[to]}]=${dist[to] === Infinity ? '∞' : dist[to]} กับ ${dist[u]} + ${w} = ${dist[u] + w}`, [],
         { ...baseState(), current: u, highlightEdge: [u, to] },
         undefined, 'พิจารณา edge'));
 
@@ -209,22 +205,19 @@ function dijkstraSteps(graph, source) {
         inQueue.add(to);
 
         steps.push(graphBase('update',
-          `${dist[u]} + ${w} = ${dist[to]} < ${oldDist === Infinity ? '∞' : oldDist} → อัปเดต dist[${graph.nodes[to]}] = ${dist[to]}, parent[${graph.nodes[to]}] = ${graph.nodes[u]}`,
-          [32, 33],
+          `${dist[u]} + ${w} = ${dist[to]} < ${oldDist === Infinity ? '∞' : oldDist} → อัปเดต dist[${graph.nodes[to]}] = ${dist[to]}, parent[${graph.nodes[to]}] = ${graph.nodes[u]}`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           `dist[${graph.nodes[to]}] = ${dist[to]}`, 'อัปเดต dist'));
       } else {
         steps.push(graphBase('skip',
-          `${dist[u]} + ${w} = ${dist[u] + w} >= ${dist[to] === Infinity ? '∞' : dist[to]} → ไม่อัปเดต`,
-          [32],
+          `${dist[u]} + ${w} = ${dist[u] + w} >= ${dist[to] === Infinity ? '∞' : dist[to]} → ไม่อัปเดต`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           undefined, 'ข้าม'));
       }
     }
 
     steps.push(graphBase('finalize',
-      `mark ${graph.nodes[u]} เป็น visited (dist=${dist[u]} สั้นสุดแล้ว)`,
-      [13],
+      `mark ${graph.nodes[u]} เป็น visited (dist=${dist[u]} สั้นสุดแล้ว)`, [],
       baseState(),
       undefined, 'finalize'));
   }
@@ -278,8 +271,7 @@ function primSteps(graph, source = 0) {
   });
 
   steps.push(graphBase('init',
-    `เริ่ม Prim จาก source = ${graph.nodes[source]} — key[source] = 0, อื่นๆ = ∞`,
-    [12, 13, 14, 15, 17], baseState(), undefined, 'เริ่มต้น'));
+    `เริ่ม Prim จาก source = ${graph.nodes[source]} — key[source] = 0, อื่นๆ = ∞`, [], baseState(), undefined, 'เริ่มต้น'));
 
   while (inMST.size < N) {
     // Find min key not in MST
@@ -299,8 +291,7 @@ function primSteps(graph, source = 0) {
     }
 
     steps.push(graphBase('pick',
-      `เลือก node ${graph.nodes[u]} (key=${key[u]}) — น้อยสุดที่ยังไม่อยู่ใน MST${parent[u] !== -1 ? ` เพิ่ม edge ${graph.nodes[parent[u]]}→${graph.nodes[u]} เข้า MST` : ' (root ของ MST)'}`,
-      [19, 20, 21, 22, 23, 26, 27],
+      `เลือก node ${graph.nodes[u]} (key=${key[u]}) — น้อยสุดที่ยังไม่อยู่ใน MST${parent[u] !== -1 ? ` เพิ่ม edge ${graph.nodes[parent[u]]}→${graph.nodes[u]} เข้า MST` : ' (root ของ MST)'}`, [],
       { ...baseState(), current: u, highlightEdge: parent[u] !== -1 ? [parent[u], u] : null },
       undefined, 'เพิ่มใน MST'));
 
@@ -309,8 +300,7 @@ function primSteps(graph, source = 0) {
       if (!inMST.has(to)) {
         const oldKey = key[to];
         steps.push(graphBase('relax',
-          `พิจารณา edge ${graph.nodes[u]} → ${graph.nodes[to]} (w=${w})  เทียบกับ key[${graph.nodes[to]}]=${oldKey === Infinity ? '∞' : oldKey}`,
-          [29, 30],
+          `พิจารณา edge ${graph.nodes[u]} → ${graph.nodes[to]} (w=${w})  เทียบกับ key[${graph.nodes[to]}]=${oldKey === Infinity ? '∞' : oldKey}`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           undefined, 'พิจารณา edge'));
 
@@ -318,8 +308,7 @@ function primSteps(graph, source = 0) {
           key[to] = w;
           parent[to] = u;
           steps.push(graphBase('update',
-            `${w} < ${oldKey === Infinity ? '∞' : oldKey} → อัปเดต key[${graph.nodes[to]}] = ${w}, parent = ${graph.nodes[u]}`,
-            [30, 31, 32],
+            `${w} < ${oldKey === Infinity ? '∞' : oldKey} → อัปเดต key[${graph.nodes[to]}] = ${w}, parent = ${graph.nodes[u]}`, [],
             { ...baseState(), current: u, highlightEdge: [u, to] },
             `key[${graph.nodes[to]}] = ${w}`, 'อัปเดต key'));
         }
@@ -372,8 +361,7 @@ function kruskalSteps(graph) {
   let edgeIdx = 0;
 
   steps.push(graphBase('init',
-    `เริ่ม Kruskal — เรียง edges ตาม weight น้อยไปมาก  แล้ววนพิจารณาทีละ edge`,
-    [25, 26], {
+    `เริ่ม Kruskal — เรียง edges ตาม weight น้อยไปมาก  แล้ววนพิจารณาทีละ edge`, [], {
       visited: [],
       inQueue: [],
       current: null,
@@ -390,8 +378,7 @@ function kruskalSteps(graph) {
     const { u, v, w } = edge;
 
     steps.push(graphBase('consider',
-      `พิจารณา edge ${graph.nodes[u]}—${graph.nodes[v]} (w=${w}) — เช็คว่าเพิ่มแล้วเกิด cycle หรือไม่ (ด้วย DSU find)`,
-      [29, 30],
+      `พิจารณา edge ${graph.nodes[u]}—${graph.nodes[v]} (w=${w}) — เช็คว่าเพิ่มแล้วเกิด cycle หรือไม่ (ด้วย DSU find)`, [],
       {
         visited: [],
         inQueue: [],
@@ -410,8 +397,7 @@ function kruskalSteps(graph) {
       union(u, v);
       mstEdges.push([u, v]);
       steps.push(graphBase('accept',
-        `find(${graph.nodes[u]}) ≠ find(${graph.nodes[v]}) → ไม่เกิด cycle → เพิ่ม edge เข้า MST  (ตอนนี้มี ${mstEdges.length}/${N - 1} edges)`,
-        [30, 31, 32, 33, 34],
+        `find(${graph.nodes[u]}) ≠ find(${graph.nodes[v]}) → ไม่เกิด cycle → เพิ่ม edge เข้า MST  (ตอนนี้มี ${mstEdges.length}/${N - 1} edges)`, [],
         {
           visited: [],
           inQueue: [],
@@ -426,8 +412,7 @@ function kruskalSteps(graph) {
         `+ edge ${graph.nodes[u]}—${graph.nodes[v]} (w=${w})`, 'เพิ่มใน MST'));
     } else {
       steps.push(graphBase('reject',
-        `find(${graph.nodes[u]}) == find(${graph.nodes[v]}) → เกิด cycle → ข้าม edge นี้`,
-        [30],
+        `find(${graph.nodes[u]}) == find(${graph.nodes[v]}) → เกิด cycle → ข้าม edge นี้`, [],
         {
           visited: [],
           inQueue: [],
@@ -811,8 +796,7 @@ function bfsSteps(graph, source) {
   });
 
   steps.push(graphBase('init',
-    `เริ่ม BFS จาก source = ${graph.nodes[source]} — enqueue source, mark visited`,
-    [12, 13, 14], baseState(),
+    `เริ่ม BFS จาก source = ${graph.nodes[source]} — enqueue source, mark visited`, [], baseState(),
     `queue = [${graph.nodes[source]}]\nvisited = {${graph.nodes[source]}}`,
     'เริ่มต้น'));
 
@@ -821,8 +805,7 @@ function bfsSteps(graph, source) {
     order.push(u);
 
     steps.push(graphBase('dequeue',
-      `dequeue: เอา ${graph.nodes[u]} ออกจาก queue → ประมวลผล (เยี่ยม ${graph.nodes[u]})`,
-      [16, 17, 18, 19],
+      `dequeue: เอา ${graph.nodes[u]} ออกจาก queue → ประมวลผล (เยี่ยม ${graph.nodes[u]})`, [],
       { ...baseState(), current: u },
       undefined, 'dequeue'));
 
@@ -833,8 +816,7 @@ function bfsSteps(graph, source) {
         parent[to] = u;
 
         steps.push(graphBase('visit',
-          `เพื่อนบ้าน ${graph.nodes[to]} ยังไม่ visited → mark visited + enqueue (ผ่าน edge ${graph.nodes[u]}—${graph.nodes[to]})`,
-          [21, 22, 23, 24],
+          `เพื่อนบ้าน ${graph.nodes[to]} ยังไม่ visited → mark visited + enqueue (ผ่าน edge ${graph.nodes[u]}—${graph.nodes[to]})`, [],
           {
             ...baseState(),
             current: u,
@@ -844,8 +826,7 @@ function bfsSteps(graph, source) {
           'visit'));
       } else {
         steps.push(graphBase('skip',
-          `เพื่อนบ้าน ${graph.nodes[to]} visited แล้ว → ข้าม`,
-          [21, 22],
+          `เพื่อนบ้าน ${graph.nodes[to]} visited แล้ว → ข้าม`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           undefined, 'ข้าม'));
       }
@@ -888,8 +869,7 @@ function dfsSteps(graph, source) {
 
   stack.push(source);
   steps.push(graphBase('init',
-    `เริ่ม DFS จาก source = ${graph.nodes[source]} — push source ลง stack`,
-    [11, 12], baseState(),
+    `เริ่ม DFS จาก source = ${graph.nodes[source]} — push source ลง stack`, [], baseState(),
     `stack = [${graph.nodes[source]}]`, 'เริ่มต้น'));
 
   while (stack.length > 0) {
@@ -897,8 +877,7 @@ function dfsSteps(graph, source) {
 
     if (visited.has(u)) {
       steps.push(graphBase('skip',
-        `${graph.nodes[u]} visited แล้ว → ข้าม (pop ทิ้ง)`,
-        [14, 15, 16, 18],
+        `${graph.nodes[u]} visited แล้ว → ข้าม (pop ทิ้ง)`, [],
         { ...baseState(), current: u },
         undefined, 'ข้าม'));
       continue;
@@ -908,8 +887,7 @@ function dfsSteps(graph, source) {
     order.push(u);
 
     steps.push(graphBase('visit',
-      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล`,
-      [14, 15, 16, 18, 19, 20],
+      `pop ${graph.nodes[u]} จาก stack → mark visited → ประมวลผล`, [],
       { ...baseState(), current: u },
       `+ visit ${graph.nodes[u]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
       'visit'));
@@ -921,15 +899,13 @@ function dfsSteps(graph, source) {
         if (parent[to] === -1) parent[to] = u;
         stack.push(to);
         steps.push(graphBase('push',
-          `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`,
-          [23, 24, 25, 26],
+          `push ${graph.nodes[to]} ลง stack (เพื่อนบ้านของ ${graph.nodes[u]} ที่ยังไม่ visited)`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           `+ push ${graph.nodes[to]}\nstack = [${stack.map((i) => graph.nodes[i]).join(',')}]`,
           'push'));
       } else if (stack.includes(to)) {
         steps.push(graphBase('skip',
-          `${graph.nodes[to]} อยู่ใน stack แล้ว → ไม่ push ซ้ำ`,
-          [23, 24, 25],
+          `${graph.nodes[to]} อยู่ใน stack แล้ว → ไม่ push ซ้ำ`, [],
           { ...baseState(), current: u, highlightEdge: [u, to] },
           undefined, 'ข้าม'));
       }
@@ -989,15 +965,15 @@ function dfsInitialState(graph, source) {
 const DAG_GRAPH = {
   nodes: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
   edges: [
-    [0, 1, 1],   // A → B
-    [0, 2, 1],   // A → C
-    [1, 3, 1],   // B → D
-    [1, 4, 1],   // B → E
-    [2, 4, 1],   // C → E
-    [3, 5, 1],   // D → F
-    [4, 5, 1],   // E → F
-    [4, 6, 1],   // E → G
-    [5, 6, 1],   // F → G
+[0, 1, 1],   // A → B
+[0, 2, 1],   // A → C
+[1, 3, 1],   // B → D
+[1, 4, 1],   // B → E
+[2, 4, 1],   // C → E
+[3, 5, 1],   // D → F
+[4, 5, 1],   // E → F
+[4, 6, 1],   // E → G
+[5, 6, 1],   // F → G
   ],
   directed: true,
 };
@@ -1067,8 +1043,7 @@ function topoSteps(graph) {
   const order = [];
 
   steps.push(graphBase('init',
-    `เริ่ม Topological Sort (Kahn's) — หา nodes ที่มี in-degree = 0 (ไม่มี edge เข้า) ใส่ queue  ${queue.map((i) => graph.nodes[i]).join(', ')}`,
-    [12, 13, 14], baseState(queue, order),
+    `เริ่ม Topological Sort (Kahn's) — หา nodes ที่มี in-degree = 0 (ไม่มี edge เข้า) ใส่ queue  ${queue.map((i) => graph.nodes[i]).join(', ')}`, [], baseState(queue, order),
     `In-degree: ${inDegree.map((d, i) => `${graph.nodes[i]}=${d}`).join(', ')}\n` +
     `Queue (in-deg=0): [${queue.map((i) => graph.nodes[i]).join(',')}]`,
     'เริ่มต้น'));
@@ -1078,8 +1053,7 @@ function topoSteps(graph) {
     order.push(u);
 
     steps.push(graphBase('dequeue',
-      `dequeue ${graph.nodes[u]} → เพิ่มเข้า result order (ลำดับที่ ${order.length})`,
-      [18, 19, 20],
+      `dequeue ${graph.nodes[u]} → เพิ่มเข้า result order (ลำดับที่ ${order.length})`, [],
       { ...baseState(queue, order), current: u },
       `+ add ${graph.nodes[u]} to order\nOrder: ${order.map((i) => graph.nodes[i]).join(' → ')}`,
       'dequeue'));
@@ -1088,8 +1062,7 @@ function topoSteps(graph) {
     for (const v of adj[u]) {
       inDegree[v]--;
       steps.push(graphBase('relax',
-        `ลด in-degree ของ ${graph.nodes[v]} (จาก ${inDegree[v] + 1} → ${inDegree[v]}) เพราะ edge ${graph.nodes[u]}→${graph.nodes[v]} ถูกตัด`,
-        [22, 23],
+        `ลด in-degree ของ ${graph.nodes[v]} (จาก ${inDegree[v] + 1} → ${inDegree[v]}) เพราะ edge ${graph.nodes[u]}→${graph.nodes[v]} ถูกตัด`, [],
         { ...baseState(queue, order), current: u, highlightEdge: [u, v] },
         `${graph.nodes[v]}.in-deg = ${inDegree[v]}`,
         'ลด in-degree'));
@@ -1097,8 +1070,7 @@ function topoSteps(graph) {
       if (inDegree[v] === 0) {
         queue.push(v);
         steps.push(graphBase('enqueue',
-          `${graph.nodes[v]}.in-deg = 0 → enqueue (พร้อมประมวลผล)`,
-          [23, 24],
+          `${graph.nodes[v]}.in-deg = 0 → enqueue (พร้อมประมวลผล)`, [],
           { ...baseState(queue, order), current: u, highlightEdge: [u, v] },
           `+ enqueue ${graph.nodes[v]}\nQueue: [${queue.map((i) => graph.nodes[i]).join(',')}]`,
           'enqueue'));
@@ -1108,15 +1080,13 @@ function topoSteps(graph) {
 
   if (order.length < N) {
     steps.push(graphBase('done',
-      `⚠ Cycle detected! เยี่ยมได้แค่ ${order.length}/${N} node → graph ไม่ใช่ DAG`,
-      [29],
+      `⚠ Cycle detected! เยี่ยมได้แค่ ${order.length}/${N} node → graph ไม่ใช่ DAG`, [],
       baseState(queue, order),
       `Cycle detected — ไม่สามารถ topological sort ได้\nVisited: ${order.map((i) => graph.nodes[i]).join(' → ')}`,
       'Cycle'));
   } else {
     steps.push(graphBase('done',
-      `Topological Sort เสร็จสิ้น — ลำดับที่ถูกต้อง ${order.length} node`,
-      [30],
+      `Topological Sort เสร็จสิ้น — ลำดับที่ถูกต้อง ${order.length} node`, [],
       baseState(queue, order),
       `Topological order:\n${order.map((i) => graph.nodes[i]).join(' → ')}`,
       'เสร็จสิ้น'));
@@ -1171,8 +1141,7 @@ function bellmanFordSteps(graph, source) {
   });
 
   steps.push(graphBase('init',
-    `เริ่ม Bellman-Ford จาก source = ${graph.nodes[source]} — dist[source]=0, อื่นๆ = ∞  จะ relax ทุก edge ${N - 1} รอบ`,
-    [13, 14], baseState(),
+    `เริ่ม Bellman-Ford จาก source = ${graph.nodes[source]} — dist[source]=0, อื่นๆ = ∞  จะ relax ทุก edge ${N - 1} รอบ`, [], baseState(),
     `dist: ${graph.nodes.map((n, i) => `${n}=${dist[i] === Infinity ? '∞' : dist[i]}`).join(', ')}\n` +
     `จะวน ${N - 1} รอบ (V-1 ครั้ง)`,
     'เริ่มต้น'));
@@ -1180,8 +1149,7 @@ function bellmanFordSteps(graph, source) {
   // V-1 iterations
   for (let iter = 1; iter <= N - 1; iter++) {
     steps.push(graphBase('iter',
-      `=== รอบที่ ${iter}/${N - 1} === — วนพิจารณาทุก edge เพื่อ relax`,
-      [17, 18],
+      `=== รอบที่ ${iter}/${N - 1} === — วนพิจารณาทุก edge เพื่อ relax`, [],
       baseState(),
       undefined, `รอบที่ ${iter}`));
 
@@ -1191,8 +1159,7 @@ function bellmanFordSteps(graph, source) {
       const oldDist = dist[v];
 
       steps.push(graphBase('relax',
-        `พิจารณา edge ${graph.nodes[u]}→${graph.nodes[v]} (w=${w})  เทียบ dist[${graph.nodes[v]}]=${dist[v] === Infinity ? '∞' : dist[v]} กับ dist[${graph.nodes[u]}]+${w}=${dist[u] === Infinity ? '∞' : dist[u] + w}`,
-        [18, 19, 20, 21],
+        `พิจารณา edge ${graph.nodes[u]}→${graph.nodes[v]} (w=${w})  เทียบ dist[${graph.nodes[v]}]=${dist[v] === Infinity ? '∞' : dist[v]} กับ dist[${graph.nodes[u]}]+${w}=${dist[u] === Infinity ? '∞' : dist[u] + w}`, [],
         baseState(u, [u, v]),
         undefined, 'พิจารณา edge'));
 
@@ -1201,15 +1168,13 @@ function bellmanFordSteps(graph, source) {
         parent[v] = u;
         anyUpdate = true;
         steps.push(graphBase('update',
-          `${dist[u]} + ${w} = ${dist[v]} < ${oldDist === Infinity ? '∞' : oldDist} → อัปเดต dist[${graph.nodes[v]}] = ${dist[v]}`,
-          [19, 20, 21],
+          `${dist[u]} + ${w} = ${dist[v]} < ${oldDist === Infinity ? '∞' : oldDist} → อัปเดต dist[${graph.nodes[v]}] = ${dist[v]}`, [],
           baseState(u, [u, v]),
           `dist[${graph.nodes[v]}] = ${dist[v]}`,
           'อัปเดต'));
       } else {
         steps.push(graphBase('skip',
-          `ไม่อัปเดต (${dist[u] === Infinity ? '∞' : dist[u]} + ${w} = ${dist[u] === Infinity ? '∞' : dist[u] + w} >= ${dist[v] === Infinity ? '∞' : dist[v]})`,
-          [19, 20],
+          `ไม่อัปเดต (${dist[u] === Infinity ? '∞' : dist[u]} + ${w} = ${dist[u] === Infinity ? '∞' : dist[u] + w} >= ${dist[v] === Infinity ? '∞' : dist[v]})`, [],
           baseState(u, [u, v]),
           undefined, 'ข้าม'));
       }
@@ -1228,8 +1193,7 @@ function bellmanFordSteps(graph, source) {
 
   // Check for negative cycle (extra iteration)
   steps.push(graphBase('check',
-    `ตรวจ negative cycle — วนรอบที่ ${N} ถ้ายังมี update แปลว่ามี negative cycle`,
-    [27, 28, 29],
+    `ตรวจ negative cycle — วนรอบที่ ${N} ถ้ายังมี update แปลว่ามี negative cycle`, [],
     baseState(),
     undefined, 'ตรวจ cycle'));
 
@@ -1239,8 +1203,7 @@ function bellmanFordSteps(graph, source) {
     if (dist[u] !== Infinity && dist[u] + w < dist[v]) {
       hasNegCycle = true;
       steps.push(graphBase('neg-cycle',
-        `⚠ พบ negative cycle! edge ${graph.nodes[u]}→${graph.nodes[v]} ยัง relax ได้อีก → ไม่มี shortest path`,
-        [12, 13],
+        `⚠ พบ negative cycle! edge ${graph.nodes[u]}→${graph.nodes[v]} ยัง relax ได้อีก → ไม่มี shortest path`, [],
         baseState(u, [u, v]),
         `Negative cycle detected!`,
         'Negative cycle'));
@@ -1313,8 +1276,7 @@ function astarSteps(graph, source, goal) {
   });
 
   steps.push(graphBase('init',
-    `เริ่ม A* จาก ${graph.nodes[source]} → ${graph.nodes[goal]}  f(n) = g(n) + h(n)  g(${graph.nodes[source]})=0, h(${graph.nodes[source]})=${h[source]}, f=${fScore[source]}`,
-    [16, 17, 18, 20, 21, 24, 25, 26, 27], baseState(),
+    `เริ่ม A* จาก ${graph.nodes[source]} → ${graph.nodes[goal]}  f(n) = g(n) + h(n)  g(${graph.nodes[source]})=0, h(${graph.nodes[source]})=${h[source]}, f=${fScore[source]}`, [], baseState(),
     `Heuristic h(n):\n${graph.nodes.map((n, i) => `  ${n}: ${h[i]}`).join('\n')}\n\n` +
     `Open set: [${graph.nodes[source]}] (f=${fScore[source]})`,
     'เริ่มต้น'));
@@ -1333,8 +1295,7 @@ function astarSteps(graph, source, goal) {
         path.unshift(graph.nodes[cur]);
       }
       steps.push(graphBase('done',
-        `🎯 ถึง goal ${graph.nodes[goal]}! A* เสร็จสิ้น — พบ shortest path ความยาว ${dist[goal]}`,
-        [50, 51, 52, 53, 54],
+        `🎯 ถึง goal ${graph.nodes[goal]}! A* เสร็จสิ้น — พบ shortest path ความยาว ${dist[goal]}`, [],
         baseState(u),
         `Path: ${path.join(' → ')}\nTotal cost: ${dist[goal]}\n` +
         `เยี่ยม ${closedSet.size + 1} node (vs Dijkstra ที่เยี่ยมทุก node)`,
@@ -1344,8 +1305,7 @@ function astarSteps(graph, source, goal) {
 
     closedSet.add(u);
     steps.push(graphBase('pick',
-      `เลือก ${graph.nodes[u]} (f=${fScore[u]} = g=${dist[u]} + h=${h[u]}) — น้อยสุดใน open set`,
-      [31, 32, 33, 34, 35],
+      `เลือก ${graph.nodes[u]} (f=${fScore[u]} = g=${dist[u]} + h=${h[u]}) — น้อยสุดใน open set`, [],
       baseState(u),
       `+ visit ${graph.nodes[u]}\nOpen: [${openSet.map((i) => graph.nodes[i]).join(',')}]`,
       'เลือก f น้อยสุด'));
@@ -1353,8 +1313,7 @@ function astarSteps(graph, source, goal) {
     for (const { to, w } of adj[u]) {
       if (closedSet.has(to)) {
         steps.push(graphBase('skip',
-          `${graph.nodes[to]} อยู่ใน closed set → ข้าม`,
-          [37, 38],
+          `${graph.nodes[to]} อยู่ใน closed set → ข้าม`, [],
           { ...baseState(u), highlightEdge: [u, to] },
           undefined, 'ข้าม'));
         continue;
@@ -1362,8 +1321,7 @@ function astarSteps(graph, source, goal) {
 
       const tentativeG = dist[u] + w;
       steps.push(graphBase('relax',
-        `พิจารณา edge ${graph.nodes[u]}—${graph.nodes[to]} (w=${w})  tentative g(${graph.nodes[to]}) = ${dist[u]} + ${w} = ${tentativeG}`,
-        [37, 38, 39, 40],
+        `พิจารณา edge ${graph.nodes[u]}—${graph.nodes[to]} (w=${w})  tentative g(${graph.nodes[to]}) = ${dist[u]} + ${w} = ${tentativeG}`, [],
         { ...baseState(u), highlightEdge: [u, to] },
         undefined, 'พิจารณา'));
 
@@ -1375,15 +1333,13 @@ function astarSteps(graph, source, goal) {
         if (!openSet.includes(to)) openSet.push(to);
 
         steps.push(graphBase('update',
-          `${tentativeG} < ${oldG === Infinity ? '∞' : oldG} → อัปเดต g(${graph.nodes[to]})=${tentativeG}, f=${fScore[to]} (${tentativeG}+${h[to]})  เพิ่ม ${graph.nodes[to]} เข้า open set`,
-          [40, 41, 42, 43, 44],
+          `${tentativeG} < ${oldG === Infinity ? '∞' : oldG} → อัปเดต g(${graph.nodes[to]})=${tentativeG}, f=${fScore[to]} (${tentativeG}+${h[to]})  เพิ่ม ${graph.nodes[to]} เข้า open set`, [],
           { ...baseState(u), highlightEdge: [u, to] },
           `g(${graph.nodes[to]})=${tentativeG}, f=${fScore[to]}\nOpen: [${openSet.map((i) => `${graph.nodes[i]}(f=${fScore[i]})`).join(',')}]`,
           'อัปเดต'));
       } else {
         steps.push(graphBase('skip',
-          `${tentativeG} >= ${dist[to] === Infinity ? '∞' : dist[to]} → ไม่อัปเดต`,
-          [40],
+          `${tentativeG} >= ${dist[to] === Infinity ? '∞' : dist[to]} → ไม่อัปเดต`, [],
           { ...baseState(u), highlightEdge: [u, to] },
           undefined, 'ข้าม'));
       }

@@ -80,12 +80,12 @@
       if (step) {
         window.GRAPH.render(handles.vizArea, handles.vizMeta, step, GRAPH);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, step.codeLines || [], step.operation, step);
       } else {
         const initialStep = window.GRAPH.topoInitial(GRAPH);
         window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, GRAPH);
         window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.TOPO.topo, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

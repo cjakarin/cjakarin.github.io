@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Search Tree (BST)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <script src="js/common.js"></script>
+  <script src="js/cpp-sources.js"></script>
+  <script src="js/view-builder.js"></script>
+  <script src="js/bst.js"></script>
+  <script>
+    try {
+    const { el, ICONS } = window.DS;
+    const Playback = window.DS.Playback;
+
+    let allValues = [50, 30, 70, 20, 40, 60, 80];
+    let root = window.BST.makeInitial(allValues);
+    let valueInput = '35';
+    let speed = 700;
+    const playback = new Playback({ speed, renderer: () => renderAll() });
+
+    const handles = window.DS_VIEW.buildViewPage({
+      title: 'Binary Search Tree (BST)',
+      subtitle: 'BST พื้นฐาน — left < node < right · in-order ได้ค่าเรียงน้อยไปมาก · O(h) (worst case O(n))',
+      iconHtml: ICONS.listChecks,
+      iconClass: 'll',
+      opsConfig: {
+        sections: [
+          {
+            title: 'INSERT', barColor: 'emerald',
+            inputs: [
+              { type: 'number', id: 'value', placeholder: 'ค่าที่จะ insert', value: valueInput, onChange: (v) => valueInput = v },
+            ],
+            buttons: [
+              { label: 'Insert', icon: ICONS.plus, kind: 'btn-primary', onClick: () => runInsert() },
+            ],
+          },
+          {
+            title: 'SEARCH / TRAVERSE', barColor: 'amber',
+            buttons: [
+              { label: 'Search', icon: ICONS.eye, kind: 'btn-outline-amber', onClick: () => runSearch() },
+              { label: 'In-order', icon: ICONS.refresh, kind: 'btn-outline-amber', onClick: () => runTraverse() },
+            ],
+          },
+        ],
+        playback: {
+          speed,
+          onSpeedChange: (v) => { speed = v; playback.setSpeed(v); },
+          onPlay: () => playback.play(),
+          onPause: () => playback.pause(),
+          onStepForward: () => playback.stepForward(),
+          onStepBack: () => playback.stepBack(),
+          isPlaying: false,
+        },
+        onClear: () => { root = null; allValues = []; playback.load([]); renderAll(); },
+        onReset: () => {
+          allValues = [50, 30, 70, 20, 40, 60, 80];
+          root = window.BST.makeInitial(allValues);
+          playback.load([]);
+          renderAll();
+        },
+      },
+      legendItems: [
+        { color: '#f59e0b', label: 'current', desc: 'กำลังเปรียบเทียบ' },
+        { color: '#14b8a6', label: 'new', desc: 'เพิ่ง insert' },
+        { color: '#10b981', label: 'found', desc: 'พบ / เยี่ยมแล้ว' },
+      ],
+    });
+
+    playback.onStateChange = (state) => {
+      window.DS.updatePlaybackUI(handles.opsPanel, state);
+      window.DS_VIEW.setProgress(handles.progressFill, state.index, state.total);
+    };
+
+    function runInsert() {
+      const v = parseInt(valueInput, 10) || 0;
+      if (allValues.includes(v)) return;
+      const steps = window.BST.insert(root, v);
+      allValues.push(v);
+      root = window.BST.makeInitial(allValues);
+      playback.load(steps);
+      playback.play();
+    }
+    function runSearch() {
+      const v = parseInt(valueInput, 10) || 0;
+      const steps = window.BST.search(root, v);
+      playback.load(steps);
+      playback.play();
+    }
+    function runTraverse() {
+      const steps = window.BST.traverse(root);
+      playback.load(steps);
+      playback.play();
+    }
+
+    function renderAll() {
+      const step = playback.current();
+      if (step) {
+        window.BST.render(handles.vizArea, handles.vizMeta, step);
+        window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
+        const op = step.operation;
+        let cppSource = window.CPP_SOURCES.BST.insert;
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || [], step.operation, step);
+      } else {
+        const serialized = (function() {
+          const nodes = []; const edges = [];
+          (function dfs(node, parentId) {
+            if (!node) return;
+            nodes.push({ id: node.id, value: node.value });
+            if (parentId) edges.push([parentId, node.id]);
+            dfs(node.left, node.id);
+            dfs(node.right, node.id);
+          })(root, null);
+          return { nodes, edges };
+        })();
+        const idleStep = { operation: 'init', description: 'BST พร้อม — กด Insert / Search / In-order', codeLines: [], nodes: serialized.nodes, edges: serialized.edges, roles: {}, highlight: null, phase: 'พร้อม' };
+        window.BST.render(handles.vizArea, handles.vizMeta, idleStep);
+        window.DS.renderDescAndConsole(handles.descBody, idleStep, 0, 0);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.BST.insert, [], '');
+      }
+      window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
+    }
+
+    renderAll();
+    } catch(e) { console.error('INLINE ERROR:', e.message, e.stack); document.title = 'ERROR: ' + e.message; }
+  </script>
+</body>
+</html>

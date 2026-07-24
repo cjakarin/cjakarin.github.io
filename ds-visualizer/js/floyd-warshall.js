@@ -8,12 +8,12 @@
 const FW_GRAPH = {
   nodes: ['A', 'B', 'C', 'D'],
   edges: [
-    [0, 1, 5],   // A → B: 5
-    [0, 2, 2],   // A → C: 2
-    [1, 2, 1],   // B → C: 1
-    [1, 3, 6],   // B → D: 6
-    [2, 3, 3],   // C → D: 3
-    [2, 1, 4],   // C → B: 4
+[0, 1, 5],   // A → B: 5
+[0, 2, 2],   // A → C: 2
+[1, 2, 1],   // B → C: 1
+[1, 3, 6],   // B → D: 6
+[2, 3, 3],   // C → D: 3
+[2, 1, 4],   // C → B: 4
   ],
   directed: true,
 };
@@ -50,8 +50,7 @@ function fwSteps() {
 
   // ===== Phase 0: Show initial state =====
   steps.push(fwBase('init',
-    `เริ่ม Floyd-Warshall — ${FW_N} nodes, ${FW_GRAPH.edges.length} directed edges. จะหา shortest path ระหว่างทุกคู่`,
-    [1, 2, 3, 5, 6, 8], {
+    `เริ่ม Floyd-Warshall — ${FW_N} nodes, ${FW_GRAPH.edges.length} directed edges. จะหา shortest path ระหว่างทุกคู่`, [], {
       dist: dist.map((r) => r.slice()),
       k: -1, i: -1, j: -1,
       highlightCell: null,
@@ -63,8 +62,7 @@ function fwSteps() {
   // ===== Triple loop: for k, for i, for j =====
   for (let k = 0; k < FW_N; k++) {
     steps.push(fwBase('k-iter',
-      `รอบ k=${FW_GRAPH.nodes[k]} — ให้ ${FW_GRAPH.nodes[k]} เป็น intermediate node ทดสอบทุกคู่ (i, j)`,
-      [9], {
+      `รอบ k=${FW_GRAPH.nodes[k]} — ให้ ${FW_GRAPH.nodes[k]} เป็น intermediate node ทดสอบทุกคู่ (i, j)`, [], {
         dist: dist.map((r) => r.slice()),
         k, i: -1, j: -1,
         highlightCell: null,
@@ -79,8 +77,7 @@ function fwSteps() {
         if (dist[i][k] === FW_INF || dist[k][j] === FW_INF) {
           // Skip — no path through k
           steps.push(fwBase('skip',
-            `ข้าม (${FW_GRAPH.nodes[i]},${FW_GRAPH.nodes[j]}): dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]=${dist[i][k] === FW_INF ? '∞' : dist[i][k]} หรือ dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}]=${dist[k][j] === FW_INF ? '∞' : dist[k][j]} เป็น ∞ → ไม่สามารถผ่าน ${FW_GRAPH.nodes[k]}`,
-            [12], {
+            `ข้าม (${FW_GRAPH.nodes[i]},${FW_GRAPH.nodes[j]}): dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]=${dist[i][k] === FW_INF ? '∞' : dist[i][k]} หรือ dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}]=${dist[k][j] === FW_INF ? '∞' : dist[k][j]} เป็น ∞ → ไม่สามารถผ่าน ${FW_GRAPH.nodes[k]}`, [], {
               dist: dist.map((r) => r.slice()),
               k, i, j,
               highlightCell: [i, j],
@@ -94,8 +91,7 @@ function fwSteps() {
         const oldDist = dist[i][j];
 
         steps.push(fwBase('relax',
-          `เปรียบเทียบ dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}]=${oldDist === FW_INF ? '∞' : oldDist}  กับ  dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]+dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}] = ${dist[i][k]}+${dist[k][j]} = ${newDist}`,
-          [10, 11, 12, 13], {
+          `เปรียบเทียบ dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}]=${oldDist === FW_INF ? '∞' : oldDist}  กับ  dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[k]}]+dist[${FW_GRAPH.nodes[k]}][${FW_GRAPH.nodes[j]}] = ${dist[i][k]}+${dist[k][j]} = ${newDist}`, [], {
             dist: dist.map((r) => r.slice()),
             k, i, j,
             highlightCell: [i, j],
@@ -106,8 +102,7 @@ function fwSteps() {
         if (newDist < oldDist) {
           dist[i][j] = newDist;
           steps.push(fwBase('update',
-            `${newDist} < ${oldDist === FW_INF ? '∞' : oldDist} → อัปเดต dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${newDist}`,
-            [14], {
+            `${newDist} < ${oldDist === FW_INF ? '∞' : oldDist} → อัปเดต dist[${FW_GRAPH.nodes[i]}][${FW_GRAPH.nodes[j]}] = ${newDist}`, [], {
               dist: dist.map((r) => r.slice()),
               k, i, j,
               highlightCell: [i, j],
@@ -140,8 +135,7 @@ function fwSteps() {
 
   if (hasNegCycle) {
     steps.push(fwBase('neg-cycle',
-      `⚠ พบ negative cycle! dist[${FW_GRAPH.nodes[negCycleNode]}][${FW_GRAPH.nodes[negCycleNode]}] = ${dist[negCycleNode][negCycleNode]} < 0`,
-      [16, 17], {
+      `⚠ พบ negative cycle! dist[${FW_GRAPH.nodes[negCycleNode]}][${FW_GRAPH.nodes[negCycleNode]}] = ${dist[negCycleNode][negCycleNode]} < 0`, [], {
         dist: dist.map((r) => r.slice()),
         k: -1, i: negCycleNode, j: negCycleNode,
         highlightCell: [negCycleNode, negCycleNode],

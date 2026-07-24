@@ -244,6 +244,24 @@
         desc: 'BST ที่ balance เองด้วยกฎ 5 ข้อ (RED/BLACK + black-height) · รองรับ Case 1-3 + mirror cases',
         tags: ['red-black', 'bst', 'rotation', 'recolor'],
       },
+      {
+        href: 'bst.html',
+        cls: 'll-array',
+        icon: window.DS.ICONS.listChecks,
+        title: 'Binary Search Tree',
+        sub: 'Basic BST',
+        desc: 'BST พื้นฐาน — left < node < right · insert/search O(h) · in-order ได้ค่าเรียงน้อยไปมาก',
+        tags: ['bst', 'insert', 'search', 'in-order'],
+      },
+      {
+        href: 'bplustree.html',
+        cls: 'queue-array',
+        icon: window.DS.ICONS.listChecks,
+        title: 'B+ Tree',
+        sub: 'Database Indexing',
+        desc: 'Tree สำหรับ database indexing · leaf nodes เก็บ data + linked list · split + copy/move up · O(log n)',
+        tags: ['b+tree', 'database', 'indexing', 'split'],
+      },
     ];
 
     const grid = document.getElementById('menu-grid');

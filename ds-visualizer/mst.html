@@ -118,7 +118,7 @@
         window.GRAPH.render(handles.vizArea, handles.vizMeta, step, window.GRAPH.sample);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
         const cppSource = algo === 'prim' ? window.CPP_SOURCES.MST.prim : window.CPP_SOURCES.MST.kruskal;
-        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, cppSource, step.codeLines || [], step.operation, step);
       } else {
         // Show graph with initial state
         const initialStep = algo === 'prim'
@@ -127,7 +127,7 @@
         window.GRAPH.render(handles.vizArea, handles.vizMeta, initialStep, window.GRAPH.sample);
         window.DS.renderDescAndConsole(handles.descBody, initialStep, 0, 0);
         const cppSource = algo === 'prim' ? window.CPP_SOURCES.MST.prim : window.CPP_SOURCES.MST.kruskal;
-        window.DS.renderCodePanel(handles.codeBody, cppSource, []);
+        window.DS.renderCodePanel(handles.codeBody, cppSource, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }

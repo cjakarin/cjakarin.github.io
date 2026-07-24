@@ -41,18 +41,18 @@ function scInsert(buckets, key, value) {
   const steps = [];
   const idx = hash1(key);
 
-  steps.push(hashBase('insert', `เริ่ม insert(${key}, ${value}) — คำนวณ hash(${key}) = ${key} % ${HASH_SIZE} = ${idx}`, [1, 2],
+  steps.push(hashBase('insert', `เริ่ม insert(${key}, ${value}) — คำนวณ hash(${key}) = ${key} % ${HASH_SIZE} = ${idx}`, [],
     buckets, {}, { currentBucket: idx, currentChain: null, probeIdx: null },
     undefined, 'คำนวณ hash'));
 
-  steps.push(hashBase('insert', `ไปที่ bucket[${idx}] เพื่อตรวจ chain`, [3],
+  steps.push(hashBase('insert', `ไปที่ bucket[${idx}] เพื่อตรวจ chain`, [],
     buckets, {}, { currentBucket: idx, currentChain: null, probeIdx: null },
     undefined, 'เข้า bucket'));
 
   const chain = buckets[idx];
   for (let i = 0; i < chain.length; i++) {
     if (chain[i].key === key) {
-      steps.push(hashBase('insert', `chain[${i}].key == ${key} → พบ key ซ้ำ → อัปเดต value เป็น ${value}`, [4, 5, 6],
+      steps.push(hashBase('insert', `chain[${i}].key == ${key} → พบ key ซ้ำ → อัปเดต value เป็น ${value}`, [],
         buckets, { [chain[i].id]: 'found' },
         { currentBucket: idx, currentChain: i, probeIdx: null },
         `update(${key}) → value = ${value}`, 'พบ key ซ้ำ'));
@@ -64,19 +64,19 @@ function scInsert(buckets, key, value) {
         `update(${key}) → สำเร็จ`, 'เสร็จสิ้น'));
       return steps;
     }
-    steps.push(hashBase('insert', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อที่ node ถัดไป`, [4],
+    steps.push(hashBase('insert', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อที่ node ถัดไป`, [],
       buckets, { [chain[i].id]: 'current' },
       { currentBucket: idx, currentChain: i, probeIdx: null },
       undefined, 'เดิน chain'));
   }
 
   if (chain.length > 0) {
-    steps.push(hashBase('insert', `chain สุดท้าย == nullptr → ไม่พบ key ${key} → แทรก Node ใหม่ที่ท้าย chain`, [4, 7, 8],
+    steps.push(hashBase('insert', `chain สุดท้าย == nullptr → ไม่พบ key ${key} → แทรก Node ใหม่ที่ท้าย chain`, [],
       buckets, { [chain[chain.length - 1].id]: 'prev' },
       { currentBucket: idx, currentChain: chain.length - 1, probeIdx: null },
       undefined, 'ถึงท้าย chain'));
   } else {
-    steps.push(hashBase('insert', `chain ว่าง → แทรก Node ใหม่เป็น node แรกของ bucket`, [4, 7, 8],
+    steps.push(hashBase('insert', `chain ว่าง → แทรก Node ใหม่เป็น node แรกของ bucket`, [],
       buckets, {},
       { currentBucket: idx, currentChain: null, probeIdx: null },
       undefined, 'bucket ว่าง'));
@@ -85,7 +85,7 @@ function scInsert(buckets, key, value) {
   const newId = hashId();
   const newNode = { id: newId, key, value };
   const newBuckets = buckets.map((b, bi) => bi === idx ? [...b, newNode] : b);
-  steps.push(hashBase('insert', `แทรก Node ใหม่ (key=${key}, value=${value}) ที่ท้าย chain ของ bucket[${idx}]`, [8],
+  steps.push(hashBase('insert', `แทรก Node ใหม่ (key=${key}, value=${value}) ที่ท้าย chain ของ bucket[${idx}]`, [],
     newBuckets, { [newId]: 'new' },
     { currentBucket: idx, currentChain: newBuckets[idx].length - 1, probeIdx: null },
     `insert(${key}, ${value}) → สำเร็จ (chain ยาว ${newBuckets[idx].length})`, 'เสร็จสิ้น'));
@@ -97,26 +97,26 @@ function scSearch(buckets, key) {
   const steps = [];
   const idx = hash1(key);
 
-  steps.push(hashBase('search', `เริ่ม search(${key}) — hash(${key}) = ${idx}`, [1, 2],
+  steps.push(hashBase('search', `เริ่ม search(${key}) — hash(${key}) = ${idx}`, [],
     buckets, {}, { currentBucket: idx, currentChain: null, probeIdx: null },
     undefined, 'คำนวณ hash'));
 
   const chain = buckets[idx];
   for (let i = 0; i < chain.length; i++) {
     if (chain[i].key === key) {
-      steps.push(hashBase('search', `chain[${i}].key == ${key} → พบ! คืน value = ${chain[i].value}`, [3, 4],
+      steps.push(hashBase('search', `chain[${i}].key == ${key} → พบ! คืน value = ${chain[i].value}`, [],
         buckets, { [chain[i].id]: 'found' },
         { currentBucket: idx, currentChain: i, probeIdx: null },
         `search(${key}) → พบ value=${chain[i].value}`, 'พบ'));
       return steps;
     }
-    steps.push(hashBase('search', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อ`, [3],
+    steps.push(hashBase('search', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อ`, [],
       buckets, { [chain[i].id]: 'current' },
       { currentBucket: idx, currentChain: i, probeIdx: null },
       undefined, 'เดิน chain'));
   }
 
-  steps.push(hashBase('search', `chain == nullptr → ไม่พบ key ${key}`, [3, 5],
+  steps.push(hashBase('search', `chain == nullptr → ไม่พบ key ${key}`, [],
     buckets, {},
     { currentBucket: idx, currentChain: null, probeIdx: null },
     `search(${key}) → ไม่พบ`, 'ไม่พบ'));
@@ -127,32 +127,32 @@ function scDelete(buckets, key) {
   const steps = [];
   const idx = hash1(key);
 
-  steps.push(hashBase('delete', `เริ่ม delete(${key}) — hash(${key}) = ${idx}`, [1, 2],
+  steps.push(hashBase('delete', `เริ่ม delete(${key}) — hash(${key}) = ${idx}`, [],
     buckets, {}, { currentBucket: idx, currentChain: null, probeIdx: null },
     undefined, 'คำนวณ hash'));
 
   const chain = buckets[idx];
   for (let i = 0; i < chain.length; i++) {
     if (chain[i].key === key) {
-      steps.push(hashBase('delete', `chain[${i}].key == ${key} → พบ! เตรียมลบ`, [3, 4],
+      steps.push(hashBase('delete', `chain[${i}].key == ${key} → พบ! เตรียมลบ`, [],
         buckets, { [chain[i].id]: 'removing' },
         { currentBucket: idx, currentChain: i, probeIdx: null },
         undefined, 'พบเป้าหมาย'));
       // Apply delete
       const newBuckets = buckets.map((b, bi) => bi === idx ? b.filter((_, ni) => ni !== i) : b);
-      steps.push(hashBase('delete', `ลบ Node (key=${key}) ออกจาก chain → ปรับ next pointer ของ node ก่อนหน้า`, [5, 6],
+      steps.push(hashBase('delete', `ลบ Node (key=${key}) ออกจาก chain → ปรับ next pointer ของ node ก่อนหน้า`, [],
         newBuckets, {},
         { currentBucket: idx, currentChain: null, probeIdx: null },
         `delete(${key}) → สำเร็จ (chain เหลือ ${newBuckets[idx].length})`, 'เสร็จสิ้น'));
       return steps;
     }
-    steps.push(hashBase('delete', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อ`, [3],
+    steps.push(hashBase('delete', `chain[${i}].key = ${chain[i].key} ≠ ${key} → ไปต่อ`, [],
       buckets, { [chain[i].id]: 'current' },
       { currentBucket: idx, currentChain: i, probeIdx: null },
       undefined, 'เดิน chain'));
   }
 
-  steps.push(hashBase('delete', `chain == nullptr → ไม่พบ key ${key}`, [3, 7],
+  steps.push(hashBase('delete', `chain == nullptr → ไม่พบ key ${key}`, [],
     buckets, {},
     { currentBucket: idx, currentChain: null, probeIdx: null },
     `delete(${key}) → ไม่พบ`, 'ไม่พบ'));
@@ -284,8 +284,7 @@ function oaInsert(table, key, value, mode) {
   const startIdx = hash1(key);
 
   steps.push(hashBase('insert',
-    `เริ่ม insert(${key}, ${value}) — h = hash(${key}) = ${key} % ${HASH_SIZE} = ${startIdx}`,
-    [1, 2], table, {}, { probeStart: startIdx, probeIdx: startIdx, probeI: 0, probePath: [startIdx] },
+    `เริ่ม insert(${key}, ${value}) — h = hash(${key}) = ${key} % ${HASH_SIZE} = ${startIdx}`, [], table, {}, { probeStart: startIdx, probeIdx: startIdx, probeI: 0, probePath: [startIdx] },
     undefined, 'คำนวณ hash'));
 
   for (let i = 0; i < HASH_SIZE; i++) {
@@ -296,8 +295,7 @@ function oaInsert(table, key, value, mode) {
     if (!slot || slot.deleted) {
       // Empty or deleted slot — insert here
       steps.push(hashBase('insert',
-        `probe ${i}: ${formula} = ${probeIdx} — ช่อง${!slot ? 'ว่าง' : 'ถูกลบ (tombstone)'} → แทรกที่นี่`,
-        [3, 4, 5, 6], table,
+        `probe ${i}: ${formula} = ${probeIdx} — ช่อง${!slot ? 'ว่าง' : 'ถูกลบ (tombstone)'} → แทรกที่นี่`, [], table,
         { [`slot${probeIdx}`]: 'new' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         undefined, `พบช่อง${!slot ? 'ว่าง' : 'ลบแล้ว'}`));
@@ -317,8 +315,7 @@ function oaInsert(table, key, value, mode) {
     if (slot.key === key) {
       // Duplicate key — update
       steps.push(hashBase('insert',
-        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ key ซ้ำ → อัปเดต value`,
-        [3, 4, 7, 8], table,
+        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ key ซ้ำ → อัปเดต value`, [], table,
         { [`slot${probeIdx}`]: 'found' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         undefined, 'พบ key ซ้ำ'));
@@ -335,8 +332,7 @@ function oaInsert(table, key, value, mode) {
 
     // Occupied by different key — continue probing
     steps.push(hashBase('insert',
-      `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key = ${slot.key} ≠ ${key} → ข้ามไปทำ probe ถัดไป`,
-      [3, 4, 9], table,
+      `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key = ${slot.key} ≠ ${key} → ข้ามไปทำ probe ถัดไป`, [], table,
       { [`slot${probeIdx}`]: 'current' },
       { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i + 1, mode, key) },
       undefined, `probe ชน → ข้าม`));
@@ -344,8 +340,7 @@ function oaInsert(table, key, value, mode) {
 
   // Table full
   steps.push(hashBase('insert',
-    `probe ครบ ${HASH_SIZE} ครั้ง → ตารางเต็ม → insert ล้มเหลว`,
-    [9], table, {},
+    `probe ครบ ${HASH_SIZE} ครั้ง → ตารางเต็ม → insert ล้มเหลว`, [], table, {},
     { probeStart: startIdx, probeIdx: null, probeI: HASH_SIZE, probePath: [] },
     `insert(${key}, ${value}) → ล้มเหลว (Table Full)`, 'Table Full'));
   return steps;
@@ -356,8 +351,7 @@ function oaSearch(table, key, mode) {
   const startIdx = hash1(key);
 
   steps.push(hashBase('search',
-    `เริ้ม search(${key}) — h = hash(${key}) = ${startIdx}`,
-    [1, 2], table, {},
+    `เริ้ม search(${key}) — h = hash(${key}) = ${startIdx}`, [], table, {},
     { probeStart: startIdx, probeIdx: startIdx, probeI: 0, probePath: [startIdx] },
     undefined, 'คำนวณ hash'));
 
@@ -369,8 +363,7 @@ function oaSearch(table, key, mode) {
     if (!slot) {
       // Empty slot — not found
       steps.push(hashBase('search',
-        `probe ${i}: ${formula} = ${probeIdx} — ช่องว่าง → ไม่พบ key ${key} (หยุด probe)`,
-        [3, 4, 5, 8], table,
+        `probe ${i}: ${formula} = ${probeIdx} — ช่องว่าง → ไม่พบ key ${key} (หยุด probe)`, [], table,
         { [`slot${probeIdx}`]: 'target' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         `search(${key}) → ไม่พบ`, 'ไม่พบ'));
@@ -380,8 +373,7 @@ function oaSearch(table, key, mode) {
     if (!slot.deleted && slot.key === key) {
       // Found
       steps.push(hashBase('search',
-        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ! คืน value = ${slot.value}`,
-        [3, 4, 5, 6], table,
+        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ! คืน value = ${slot.value}`, [], table,
         { [`slot${probeIdx}`]: 'found' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         `search(${key}) → พบ value=${slot.value}`, 'พบ'));
@@ -391,16 +383,14 @@ function oaSearch(table, key, mode) {
     // Occupied by different key or tombstone — continue
     const reason = slot.deleted ? 'tombstone (ข้าม)' : `key=${slot.key} ≠ ${key}`;
     steps.push(hashBase('search',
-      `probe ${i}: ${formula} = ${probeIdx} — ${reason} → ไป probe ถัดไป`,
-      [3, 4, 7], table,
+      `probe ${i}: ${formula} = ${probeIdx} — ${reason} → ไป probe ถัดไป`, [], table,
       { [`slot${probeIdx}`]: slot.deleted ? 'removing' : 'current' },
       { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i + 1, mode, key) },
       undefined, `probe ชน → ข้าม`));
   }
 
   steps.push(hashBase('search',
-    `probe ครบ ${HASH_SIZE} ครั้ง → ไม่พบ key ${key}`,
-    [7], table, {},
+    `probe ครบ ${HASH_SIZE} ครั้ง → ไม่พบ key ${key}`, [], table, {},
     { probeStart: startIdx, probeIdx: null, probeI: HASH_SIZE, probePath: [] },
     `search(${key}) → ไม่พบ (probe ครบ)`, 'ไม่พบ'));
   return steps;
@@ -411,8 +401,7 @@ function oaDelete(table, key, mode) {
   const startIdx = hash1(key);
 
   steps.push(hashBase('delete',
-    `เริ่ม delete(${key}) — h = hash(${key}) = ${startIdx}`,
-    [1, 2], table, {},
+    `เริ่ม delete(${key}) — h = hash(${key}) = ${startIdx}`, [], table, {},
     { probeStart: startIdx, probeIdx: startIdx, probeI: 0, probePath: [startIdx] },
     undefined, 'คำนวณ hash'));
 
@@ -423,8 +412,7 @@ function oaDelete(table, key, mode) {
 
     if (!slot) {
       steps.push(hashBase('delete',
-        `probe ${i}: ${formula} = ${probeIdx} — ช่องว่าง → ไม่พบ key ${key}`,
-        [3, 4, 5, 9], table,
+        `probe ${i}: ${formula} = ${probeIdx} — ช่องว่าง → ไม่พบ key ${key}`, [], table,
         { [`slot${probeIdx}`]: 'target' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         `delete(${key}) → ไม่พบ`, 'ไม่พบ'));
@@ -433,8 +421,7 @@ function oaDelete(table, key, mode) {
 
     if (!slot.deleted && slot.key === key) {
       steps.push(hashBase('delete',
-        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ! ทำเครื่องหมายเป็น DELETED (tombstone)`,
-        [3, 4, 5, 6], table,
+        `probe ${i}: ${formula} = ${probeIdx} — table[${probeIdx}].key == ${key} → พบ! ทำเครื่องหมายเป็น DELETED (tombstone)`, [], table,
         { [`slot${probeIdx}`]: 'removing' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         undefined, 'พบเป้าหมาย'));
@@ -443,8 +430,7 @@ function oaDelete(table, key, mode) {
       const newTable = table.slice();
       newTable[probeIdx] = { ...slot, deleted: true };
       steps.push(hashBase('delete',
-        `table[${probeIdx}].deleted = true — ทำเครื่องหมายเป็น tombstone (ไม่ได้ลบจริง เพื่อรักษา probe chain)`,
-        [6, 7], newTable,
+        `table[${probeIdx}].deleted = true — ทำเครื่องหมายเป็น tombstone (ไม่ได้ลบจริง เพื่อรักษา probe chain)`, [], newTable,
         { [`slot${probeIdx}`]: 'overflow' },
         { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i, mode, key) },
         `delete(${key}) → สำเร็จ (mark as DELETED)`, 'เสร็จสิ้น'));
@@ -453,16 +439,14 @@ function oaDelete(table, key, mode) {
 
     const reason = slot.deleted ? 'tombstone (ข้าม)' : `key=${slot.key} ≠ ${key}`;
     steps.push(hashBase('delete',
-      `probe ${i}: ${formula} = ${probeIdx} — ${reason} → ไป probe ถัดไป`,
-      [3, 4, 8], table,
+      `probe ${i}: ${formula} = ${probeIdx} — ${reason} → ไป probe ถัดไป`, [], table,
       { [`slot${probeIdx}`]: slot.deleted ? 'removing' : 'current' },
       { probeStart: startIdx, probeIdx, probeI: i, probePath: getProbePath(startIdx, i + 1, mode, key) },
       undefined, `probe ชน → ข้าม`));
   }
 
   steps.push(hashBase('delete',
-    `probe ครบ ${HASH_SIZE} ครั้ง → ไม่พบ key ${key}`,
-    [8], table, {},
+    `probe ครบ ${HASH_SIZE} ครั้ง → ไม่พบ key ${key}`, [], table, {},
     { probeStart: startIdx, probeIdx: null, probeI: HASH_SIZE, probePath: [] },
     `delete(${key}) → ไม่พบ (probe ครบ)`, 'ไม่พบ'));
   return steps;

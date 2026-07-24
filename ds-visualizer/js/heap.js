@@ -31,14 +31,14 @@ function heapInsert(arr, value) {
   const newNode = { id: newId, value };
 
   steps.push(heapBase('insert', arr,
-    `เริ่ม insert(${value}) — เพิ่ม Node ใหม่ที่ท้าย array`, [1, 2],
+    `เริ่ม insert(${value}) — เพิ่ม Node ใหม่ที่ท้าย array`, [],
     {}, { current: null, parent: null, swap: null }, undefined, 'เริ่มต้น'));
 
   // Step 1: append
   const newArr = [...arr, newNode];
   let i = newArr.length - 1;
   steps.push(heapBase('insert', newArr,
-    `เพิ่ม Node ${value} ที่ตำแหน่ง index ${i} (ท้าย array)`, [2],
+    `เพิ่ม Node ${value} ที่ตำแหน่ง index ${i} (ท้าย array)`, [],
     { [newId]: 'new' }, { current: i, parent: null, swap: null }, undefined, 'append'));
 
   // Step 2: heapify-up
@@ -48,16 +48,14 @@ function heapInsert(arr, value) {
     const curNode = newArr[i];
 
     steps.push(heapBase('insert', newArr,
-      `heapify-up: เปรียบเทียบ arr[${i}]=${curNode.value} กับ parent arr[${p}]=${parentNode.value}`,
-      [3, 4],
+      `heapify-up: เปรียบเทียบ arr[${i}]=${curNode.value} กับ parent arr[${p}]=${parentNode.value}`, [],
       { [curNode.id]: 'current', [parentNode.id]: 'prev' },
       { current: i, parent: p, swap: null }, undefined, 'เปรียบเทียบ parent'));
 
     if (curNode.value < parentNode.value) {
       // swap
       steps.push(heapBase('insert', newArr,
-        `${curNode.value} < ${parentNode.value} → สลับ (swap กับ parent)`,
-        [5, 6],
+        `${curNode.value} < ${parentNode.value} → สลับ (swap กับ parent)`, [],
         { [curNode.id]: 'target', [parentNode.id]: 'current' },
         { current: i, parent: p, swap: 'up' }, undefined, 'สลับขึ้น'));
 
@@ -75,8 +73,7 @@ function heapInsert(arr, value) {
         undefined, 'หลัง swap'));
     } else {
       steps.push(heapBase('insert', newArr,
-        `${curNode.value} >= ${parentNode.value} → หยุด heapify-up (ไม่สลับ)`,
-        [4, 7],
+        `${curNode.value} >= ${parentNode.value} → หยุด heapify-up (ไม่สลับ)`, [],
         { [curNode.id]: 'found' }, { current: i, parent: p, swap: null },
         `insert(${value}) → สำเร็จ`, 'เสร็จสิ้น'));
       return steps;
@@ -84,8 +81,7 @@ function heapInsert(arr, value) {
   }
 
   steps.push(heapBase('insert', newArr,
-    `i == 0 → ถึง root แล้ว หยุด heapify-up`,
-    [3, 7],
+    `i == 0 → ถึง root แล้ว หยุด heapify-up`, [],
     { [newArr[0].id]: 'found' }, { current: 0, parent: null, swap: null },
     `insert(${value}) → สำเร็จ (root)`, 'เสร็จสิ้น'));
   return steps;
@@ -95,13 +91,13 @@ function heapExtractMin(arr) {
   const steps = [];
 
   steps.push(heapBase('extractMin', arr,
-    `เริ่ม extractMin() — คืนค่า root (min)`, [1],
+    `เริ่ม extractMin() — คืนค่า root (min)`, [],
     arr.length > 0 ? { [arr[0].id]: 'target' } : {},
     { current: 0, parent: null, swap: null }, undefined, 'เริ่มต้น'));
 
   if (arr.length === 0) {
     steps.push(heapBase('extractMin', arr,
-      `array ว่าง → คืน error (heap underflow)`, [1, 2],
+      `array ว่าง → คืน error (heap underflow)`, [],
       {}, { current: null },
       `extractMin() → Heap Empty`, 'Underflow'));
     return steps;
@@ -110,14 +106,13 @@ function heapExtractMin(arr) {
   const minNode = arr[0];
   const lastNode = arr[arr.length - 1];
   steps.push(heapBase('extractMin', arr,
-    `min = arr[0] = ${minNode.value}  เก็บไว้เพื่อ return`, [2, 3],
+    `min = arr[0] = ${minNode.value}  เก็บไว้เพื่อ return`, [],
     { [minNode.id]: 'removing' }, { current: 0 }, undefined, 'เก็บ min'));
 
   if (arr.length === 1) {
     const empty = [];
     steps.push(heapBase('extractMin', empty,
-      `array มี 1 element → ลบออก → คืนค่า ${minNode.value}`,
-      [4, 5, 9], {}, { current: null },
+      `array มี 1 element → ลบออก → คืนค่า ${minNode.value}`, [], {}, { current: null },
       `extractMin() → คืนค่า ${minNode.value}`, 'เสร็จสิ้น'));
     return steps;
   }
@@ -125,7 +120,7 @@ function heapExtractMin(arr) {
   // Move last to root
   const afterMove = [lastNode, ...arr.slice(0, -1)];
   steps.push(heapBase('extractMin', afterMove,
-    `ย้าย element สุดท้าย (${lastNode.value}) ไปที่ root`, [4, 5],
+    `ย้าย element สุดท้าย (${lastNode.value}) ไปที่ root`, [],
     { [lastNode.id]: 'new' }, { current: 0 }, undefined, 'ย้าย last → root'));
 
   // heapify-down
@@ -137,8 +132,7 @@ function heapExtractMin(arr) {
     let smallest = i;
 
     steps.push(heapBase('extractMin', heap,
-      `heapify-down: ตรวจ arr[${i}]=${heap[i].value} เทียบกับ children (left=${l < heap.length ? heap[l].value : '-'}, right=${r < heap.length ? heap[r].value : '-'})`,
-      [6, 7, 8, 9],
+      `heapify-down: ตรวจ arr[${i}]=${heap[i].value} เทียบกับ children (left=${l < heap.length ? heap[l].value : '-'}, right=${r < heap.length ? heap[r].value : '-'})`, [],
       { [heap[i].id]: 'current' }, { current: i, parent: null, swap: null },
       undefined, 'หา smallest'));
 
@@ -147,16 +141,14 @@ function heapExtractMin(arr) {
 
     if (smallest === i) {
       steps.push(heapBase('extractMin', heap,
-        `arr[${i}]=${heap[i].value} <= ทุก child → หยุด heapify-down`,
-        [10, 11],
+        `arr[${i}]=${heap[i].value} <= ทุก child → หยุด heapify-down`, [],
         { [heap[i].id]: 'found' }, { current: i },
         `extractMin() → คืนค่า ${minNode.value}`, 'เสร็จสิ้น'));
       return steps;
     }
 
     steps.push(heapBase('extractMin', heap,
-      `arr[${smallest}]=${heap[smallest].value} < arr[${i}]=${heap[i].value} → สลับลง`,
-      [10],
+      `arr[${smallest}]=${heap[smallest].value} < arr[${i}]=${heap[i].value} → สลับลง`, [],
       { [heap[i].id]: 'current', [heap[smallest].id]: 'target' },
       { current: i, parent: smallest, swap: 'down' }, undefined, 'สลับลง'));
 

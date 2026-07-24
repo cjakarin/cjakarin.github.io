@@ -69,14 +69,14 @@
       if (step) {
         window.JOHNSON.render(handles.vizArea, handles.vizMeta, step);
         window.DS.renderDescAndConsole(handles.descBody, step, playback.index, playback.steps.length);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, step.codeLines || []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, step.codeLines || [], step.operation, step);
       } else {
         // Show initial graph
         const initialSteps = window.JOHNSON.run();
         const initial = initialSteps[0];
         window.JOHNSON.render(handles.vizArea, handles.vizMeta, initial);
         window.DS.renderDescAndConsole(handles.descBody, initial, 0, 0);
-        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, []);
+        window.DS.renderCodePanel(handles.codeBody, window.CPP_SOURCES.JOHNSON.johnson, [], '');
       }
       window.DS_VIEW.setProgress(handles.progressFill, playback.index, playback.steps.length);
     }
