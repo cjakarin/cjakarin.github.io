@@ -399,7 +399,9 @@ public:
             cout << "Stack Underflow\\n";        
             return -1;                          
         }
-        return arr[top--];                      // คืนค่าที่ top แล้วลด top
+        int val = arr[top];                     // อ่านค่าที่ top
+        top--;                                  // ลด top
+        return val;                             // คืนค่าที่ลบ
     }
 };`,
   },
@@ -572,7 +574,13 @@ public:
             cout << "Queue Underflow\\n";          
             return -1;                            
         }
-        return arr[front++];                      // คืนค่าที่ front แล้วเพิ่ม front
+        int val = arr[front];                     // อ่านค่าหน้าสุด
+        for (int i = front; i < rear; i++) {      // compact ไปทางซ้าย
+            arr[i] = arr[i + 1];
+        }
+        rear--;                                   // ลด rear
+        front = 0;                                // reset front
+        return val;                               // คืนค่าที่ลบ
     }
 };`,
   },
@@ -1253,13 +1261,14 @@ using namespace std;
 
 const int N = 100;
 vector<pair<int,int>> adj[N];   // adj[u] = list of {v, weight}
-int dist[N];
+int dist[N], parent[N];
 bool visited[N];
 
 void dijkstra(int source) {
     for (int i = 0; i < N; i++) {            // init
         dist[i] = INT_MAX;                   
         visited[i] = false;                  
+        parent[i] = -1;
     }
     dist[source] = 0;                        
 
@@ -1279,6 +1288,7 @@ void dijkstra(int source) {
             if (visited[v]) continue;        // ข้าม visited
             if (dist[u] + w < dist[v]) {     // พบทางสั้นกว่า?
                 dist[v] = dist[u] + w;       // อัปเดต dist
+                parent[v] = u;               // บันทึกเส้นทาง
             }
         }
     }

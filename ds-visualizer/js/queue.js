@@ -1,6 +1,7 @@
 // ============ Queue — Array Implementation ============
 // Visual: horizontal array with front/rear pointers.
-// We use the compaction model: after dequeue, indices reset to 0..n-1.
+// We use the compaction model: after dequeue, live elements shift left and
+// indices reset to 0..n-1. The displayed C++ follows the same model.
 
 let qaIdCounter = 0;
 function qaId() {
@@ -87,16 +88,16 @@ function qaDequeue(arr) {
     { [target.id]: 'peeked' },
     { front: liveFront, rear: liveRear, temp: liveFront }, undefined, 'อ่านค่า'));
 
-  steps.push(qaBase('dequeue', arr,
-    `front++ (จาก ${liveFront} เป็น ${liveFront + 1})`, [],
-    { [target.id]: 'removing' },
-    { front: liveFront + 1, rear: liveRear, temp: liveFront }, undefined, 'เลื่อน front'));
-
   const remaining = arr.slice(1);
   const compactFront = 0;
   const compactRear = remaining.length - 1;
   steps.push(qaBase('dequeue', remaining,
-    `return val (${target.value}) — compact คิวใหม่ (front=0, rear=${compactRear})`, [],
+    `เลื่อนสมาชิกที่เหลือไปทางซ้าย 1 ช่อง แล้ว rear-- (จาก ${liveRear} เป็น ${compactRear})`, [],
+    remaining.reduce((roles, node) => ({ ...roles, [node.id]: 'current' }), {}),
+    { front: compactFront, rear: compactRear, temp: liveFront }, undefined, 'compact array'));
+
+  steps.push(qaBase('dequeue', remaining,
+    `return val (${target.value}) — คิวใหม่มี front=0, rear=${compactRear}`, [],
     remaining.length > 0
       ? (compactFront === compactRear ? { [remaining[0].id]: 'both' } : { [remaining[0].id]: 'front', [remaining[compactRear].id]: 'rear' })
       : {},

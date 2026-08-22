@@ -3,7 +3,8 @@
 // Visual: tree (top) + array (bottom), with parent/child pointers
 // Operations: insert (heapify-up), extractMin (heapify-down)
 
-const HEAP_DEFAULT = [50, 30, 40, 10, 20, 35, 25];
+// A valid Min-Heap: every parent is <= both children.
+const HEAP_DEFAULT = [10, 20, 25, 30, 40, 35, 50];
 
 let heapIdCounter = 0;
 function heapId() {
@@ -118,7 +119,9 @@ function heapExtractMin(arr) {
   }
 
   // Move last to root
-  const afterMove = [lastNode, ...arr.slice(0, -1)];
+  // Replace the old root with the last element, then remove the old last slot.
+  // Exclude arr[0] (the extracted minimum) and arr[last] (moved to root).
+  const afterMove = [lastNode, ...arr.slice(1, -1)];
   steps.push(heapBase('extractMin', afterMove,
     `ย้าย element สุดท้าย (${lastNode.value}) ไปที่ root`, [],
     { [lastNode.id]: 'new' }, { current: 0 }, undefined, 'ย้าย last → root'));

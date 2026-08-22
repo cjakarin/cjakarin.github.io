@@ -240,7 +240,7 @@ function renderCodePanel(container, source, activeLines = [], operation = '', st
   // based on the operation name. This gives a visual cue of which part of
   // the code is currently executing.
   if ((!activeLines || activeLines.length === 0) && operation) {
-    activeLines = computeActiveLines(lines, operation, step);
+    activeLines = computeActiveLines(lines, operation, step, source.title);
   }
 
   // header
@@ -271,33 +271,9 @@ function renderCodePanel(container, source, activeLines = [], operation = '', st
 // Infer the most relevant executable line when an engine does not provide
 // an explicit codeLines mapping. Never highlight the whole file: a broad
 // highlight looks active but teaches the wrong execution point.
-function computeActiveLines(lines, operation, step) {
+function computeActiveLines(lines, operation, step, sourceTitle = '') {
   if (!operation) return [];
   const context = `${step?.description || ''} ${step?.phase || ''}`.toLowerCase();
-  const cues = [
-    { when: /เพิ่ม top|top\+\+/, code: /\+\+top|top\+\+/i },
-    { when: /ลด top|top--/, code: /--top|top--/i },
-    { when: /overflow|เต็ม/, code: /if\s*\(.*(?:max|size\s*>=|top\s*>=)/i },
-    { when: /underflow|ว่าง/, code: /empty|top\s*<|head\s*==\s*nullptr|front\s*==\s*nullptr/i },
-    { when: /ขอบเขต|out of bounds/, code: /pos\s*<|pos\s*>|pos\s*>=/i },
-    { when: /สร้าง|new node|allocate/, code: /\bnew\b|newnode/i },
-    { when: /เลื่อน.*ขวา|shift.*right/, code: /for\s*\(.*--|arr\[i\]\s*=\s*arr\[i\s*-\s*1\]/i },
-    { when: /เลื่อน.*ซ้าย|shift.*left/, code: /for\s*\(.*\+\+|arr\[i\]\s*=\s*arr\[i\s*\+\s*1\]/i },
-    { when: /โยง|ชี้|next/, code: /->next|\bnext\b/i },
-    { when: /swap|สลับ|rotation|หมุน/, code: /swap|rotate/i },
-    { when: /เปรียบเทียบ|ตรงค่า|พบ|compare/, code: /==|find|search/i },
-    { when: /return|คืนค่า|คืน /, code: /\breturn\b/i },
-    { when: /queue|enqueue/, code: /\bpush\b|enqueue/i },
-    { when: /dequeue/, code: /\bpop\b|dequeue/i },
-    { when: /relax|อัปเดต dist|tentative/, code: /dist\[|relax/i },
-  ];
-
-  for (const cue of cues) {
-    if (!cue.when.test(context)) continue;
-    const idx = lines.findIndex((line) => cue.code.test(line));
-    if (idx >= 0) return [idx + 1];
-  }
-
   const normalizedOp = operation.toLowerCase().replace(/[^a-z0-9]/g, '');
   const aliases = {
     inserthead: ['insertathead', 'inserthead'],
@@ -309,11 +285,75 @@ function computeActiveLines(lines, operation, step) {
     update: ['astar', 'bellmanford', 'dijkstra'],
     done: ['return'],
   };
-  const names = aliases[normalizedOp] || [normalizedOp];
+  const normalizedTitle = sourceTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const names = [...(aliases[normalizedOp] || [normalizedOp]), normalizedTitle]
+    .filter(Boolean);
   const fnIdx = lines.findIndex((line) => {
     const normalizedLine = line.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return names.some((name) => name && normalizedLine.includes(name));
+    return line.includes('(') && names.some((name) => name && normalizedLine.includes(name));
   });
+
+  // Search only inside the active function. This prevents matches such as
+  // helper return statements and global declarations from flashing.
+  let scopeStart = fnIdx >= 0 ? fnIdx : 0;
+  let scopeEnd = lines.length - 1;
+  if (fnIdx >= 0) {
+    let depth = 0;
+    let opened = false;
+    for (let i = fnIdx; i < lines.length; i++) {
+      for (const ch of lines[i]) {
+        if (ch === '{') { depth++; opened = true; }
+        else if (ch === '}') depth--;
+      }
+      if (opened && depth === 0) { scopeEnd = i; break; }
+    }
+  }
+
+  const findScoped = (pattern, reject) => {
+    for (let i = scopeStart; i <= scopeEnd; i++) {
+      if (pattern.test(lines[i]) && (!reject || !reject.test(lines[i]))) return i + 1;
+    }
+    return null;
+  };
+  const findAllScoped = (patterns) => patterns
+    .map((pattern) => findScoped(pattern))
+    .filter((line, index, all) => line != null && all.indexOf(line) === index);
+
+  // Exact semantic cues, ordered from specific state changes to broad phases.
+  if (/underflow|ว่าง/.test(context)) return findAllScoped([/if\s*\(.*(?:top\s*<|front\s*>|size\s*==\s*0|nullptr|empty)/i]);
+  if (/overflow|เต็ม/.test(context)) return findAllScoped([/if\s*\(.*(?:max|size\s*>=|top\s*>=|rear\s*>=)/i]);
+  if (/ตรวจ.*(?:size|top|rear).*max/.test(context)) return findAllScoped([/if\s*\(.*(?:size|top|rear).*max/i]);
+  if (/val\s*=\s*arr\[top\]|อ่าน.*top/.test(context)) return findAllScoped([/\bval\s*=\s*arr\[top\]/i]);
+  if (/val\s*=\s*arr\[front\]|อ่านค่าหน้าสุด/.test(context)) return findAllScoped([/\bval\s*=\s*arr\[front\]/i]);
+  if (/min\s*=\s*arr\[0\]|เก็บ min/.test(context)) return findAllScoped([/\bmin\s*=\s*arr\[0\]/i]);
+  if (/ย้าย.*สุดท้าย.*root|last.*root/.test(context)) return findAllScoped([/arr\[0\]\s*=\s*arr\[--size\]/i]);
+  if (/heapify-down:.*ตรวจ|หา smallest/.test(context)) return findAllScoped([/while\s*\(true\)/i, /int l\s*=.*right/i, /int smallest\s*=/i]);
+  if (/หลัง swap/.test(context)) return findAllScoped([/i\s*=\s*(?:parent\(i\)|smallest)/i]);
+  if (/top--|ลด top/.test(context)) return findAllScoped([/\btop--|--top\b/i]);
+  if (/rear--|compact/.test(context)) return findAllScoped([/for\s*\(.*i.*rear/i, /\brear--/i, /front\s*=\s*0/i]);
+  if (/return val|คืนค่า.*val|คืนค่าที่ลบ/.test(context)) return findAllScoped([/return\s+val\b/i]);
+  if (/เลื่อน arr\[|เลื่อน.*ขวา|shift.*right/.test(context)) return findAllScoped([/for\s*\(.*--/i, /arr\[i\]\s*=\s*arr\[i\s*-\s*1\]/i]);
+  if (/เลื่อน.*ซ้าย|shift.*left/.test(context)) return findAllScoped([/for\s*\(.*\+\+/i, /arr\[i\]\s*=\s*arr\[i\s*\+\s*1\]/i]);
+  if (/arr\[0\].*size\+\+/.test(context)) return findAllScoped([/arr\[0\]\s*=/i, /size\+\+/i]);
+  if (/arr\[rear\]\s*=|เขียนค่า/.test(context)) return findAllScoped([/arr\[\+\+rear\]|arr\[rear\]\s*=/i]);
+  if (/สร้าง|new node|allocate/.test(context)) return findAllScoped([/\bnew\b|newnode/i]);
+  if (/โยง|ชี้|next/.test(context)) return findAllScoped([/->next\s*=/i]);
+  if (/swap|สลับ|rotation|หมุน/.test(context)) return findAllScoped([/\bswap\s*\(|rotate/i]);
+  if (/อัปเดต dist|update dist/.test(context)) {
+    const distLine = findScoped(/^\s*dist\[.*\]\s*=/i, /(?:source|int_max|llong_max|infinity)/i);
+    const parentLine = findScoped(/^\s*parent\[.*\]\s*=/i, /=\s*-1/i);
+    return [distLine, parentLine].filter((line) => line != null);
+  }
+  if (/พิจารณา edge|relax|tentative/.test(context)) return findAllScoped([/for\s*\(auto.*adj/i, /if\s*\(dist\[.*<\s*dist\[/i]);
+  if (/mark .*visited|finalize/.test(context)) return findAllScoped([/visited\[.*\]\s*=\s*true/i]);
+  if (/เลือก node|เลือก.*น้อยสุด|เลือก min/.test(context)) return findAllScoped([/if\s*\(!visited.*dist/i, /pq\.top|priority_queue/i]);
+  if (/เริ่ม dijkstra|ตั้ง dist\[source\]/.test(context)) return findAllScoped([/for\s*\(int i.*<\s*n/i, /dist\[source\]\s*=\s*0/i]);
+  if (/ขอบเขต|out of bounds/.test(context)) return findAllScoped([/if\s*\(.*pos\s*</i]);
+  if (/ตรงค่า|พบ key|พบ!|compare/.test(context)) {
+    const line = findScoped(/if\s*\(.*==/i);
+    if (line) return [line];
+  }
+
   return fnIdx >= 0 ? [fnIdx + 1] : [];
 }
 
