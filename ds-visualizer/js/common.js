@@ -22,6 +22,16 @@ const ICONS = {
   fileCode: '<svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
 };
 
+// Keep every page self-contained for project-site deployments such as
+// https://user.github.io/repository/ (no domain-root asset assumptions).
+if (typeof document !== 'undefined' && !document.querySelector('link[rel~="icon"]')) {
+  const favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.type = 'image/svg+xml';
+  favicon.href = 'favicon.svg';
+  document.head.appendChild(favicon);
+}
+
 // --- DOM helpers ---
 function el(tag, attrs = {}, children = []) {
   const e = document.createElement(tag);
@@ -279,14 +289,22 @@ function computeActiveLines(lines, operation, step, sourceTitle = '') {
     inserthead: ['insertathead', 'inserthead'],
     inserttail: ['insertattail', 'inserttail'],
     extractmin: ['extractmin'],
+    delete: ['delete', 'remove'],
     find: ['find'],
-    union: ['union'],
+    union: ['union', 'unite'],
+    tarjan: ['tarjan', 'strongconnect'],
     pick: ['astar', 'dijkstra'],
     update: ['astar', 'bellmanford', 'dijkstra'],
     done: ['return'],
   };
   const normalizedTitle = sourceTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const names = [...(aliases[normalizedOp] || [normalizedOp]), normalizedTitle]
+  const titleAliases = {
+    traverse: ['traverse', 'display', 'printlist', 'print'],
+    tarjanscc: ['strongconnect'],
+    unionbyrank: ['unite'],
+    topologicalsortkahn: ['topologicalsort', 'toposort'],
+  };
+  const names = [...(aliases[normalizedOp] || [normalizedOp]), ...(titleAliases[normalizedTitle] || []), normalizedTitle]
     .filter(Boolean);
   const fnIdx = lines.findIndex((line) => {
     const normalizedLine = line.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -468,7 +486,7 @@ function buildOpsPanel(config) {
 
   // sections
   for (const section of config.sections) {
-    const sec = el('section', { class: 'ops-section' });
+    const sec = el('section', { class: 'ops-section algorithm-ops-section' });
     const title = el('div', { class: 'ops-section-title' });
     title.appendChild(el('div', { class: `ops-section-bar ${section.barColor || 'emerald'}` }));
     title.appendChild(el('h3', {}, section.title));
@@ -480,13 +498,14 @@ function buildOpsPanel(config) {
           type: 'number',
           class: 'input',
           id: input.id,
+          'aria-label': input.label || input.placeholder || input.id,
           placeholder: input.placeholder || '',
           value: input.value != null ? String(input.value) : '',
         });
         inp.addEventListener('input', () => input.onChange && input.onChange(inp.value));
         sec.appendChild(inp);
       } else if (input.type === 'select') {
-        const sel = el('select', { class: 'select', id: input.id });
+        const sel = el('select', { class: 'select', id: input.id, 'aria-label': input.label || input.id });
         for (const opt of input.options) {
           const o = el('option', { value: opt.value }, opt.label);
           if (opt.value === input.value) o.selected = true;
@@ -502,6 +521,7 @@ function buildOpsPanel(config) {
       for (const b of section.buttons) {
         const btn = el('button', {
           class: `btn ${b.kind || ''} ${b.tall ? 'btn-tall' : ''}`,
+          type: 'button',
           onClick: b.onClick,
         });
         btn.innerHTML = b.icon || '';
@@ -514,6 +534,7 @@ function buildOpsPanel(config) {
       for (const b of section.buttons) {
         const btn = el('button', {
           class: `btn ${b.kind || ''} ${b.tall ? 'btn-tall' : ''}`,
+          type: 'button',
           onClick: b.onClick,
         });
         btn.innerHTML = b.icon || '';
@@ -525,6 +546,7 @@ function buildOpsPanel(config) {
       for (const b of section.buttons) {
         const btn = el('button', {
           class: `btn ${b.kind || ''} ${b.tall ? 'btn-tall' : ''}`,
+          type: 'button',
           onClick: b.onClick,
           style: 'width:100%',
         });
@@ -550,14 +572,14 @@ function buildOpsPanel(config) {
     sec.appendChild(title);
 
     const grid = el('div', { class: 'btn-grid-4' });
-    const back = el('button', { class: 'btn', id: 'pb-back' });
+    const back = el('button', { class: 'btn', id: 'pb-back', type: 'button', 'aria-label': 'ย้อนกลับหนึ่งขั้น', title: 'ย้อนกลับหนึ่งขั้น' });
     back.innerHTML = ICONS.skipBack;
 
-    const playBtn = el('button', { class: 'btn', id: 'pb-play', style: 'grid-column: span 2' });
+    const playBtn = el('button', { class: 'btn', id: 'pb-play', type: 'button', 'aria-label': 'เล่นแอนิเมชัน', style: 'grid-column: span 2' });
     playBtn.innerHTML = ICONS.play;
     playBtn.appendChild(el('span', {}, 'Play'));
 
-    const fwd = el('button', { class: 'btn', id: 'pb-fwd' });
+    const fwd = el('button', { class: 'btn', id: 'pb-fwd', type: 'button', 'aria-label': 'เดินหน้าหนึ่งขั้น', title: 'เดินหน้าหนึ่งขั้น' });
     fwd.innerHTML = ICONS.skipFwd;
 
     grid.appendChild(back);
@@ -584,7 +606,7 @@ function buildOpsPanel(config) {
     const speedTxt = el('span', { class: 'mono' }, `${(1000 / pb.speed).toFixed(1)} step/s`);
     labelRow.appendChild(speedTxt);
     sliderRow.appendChild(labelRow);
-    const slider = el('input', { type: 'range', min: '100', max: '2000', step: '50', value: String(pb.speed) });
+    const slider = el('input', { type: 'range', min: '100', max: '2000', step: '50', value: String(pb.speed), 'aria-label': 'ความเร็วแอนิเมชัน' });
     slider.addEventListener('input', () => {
       const v = parseInt(slider.value, 10);
       speedTxt.textContent = `${(1000 / v).toFixed(1)} step/s`;
@@ -596,13 +618,13 @@ function buildOpsPanel(config) {
 
     // clear/reset
     const resetGrid = el('div', { class: 'btn-grid-2', style: 'padding-top: 4px' });
-    const clearBtn = el('button', { class: 'btn btn-ghost' });
+    const clearBtn = el('button', { class: 'btn btn-ghost', type: 'button' });
     clearBtn.innerHTML = ICONS.trash;
     clearBtn.appendChild(el('span', {}, 'ล้าง'));
     clearBtn.addEventListener('click', () => config.onClear && config.onClear());
     resetGrid.appendChild(clearBtn);
 
-    const sampleBtn = el('button', { class: 'btn btn-ghost' });
+    const sampleBtn = el('button', { class: 'btn btn-ghost', type: 'button' });
     sampleBtn.innerHTML = ICONS.rotate;
     sampleBtn.appendChild(el('span', {}, 'ตัวอย่าง'));
     sampleBtn.addEventListener('click', () => config.onReset && config.onReset());
@@ -636,6 +658,9 @@ function updatePlaybackUI(panel, state) {
     playBtn.innerHTML = ICONS.play;
     playBtn.appendChild(el('span', {}, 'Play'));
   }
+  playBtn.setAttribute('aria-label', state.isPlaying ? 'หยุดแอนิเมชันชั่วคราว' : 'เล่นแอนิเมชัน');
+  panel.querySelectorAll('.algorithm-ops-section button, .algorithm-ops-section input, .algorithm-ops-section select')
+    .forEach((control) => { control.disabled = state.isPlaying; });
   sec._backBtn.disabled = !state.canStep;
   sec._fwdBtn.disabled = !state.canStep;
   playBtn.disabled = !state.canStep;
@@ -714,4 +739,5 @@ window.DS = {
   makePointerChip,
   makeNodeBox,
   makeArrowConnector,
+  computeActiveLines,
 };

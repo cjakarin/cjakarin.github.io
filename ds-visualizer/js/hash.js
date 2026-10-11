@@ -338,11 +338,19 @@ function oaInsert(table, key, value, mode) {
       undefined, `probe ชน → ข้าม`));
   }
 
-  // Table full
+  // Quadratic probing with h+i² does not necessarily visit every slot. With
+  // a prime table its insertion guarantee assumes load factor < 0.5.
+  const hasUnusedSlot = table.some((slot) => !slot || slot.deleted);
+  const exhaustedQuadraticSequence = mode === 'quadratic' && hasUnusedSlot;
   steps.push(hashBase('insert',
-    `probe ครบ ${HASH_SIZE} ครั้ง → ตารางเต็ม → insert ล้มเหลว`, [], table, {},
+    exhaustedQuadraticSequence
+      ? `probe sequence วนซ้ำก่อนพบช่องว่าง → insert ล้มเหลว (quadratic probing รับประกันเมื่อ load factor < 0.5)`
+      : `probe ครบ ${HASH_SIZE} ครั้ง → ตารางเต็ม → insert ล้มเหลว`, [], table, {},
     { probeStart: startIdx, probeIdx: null, probeI: HASH_SIZE, probePath: [] },
-    `insert(${key}, ${value}) → ล้มเหลว (Table Full)`, 'Table Full'));
+    exhaustedQuadraticSequence
+      ? `insert(${key}, ${value}) → ล้มเหลว (Probe sequence exhausted)`
+      : `insert(${key}, ${value}) → ล้มเหลว (Table Full)`,
+    exhaustedQuadraticSequence ? 'Probe sequence exhausted' : 'Table Full'));
   return steps;
 }
 
@@ -351,7 +359,7 @@ function oaSearch(table, key, mode) {
   const startIdx = hash1(key);
 
   steps.push(hashBase('search',
-    `เริ้ม search(${key}) — h = hash(${key}) = ${startIdx}`, [], table, {},
+    `เริ่ม search(${key}) — h = hash(${key}) = ${startIdx}`, [], table, {},
     { probeStart: startIdx, probeIdx: startIdx, probeI: 0, probePath: [startIdx] },
     undefined, 'คำนวณ hash'));
 

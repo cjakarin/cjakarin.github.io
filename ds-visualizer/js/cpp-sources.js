@@ -71,7 +71,7 @@ public:
 
     // แทรก value ที่ตำแหน่ง pos (0-indexed)
     void insertAt(int value, int pos) {
-        if (size >= MAX || pos < 0 || pos > size) return;  // ตรวบขอบเขต
+        if (size >= MAX || pos < 0 || pos > size) return;  // ตรวจขอบเขต
         for (int i = size; i > pos; i--) {                 // เลื่อนขวา
             arr[i] = arr[i - 1];                           
         }
@@ -733,7 +733,7 @@ struct Node {
 class HashTableChaining {
 private:
     Node* table[SIZE];
-    int hash(int key) { return key % SIZE; }       
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
@@ -766,7 +766,7 @@ struct Node { int key; int value; Node* next; Node(int k, int v) : key(k), value
 class HashTableChaining {
 private:
     Node* table[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
@@ -797,7 +797,7 @@ struct Node { int key; int value; Node* next; Node(int k, int v) : key(k), value
 class HashTableChaining {
 private:
     Node* table[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableChaining() { for (int i = 0; i < SIZE; i++) table[i] = nullptr; }
 
@@ -837,7 +837,7 @@ private:
     int keys[SIZE];
     int values[SIZE];
     bool used[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -871,7 +871,7 @@ const int SIZE = 11;
 class HashTableLinear {
 private:
     int keys[SIZE]; int values[SIZE]; bool used[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -901,7 +901,7 @@ class HashTableLinear {
 private:
     int keys[SIZE]; int values[SIZE];
     bool used[SIZE]; bool deleted[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableLinear() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 
@@ -934,7 +934,7 @@ const int SIZE = 11;
 class HashTableQuadratic {
 private:
     int keys[SIZE]; int values[SIZE]; bool used[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -968,7 +968,7 @@ const int SIZE = 11;
 class HashTableQuadratic {
 private:
     int keys[SIZE]; int values[SIZE]; bool used[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -998,7 +998,7 @@ class HashTableQuadratic {
 private:
     int keys[SIZE]; int values[SIZE];
     bool used[SIZE]; bool deleted[SIZE];
-    int hash(int key) { return key % SIZE; }
+    int hash(int key) { return (key % SIZE + SIZE) % SIZE; }
 public:
     HashTableQuadratic() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 
@@ -1031,8 +1031,8 @@ const int SIZE = 11;
 class HashTableDouble {
 private:
     int keys[SIZE]; int values[SIZE]; bool used[SIZE];
-    int hash1(int key) { return key % SIZE; }       // h1
-    int hash2(int key) { return 7 - (key % 7); }    // h2 (never 0)
+    int hash1(int key) { return (key % SIZE + SIZE) % SIZE; } // h1
+    int hash2(int key) { return 7 - ((key % 7 + 7) % 7); }   // h2 (never 0)
 public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -1067,8 +1067,8 @@ const int SIZE = 11;
 class HashTableDouble {
 private:
     int keys[SIZE]; int values[SIZE]; bool used[SIZE];
-    int hash1(int key) { return key % SIZE; }
-    int hash2(int key) { return 7 - (key % 7); }
+    int hash1(int key) { return (key % SIZE + SIZE) % SIZE; }
+    int hash2(int key) { return 7 - ((key % 7 + 7) % 7); }
 public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) used[i] = false; }
 
@@ -1099,8 +1099,8 @@ class HashTableDouble {
 private:
     int keys[SIZE]; int values[SIZE];
     bool used[SIZE]; bool deleted[SIZE];
-    int hash1(int key) { return key % SIZE; }
-    int hash2(int key) { return 7 - (key % 7); }
+    int hash1(int key) { return (key % SIZE + SIZE) % SIZE; }
+    int hash2(int key) { return 7 - ((key % 7 + 7) % 7); }
 public:
     HashTableDouble() { for (int i = 0; i < SIZE; i++) { used[i] = false; deleted[i] = false; } }
 

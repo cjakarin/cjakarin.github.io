@@ -2,8 +2,6 @@
 
 เว็บแอป Interactive Data Structure & Algorithm Visualizer พร้อม C++ code แบบ step-by-step
 
-![visits](https://img.shields.io/badge/visits-local-orange)
-
 ## ฟีเจอร์
 
 - **25 visualizers** ครอบคลุม Data Structures และ Algorithms ที่สำคัญ
@@ -39,6 +37,15 @@ python3 -m http.server 8000
 # เปิด http://localhost:8000 ใน browser
 ```
 
+ตรวจสอบความถูกต้องก่อน upload (ต้องมี Node.js แต่ไม่ต้อง `npm install`):
+
+```bash
+npm test
+```
+
+ชุดทดสอบตรวจผลลัพธ์และ invariant ของอัลกอริทึม, syntax JavaScript,
+ลิงก์ภายใน, path สำหรับ GitHub Pages และตำแหน่ง highlight ของ C++
+
 ## Deploy บน GitHub Pages
 
 ### ขั้นตอนที่ 1: สร้าง GitHub repo
@@ -72,44 +79,13 @@ git push origin main
 
 เปิดลิงก์ใน browser — เว็บจะแสดงหน้า index พร้อมเมนูเลือก visualizer
 
-## Visitor Counter
-
-เว็บมี visitor counter ที่ใช้ **localStorage** นับการเข้าชม:
-- หน้า index แสดง counter ขนาดใหญ่ (จำนวน visits รวม + จำนวนวันที่ไม่ซ้ำ)
-- ทุกหน้ามี badge เล็กที่มุมขวาล่างแสดงจำนวน visits รวม
-
-### ข้อจำกัด
-- นับเฉพาะในเครื่องผู้ใช้แต่ละคน (ไม่รวมข้ามเครื่อง)
-- ถ้าผู้ใช้ล้าง browser/cookie จะรีเซ็ต
-- เหมาะสำหรับ demo หรือการศึกษา — ถ้าต้องการนับรวมทุกเครื่องจริงๆ ให้ใช้บริการ third-party เช่น:
-  - [countapi.xyz](https://countapi.xyz/) — ฟรี, ไม่ต้อง sign up
-  - [GoatCounter](https://www.goatcounter.com/) — open source, ฟรีสำหรับ personal
-  - Google Analytics — ฟรี แต่ต้องใส่ cookie consent
-
-### เปลี่ยนไปใช้ CountAPI (นับรวมทุกเครื่อง)
-
-ถ้าต้องการนับรวมทุกเครื่อง แก้ไข `js/common.js` ในฟังก์ชัน `trackVisit()`:
-
-```js
-// แทนที่ trackVisit() ด้วย:
-async function trackVisit() {
-  try {
-    // สร้าง namespace ที่ countapi.xyz ก่อนครั้งแรก (ทำครั้งเดียว)
-    // https://api.countapi.xyz/create?namespace=ds-viz&key=visits&value=0
-    const res = await fetch('https://api.countapi.xyz/hit/ds-viz/visits');
-    const data = await res.json();
-    return { total: data.value, uniqueDays: 0, lastVisit: new Date().toISOString() };
-  } catch (e) {
-    return getVisitStats(); // fallback to localStorage
-  }
-}
-```
-
 ## โครงสร้างไฟล์
 
 ```
 ds-visualizer/
 ├── index.html              (เมนูหลัก 25 การ์ด)
+├── 404.html                (หน้าสำรองสำหรับ GitHub Pages)
+├── favicon.svg
 ├── linkedlist-array.html
 ├── linkedlist-pointer.html
 ├── stack-array.html
@@ -137,7 +113,7 @@ ds-visualizer/
 ├── bplustree.html
 ├── css/style.css
 └── js/
-    ├── common.js           (utilities + playback engine + visitor counter)
+    ├── common.js           (utilities + playback engine + code highlight)
     ├── cpp-sources.js      (C++ code ทั้งหมด)
     ├── view-builder.js     (layout builder สำหรับ view pages)
     ├── linkedlist-array.js
@@ -147,7 +123,15 @@ ds-visualizer/
     ├── hash.js
     ├── heap.js
     ├── dsu.js
-    └── graph.js            (Dijkstra, MST, BFS/DFS, Topo, Bellman-Ford, A*)
+    ├── graph.js            (Dijkstra, MST, BFS/DFS, Topo, Bellman-Ford, A*)
+    ├── floyd-warshall.js
+    ├── johnson.js
+    ├── tarjan-scc.js
+    ├── bst.js
+    ├── avl.js
+    ├── red-black.js
+    └── bplustree.js
+└── tests/                  (algorithm invariants + deployment checks)
 ```
 
 ## เทคโนโลยี
@@ -155,15 +139,13 @@ ds-visualizer/
 - **HTML5** + **CSS3** (custom properties, flexbox, grid)
 - **Vanilla JavaScript** (ไม่มี framework, ไม่มี build step)
 - **SVG** สำหรับวาด graph และ tree
-- **localStorage** สำหรับ visitor counter
 
 ## License
 
 เนื้อหาเพื่อการศึกษา — ใช้ฟรี, แก้ไขได้, แจกจ่ายได้
 
-## แนะนำการต่อยอด
+## หมายเหตุทางอัลกอริทึม
 
-- เพิ่ม visualizers อื่นๆ (Floyd-Warshall, Tarjan's SCC, AVL Tree, Red-Black Tree)
-- ทำให้ graph แก้ไขได้ (add/remove nodes/edges ใน UI)
-- เพิ่มโหมดสอบ (quiz mode) ให้นักเรียนทายผลลัพธ์ก่อนเล่น animation
-- เพิ่ม dark/light mode toggle
+- A* ใช้ heuristic ที่คำนวณสำหรับ goal `G` จึงล็อก goal ไว้ที่ `G`
+- Quadratic probing ใช้ `(h+i²) % SIZE`; การรับประกันว่าจะพบช่องว่างต้องรักษา load factor ต่ำกว่า 0.5
+- Queue แบบ array ใช้โมเดล compact: หลัง dequeue จะเลื่อนสมาชิกที่เหลือไปซ้ายหนึ่งช่อง

@@ -131,9 +131,10 @@ function avlInsert(root, value) {
       steps.push(avlStep('insert',
         `LR Case: balance=${bf} > 1 และ ${v} > ${node.left.value} (inserted ทาง right ของ left) → ต้อง rotate 2 ครั้ง`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
         undefined, 'LR → 2 rotations'));
+      const oldLeftValue = node.left.value;
       node.left = avlRotateLeft(node.left);
       steps.push(avlStep('insert',
-        `ขั้นที่ 1: rotateLeft(${node.left === null ? '?' : '?'}) — ทำให้กลายเป็น LL case`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
+        `ขั้นที่ 1: rotateLeft(${oldLeftValue}) — ทำให้กลายเป็น LL case`, [], root, { [node.id]: 'current', [node.left.id]: 'target' },
         undefined, 'rotateLeft(left)'));
       const newRoot = avlRotateRight(node);
       steps.push(avlStep('insert',

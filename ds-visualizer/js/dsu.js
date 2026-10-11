@@ -70,7 +70,7 @@ function dsuUnion(parent, rank, x, y) {
   steps.push(dsuBase('union', parent, rank,
     `เริ่ม union(${x}, ${y}) — หา root ของทั้งสอง set ก่อน`, [],
     { [`${x}`]: 'current', [`${y}`]: 'target' },
-    { current: x, root: null, path: [] }, undefined, 'เริ้มต้น'));
+    { current: x, root: null, path: [] }, undefined, 'เริ่มต้น'));
 
   // Find root of x
   let rx = x;

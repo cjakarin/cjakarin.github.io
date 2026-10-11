@@ -169,8 +169,9 @@ function llArrDeleteAt(arr, size, pos) {
       { [arr[i + 1].id]: 'current' }, { current: i }));
   }
 
-  // Final: arr without last, size--
-  const newArr = arr.slice(0, size - 1);
+  // Final: remove the selected item. The animation above explains the
+  // equivalent in-place left shift; the snapshot must contain that result.
+  const newArr = arr.slice(0, pos).concat(arr.slice(pos + 1));
   const newSize = size - 1;
   steps.push(llArrBaseStep('deleteAt', newArr, newSize,
     `size-- (จาก ${size} เป็น ${newSize}) — ลบ ${target.value} สำเร็จ`, [],
